@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { GoogleGenAI, Type } from "@google/genai";
 import { calculateUserBalances } from '../../utils/expenseSplitCalculations';
+import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../../utils/currencyHelpers';
 import SplitIndicator from '../expense/SplitIndicator';
 import UserBalanceCard from '../expense/UserBalanceCard';
 import SplitExpenseModal from '../modals/SplitExpenseModal';
@@ -51,7 +52,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     amount: 0,
     category: 'Food',
     date: format(new Date(), 'yyyy-MM-dd'),
-    notes: ''
+    notes: '',
+    currency: 'USD'
   });
 
   // Filter expenses based on selection
@@ -109,10 +111,11 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     const expense: Expense = {
       ...newExpense as Expense,
       id: uuidv4(),
-      date: newExpense.date || format(new Date(), 'yyyy-MM-dd')
+      date: newExpense.date || format(new Date(), 'yyyy-MM-dd'),
+      currency: newExpense.currency || 'USD'
     };
     updateTrip({ ...trip, expenses: [expense, ...trip.expenses] });
-    setNewExpense({ amount: 0, category: 'Food', date: format(new Date(), 'yyyy-MM-dd'), notes: '' });
+    setNewExpense({ amount: 0, category: 'Food', date: format(new Date(), 'yyyy-MM-dd'), notes: '', currency: 'USD' });
     setShowAddExpense(false);
   };
 
@@ -423,7 +426,12 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                       </div>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         <div className="text-right">
-                          <p className="text-xl font-display font-bold text-slate-900 dark:text-white">${exp.amount}</p>
+                          <p className="text-xl font-display font-bold text-slate-900 dark:text-white">
+                            {getCurrencySymbol(exp.currency || 'USD')}{exp.amount}
+                            {exp.currency && exp.currency !== 'USD' && (
+                              <span className="text-xs font-bold text-slate-400 ml-1">{exp.currency}</span>
+                            )}
+                          </p>
                           {exp.amount > currentDailyAvg * 1.5 && (
                             <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest">Outlier</span>
                           )}
@@ -515,22 +523,39 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
             <div className="p-12 space-y-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Total Amount</label>
-                <div className="relative">
-                   <div className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-2xl">$</div>
-                   <input 
-                    type="number"
-                    value={newExpense.amount}
-                    onChange={(e) => setNewExpense({ ...newExpense, amount: Number(e.target.value) })}
-                    className="w-full p-6 pl-12 bg-slate-50 dark:bg-slate-950 rounded-3xl font-display font-bold text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
-                    placeholder="0.00"
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2 relative">
+                     <div className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-2xl">
+                       {getCurrencySymbol(newExpense.currency || 'USD')}
+                     </div>
+                     <input
+                      type="number"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: Number(e.target.value) })}
+                      className="w-full p-6 pl-12 bg-slate-50 dark:bg-slate-950 rounded-3xl font-display font-bold text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <select
+                      value={newExpense.currency}
+                      onChange={(e) => setNewExpense({ ...newExpense, currency: e.target.value })}
+                      className="w-full h-full p-5 bg-slate-50 dark:bg-slate-950 rounded-3xl font-bold text-sm outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                    >
+                      {SUPPORTED_CURRENCIES.map(curr => (
+                        <option key={curr.code} value={curr.code}>
+                          {curr.code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Sector</label>
-                  <select 
+                  <select
                     value={newExpense.category}
                     onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as any })}
                     className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
@@ -540,7 +565,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
-                  <input 
+                  <input
                     type="date"
                     value={newExpense.date}
                     onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
