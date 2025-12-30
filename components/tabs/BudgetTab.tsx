@@ -14,6 +14,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { calculateUserBalances } from '../../utils/expenseSplitCalculations';
 import SplitIndicator from '../expense/SplitIndicator';
 import UserBalanceCard from '../expense/UserBalanceCard';
+import SplitExpenseModal from '../modals/SplitExpenseModal';
 
 interface BudgetTabProps {
   trip: Trip;
@@ -32,6 +33,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showSplitModal, setShowSplitModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -92,6 +94,10 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     updateTrip({ ...trip, expenses: [expense, ...trip.expenses] });
     setNewExpense({ amount: 0, category: 'Food', date: format(new Date(), 'yyyy-MM-dd'), notes: '' });
     setShowAddExpense(false);
+  };
+
+  const handleAddSplitExpense = (expense: Expense) => {
+    updateTrip({ ...trip, expenses: [expense, ...trip.expenses] });
   };
 
   const deleteExpense = (id: string) => {
@@ -185,13 +191,19 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
              <h2 className="text-5xl md:text-6xl font-display font-bold">Expenditure <span className="text-brand-primary">Ops</span></h2>
              <p className="text-white/50 text-lg font-medium">Monitoring capital deployment across {tripDuration} phases. AI-enhanced tracking for mission critical spend.</p>
              <div className="flex flex-wrap gap-4 pt-4">
-                <button 
+                <button
                   onClick={startScanner}
                   className="bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-slate-100 transition-all shadow-xl"
                 >
                   <Camera size={18} className="text-brand-primary" /> Scan Receipt
                 </button>
-                <button 
+                <button
+                  onClick={() => setShowSplitModal(true)}
+                  className="bg-brand-primary text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-brand-secondary transition-all shadow-xl shadow-indigo-500/20"
+                >
+                  <Users size={18} /> Split Expense
+                </button>
+                <button
                   onClick={() => setShowAddExpense(true)}
                   className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all"
                 >
@@ -490,6 +502,16 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           </div>
         </div>
       )}
+
+      {/* Split Expense Modal */}
+      <SplitExpenseModal
+        isOpen={showSplitModal}
+        onClose={() => setShowSplitModal(false)}
+        onSubmit={handleAddSplitExpense}
+        collaborators={trip.collaborators}
+        ownerEmail={trip.ownerEmail}
+        tripCurrency="USD"
+      />
 
       <style>{`
         .animate-spin-slow { animation: spin 10s linear infinite; }
