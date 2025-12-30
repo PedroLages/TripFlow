@@ -1,0 +1,310 @@
+
+import React, { useState } from 'react';
+import { Trip, Activity, ActivityType, TravelDocument } from '../../types';
+import { 
+  Plus, MapPin, Trash2, Wand2, 
+  Palmtree, Utensils, Plane, Bed, Camera, Ticket, Coffee, 
+  ShoppingBag, Bus, Ship, TramFront, Mountain, Waves, 
+  Beer, Music, Theater, Landmark, 
+  Car, Bike, Footprints, LucideIcon, Sparkles, X, 
+  CheckCircle2, Target, Heart, Edit3
+} from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
+
+interface ItineraryTabProps {
+  trip: Trip;
+  updateTrip: (trip: Trip) => void;
+}
+
+const TACTICAL_ICONS = [
+  { name: 'Landmark', icon: Landmark },
+  { name: 'Utensils', icon: Utensils },
+  { name: 'Plane', icon: Plane },
+  { name: 'Bed', icon: Bed },
+  { name: 'Palmtree', icon: Palmtree },
+  { name: 'Camera', icon: Camera },
+  { name: 'Ticket', icon: Ticket },
+  { name: 'Coffee', icon: Coffee },
+  { name: 'ShoppingBag', icon: ShoppingBag },
+  { name: 'Bus', icon: Bus },
+  { name: 'Ship', icon: Ship },
+  { name: 'TramFront', icon: TramFront },
+  { name: 'Mountain', icon: Mountain },
+  { name: 'Waves', icon: Waves },
+  { name: 'Beer', icon: Beer },
+  { name: 'Music', icon: Music },
+  { name: 'Theater', icon: Theater },
+  { name: 'Car', icon: Car },
+  { name: 'Bike', icon: Bike },
+  { name: 'Footprints', icon: Footprints },
+  { name: 'Heart', icon: Heart }
+];
+
+const ICON_MAP: Record<string, LucideIcon> = TACTICAL_ICONS.reduce((acc, curr) => ({ ...acc, [curr.name]: curr.icon }), {});
+
+const ACTIVITY_META: Record<ActivityType, { color: string, lightColor: string, defaultIcon: string }> = {
+  'Attraction': { color: 'bg-indigo-600', lightColor: 'bg-indigo-50 dark:bg-indigo-900/20', defaultIcon: 'Landmark' },
+  'Restaurant': { color: 'bg-brand-accent', lightColor: 'bg-orange-50 dark:bg-orange-900/20', defaultIcon: 'Utensils' },
+  'Transportation': { color: 'bg-slate-900', lightColor: 'bg-slate-100 dark:bg-slate-800', defaultIcon: 'Plane' },
+  'Accommodation': { color: 'bg-teal-500', lightColor: 'bg-teal-50 dark:bg-teal-900/20', defaultIcon: 'Bed' },
+  'Tour': { color: 'bg-purple-500', lightColor: 'bg-purple-50 dark:bg-purple-900/20', defaultIcon: 'Footprints' },
+  'Free time': { color: 'bg-emerald-500', lightColor: 'bg-emerald-50 dark:bg-emerald-900/20', defaultIcon: 'Coffee' },
+  'Custom': { color: 'bg-pink-500', lightColor: 'bg-pink-50 dark:bg-pink-900/20', defaultIcon: 'Target' }
+};
+
+const ActivityIcon = ({ name, className }: { name?: string, className?: string }) => {
+  const IconComponent = ICON_MAP[name || 'MapPin'] || MapPin;
+  return <IconComponent className={className} />;
+};
+
+const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
+  const [editingActivity, setEditingActivity] = useState<{ dayId: string; activity: Activity | null } | null>(null);
+  const isEditor = trip.currentUserRole === 'Editor';
+
+  const findMatchingDoc = (activityName: string, docs: TravelDocument[]) => {
+    const search = activityName.toLowerCase();
+    return docs.find(d => 
+      search.includes(d.title.toLowerCase()) || 
+      search.includes(d.confirmation.toLowerCase())
+    );
+  };
+
+  const saveActivity = (dayId: string, activity: Activity) => {
+    const newItinerary = trip.itinerary.map(day => {
+      if (day.id === dayId) {
+        const idx = day.activities.findIndex(a => a.id === activity.id);
+        const acts = [...day.activities];
+        if (idx > -1) acts[idx] = activity; else acts.push(activity);
+        acts.sort((a, b) => a.startTime.localeCompare(b.startTime));
+        return { ...day, activities: acts };
+      }
+      return day;
+    });
+    updateTrip({ ...trip, itinerary: newItinerary });
+    setEditingActivity(null);
+  };
+
+  const deleteActivity = (dayId: string, activityId: string) => {
+    if (!confirm('Abort this activity?')) return;
+    const newItinerary = trip.itinerary.map(day => {
+      if (day.id === dayId) {
+        return { ...day, activities: day.activities.filter(a => a.id !== activityId) };
+      }
+      return day;
+    });
+    updateTrip({ ...trip, itinerary: newItinerary });
+  };
+
+  return (
+    <div className="p-4 md:p-10 max-w-5xl mx-auto space-y-12">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`rounded-4xl p-8 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden h-64 ${isEditor ? 'bg-brand-secondary' : 'bg-slate-800'}`}>
+          <div className="absolute -right-8 -bottom-8 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 bg-brand-primary rounded-2xl animate-pulse shadow-lg"><Sparkles size={24} /></div>
+              <h2 className="text-2xl font-display font-bold">Sequence Lab</h2>
+            </div>
+            <p className="text-white/60 font-medium max-w-xs">Organize your destination waypoints with tactical precision.</p>
+          </div>
+          {isEditor && (
+            <button className="relative z-10 w-full bg-white text-brand-secondary hover:bg-slate-100 px-6 py-4 rounded-2xl font-bold text-xs flex items-center justify-center gap-3 transition-all shadow-xl">
+              <Wand2 size={18} className="text-brand-primary" /> AI Designer Mode
+            </button>
+          )}
+        </div>
+
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-4xl border border-slate-100 dark:border-slate-700 flex flex-col justify-center text-center shadow-sm">
+          <div className="flex justify-center mb-4">
+             <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-slate-300">
+                <Target size={32} />
+             </div>
+          </div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Mission Parameters</p>
+          <p className="text-lg font-bold mt-2 text-slate-700 dark:text-slate-300">{trip.itinerary.length} Phases Active</p>
+        </div>
+      </section>
+
+      <div className="space-y-20 relative pt-10">
+        <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-slate-100 dark:bg-white/5 hidden md:block" />
+
+        {trip.itinerary.map((day, dayIdx) => (
+          <div key={day.id} className="relative">
+            <div className="sticky top-24 z-20 flex justify-center mb-16">
+              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-white/10 px-8 py-4 rounded-full font-display font-black text-lg shadow-2xl flex items-center gap-6 text-slate-900 dark:text-white">
+                <span className="text-[9px] px-3 py-1 bg-brand-primary text-white rounded-lg uppercase tracking-widest font-black">PHASE {dayIdx + 1}</span>
+                <span>{format(parseISO(day.date), 'EEE, MMM dd')}</span>
+                {isEditor && (
+                  <button onClick={() => setEditingActivity({ dayId: day.id, activity: { id: uuidv4(), type: 'Attraction', name: '', startTime: '09:00', endTime: '10:00', location: '', notes: '', cost: 0, iconName: 'Landmark' } })} className="w-9 h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center hover:rotate-90 transition-all shadow-lg">
+                    <Plus size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-12">
+              {day.activities.map((act, idx) => {
+                const isEven = idx % 2 === 0;
+                const meta = ACTIVITY_META[act.type];
+                const matchingDoc = findMatchingDoc(act.name, trip.documents);
+
+                return (
+                  <div key={act.id} className={`flex flex-col md:flex-row gap-8 items-center ${isEven ? 'md:flex-row-reverse' : ''} group`}>
+                    <div className="hidden md:block w-1/2" />
+                    <div className="absolute left-6 md:left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-4 border-white dark:border-slate-950 bg-slate-200 dark:bg-slate-800 z-10 hidden md:block group-hover:bg-brand-primary transition-colors duration-500" />
+                    <div className="w-full md:w-1/2">
+                      <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-0 shadow-sm border border-slate-200/60 dark:border-white/5 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 relative overflow-hidden boarding-pass-notch">
+                        <div className="flex min-h-36">
+                          <div className={`${meta.color} w-28 flex flex-col items-center justify-center text-white relative`}>
+                            <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl mb-2">
+                              <ActivityIcon name={act.iconName || meta.defaultIcon} className="w-6 h-6" />
+                            </div>
+                            <p className="text-base font-black tracking-tight">{act.startTime}</p>
+                          </div>
+
+                          <div className="flex-1 p-6 flex flex-col justify-between">
+                            <div className="space-y-1">
+                              <div className="flex justify-between items-start">
+                                <h4 className="font-display font-bold text-lg text-slate-900 dark:text-white leading-tight">{act.name}</h4>
+                                {matchingDoc && <span className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg"><CheckCircle2 size={12} /></span>}
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-400">
+                                <MapPin size={10} className="text-brand-primary" />
+                                <p className="text-[10px] font-bold truncate">{act.location || 'Sector TBD'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                              <p className="text-[10px] text-slate-400 font-medium italic line-clamp-1">{act.notes || 'No briefing notes.'}</p>
+                              {isEditor && (
+                                <div className="flex gap-1">
+                                  <button onClick={() => setEditingActivity({ dayId: day.id, activity: act })} className="p-2 text-slate-300 hover:text-brand-primary transition-colors"><Edit3 size={14} /></button>
+                                  <button onClick={() => deleteActivity(day.id, act.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {editingActivity && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8 bg-slate-950/95 backdrop-blur-3xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] sm:rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[85vh] border border-white/5">
+            {/* Modal Header - Fixed HUD Pinned Header */}
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
+              <div className="space-y-1">
+                <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
+                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">Refining Objective Parameters</p>
+              </div>
+              <button 
+                onClick={() => setEditingActivity(null)} 
+                className="w-10 h-10 sm:w-12 sm:h-12 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl flex items-center justify-center transition-all text-slate-400"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Scrollable Modal Content - Form Fields Only */}
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Objective Signature (Icon)</label>
+                <div className="grid grid-cols-7 gap-2 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5">
+                  {TACTICAL_ICONS.map(item => {
+                    const Icon = item.icon;
+                    const isSelected = editingActivity.activity?.iconName === item.name;
+                    return (
+                      <button 
+                        key={item.name}
+                        onClick={() => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, iconName: item.name } }) : null)}
+                        className={`aspect-square rounded-xl flex items-center justify-center transition-all active:scale-90 ${isSelected ? 'bg-brand-primary text-white shadow-md scale-105 z-10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
+                      >
+                        <Icon size={16} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Designation</label>
+                <input 
+                  value={editingActivity.activity?.name} 
+                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, name: e.target.value } }) : null)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
+                  placeholder="e.g., Shibuya Sky"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Arrival</label>
+                  <input 
+                    type="time" 
+                    value={editingActivity.activity?.startTime} 
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)} 
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl outline-none font-bold dark:text-white text-sm" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Departure</label>
+                  <input 
+                    type="time" 
+                    value={editingActivity.activity?.endTime} 
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)} 
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl outline-none font-bold dark:text-white text-sm" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Geographic Sector</label>
+                <input 
+                  value={editingActivity.activity?.location} 
+                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)} 
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl font-bold outline-none dark:text-white text-sm shadow-sm" 
+                  placeholder="City or Coordinates" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Briefing Notes</label>
+                <textarea 
+                  value={editingActivity.activity?.notes} 
+                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, notes: e.target.value } }) : null)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm" 
+                  placeholder="Key sub-objectives or arrival details..."
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer - Fixed HUD Pinned Footer */}
+            <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-white/5 flex flex-row items-center justify-between gap-4 flex-shrink-0">
+              <button 
+                onClick={() => setEditingActivity(null)} 
+                className="flex-1 py-4 font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"
+              >
+                Abort
+              </button>
+              <button 
+                onClick={() => saveActivity(editingActivity.dayId, editingActivity.activity!)} 
+                className="flex-[2] py-4 font-bold bg-brand-primary text-white rounded-[1.5rem] shadow-xl hover:shadow-indigo-500/30 active:scale-95 transition-all text-sm uppercase tracking-widest"
+              >
+                Lock Objective
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ItineraryTab;

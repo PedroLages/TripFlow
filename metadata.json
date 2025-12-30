@@ -1,0 +1,8 @@
+{
+  "name": "TripFlow - Smart Trip Planner",
+  "description": "A comprehensive personal trip planning application to organize itineraries, budgets, packing lists, and documents in one beautiful interface.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
