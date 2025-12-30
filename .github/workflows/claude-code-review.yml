@@ -1,0 +1,93 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@main
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          track_progress: true
+          prompt: |
+            You are conducting a comprehensive code review for TripFlow, a smart trip planning application built with React, TypeScript, and Vite.
+
+            ## Tech Stack Context
+            - **Frontend**: React 19.2, TypeScript 5.8, Vite 6.2
+            - **Routing**: React Router v7
+            - **UI/Icons**: Lucide React
+            - **Charts**: Recharts
+            - **Date Handling**: date-fns
+            - **AI Integration**: Google Gemini API
+
+            ## Review Focus Areas
+
+            ### 1. Code Quality & Architecture
+            - Verify React component patterns follow hooks and functional component best practices
+            - Check for proper TypeScript typing (avoid `any`, use interfaces/types appropriately)
+            - Ensure proper separation of concerns (components, hooks, utilities, types)
+            - Validate that state management is appropriate for the component's needs
+            - Look for proper error boundaries and error handling
+
+            ### 2. Security & Data Handling
+            - Check for proper input validation and sanitization
+            - Ensure API keys and sensitive data are not exposed in client code
+            - Validate that user data (trip details, budget info, documents) is handled securely
+            - Check for XSS vulnerabilities in dynamic content rendering
+            - Verify proper authentication/authorization checks if applicable
+
+            ### 3. Performance Optimization
+            - Look for unnecessary re-renders (missing React.memo, useCallback, useMemo)
+            - Check for proper code splitting and lazy loading opportunities
+            - Verify efficient data structures and algorithms
+            - Ensure proper cleanup in useEffect hooks
+            - Check bundle size implications of new dependencies
+
+            ### 4. User Experience & Accessibility
+            - Verify responsive design considerations (mobile, tablet, desktop)
+            - Check for proper ARIA labels and semantic HTML
+            - Ensure keyboard navigation works properly
+            - Validate loading states and error messages are user-friendly
+            - Check for proper focus management
+
+            ### 5. Testing & Maintainability
+            - Assess test coverage for critical functionality
+            - Check for clear, self-documenting code with appropriate comments
+            - Verify proper PropTypes or TypeScript interfaces for components
+            - Look for potential edge cases that need handling
+
+            ### 6. TripFlow-Specific Considerations
+            - Trip data structure consistency (Trip type from types.ts)
+            - Proper integration with existing components (Dashboard, TripDetail, forms)
+            - Budget calculation accuracy
+            - Date handling consistency using date-fns
+            - Map integration considerations
+            - Document upload and management
+
+            ## Review Approach
+            Reference the CLAUDE.md file in the repository root for project-specific conventions and coding standards.
+
+            Provide inline comments for specific code issues and leave top-level comments for general observations or architectural recommendations.
+
+            Focus on high-impact issues that affect functionality, security, performance, or maintainability. Mark minor style suggestions as "Nit:" to distinguish them from critical issues.
+
+            Use only the following tools:
+            - Use gh comment functions to leave inline comments on specific lines
+            - Use bash with gh pr diff to see the diff
+            - Use bash with gh search to find relevant code context
+            - Use bash with gh pr comment to leave top-level PR comments
