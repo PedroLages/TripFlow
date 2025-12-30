@@ -247,6 +247,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                     ))}
                   </Pie>
                   <Tooltip 
+                    wrapperStyle={{ zIndex: 1000 }}
                     contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
                   />
                 </PieChart>

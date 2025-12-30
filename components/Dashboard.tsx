@@ -16,6 +16,14 @@ interface DashboardProps {
   deleteTrip: (id: string) => void;
 }
 
+const FALLBACK_TIPS = [
+  "Always carry a physical backup of your primary credentials.",
+  "Download offline sectors for your mission area before deployment.",
+  "Secure your digital presence with a tactical VPN connection.",
+  "Synchronize your local time settings immediately upon arrival.",
+  "Monitor local weather patterns for potential operational disruptions."
+];
+
 const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) => {
   const navigate = useNavigate();
   const today = new Date();
@@ -49,7 +57,9 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
         });
         setAiTip(response.text || null);
       } catch (e) {
-        console.error("AI Tip failed", e);
+        console.warn("AI Tip quota limit or error. Using fallback intel.");
+        const randomTip = FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
+        setAiTip(randomTip);
       } finally {
         setIsLoadingTip(false);
       }
