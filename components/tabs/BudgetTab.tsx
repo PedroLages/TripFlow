@@ -216,21 +216,24 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
              <div className="flex flex-wrap gap-4 pt-4">
                 <button
                   onClick={startScanner}
+                  aria-label="Scan receipt with camera"
                   className="bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-slate-100 transition-all shadow-xl"
                 >
-                  <Camera size={18} className="text-brand-primary" /> Scan Receipt
+                  <Camera size={18} className="text-brand-primary" aria-hidden="true" /> Scan Receipt
                 </button>
                 <button
                   onClick={() => setShowSplitModal(true)}
+                  aria-label="Create split expense"
                   className="bg-brand-primary text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-brand-secondary transition-all shadow-xl shadow-indigo-500/20"
                 >
-                  <Users size={18} /> Split Expense
+                  <Users size={18} aria-hidden="true" /> Split Expense
                 </button>
                 <button
                   onClick={() => setShowAddExpense(true)}
+                  aria-label="Add expense manually"
                   className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all"
                 >
-                  <Plus size={18} /> Manual Entry
+                  <Plus size={18} aria-hidden="true" /> Manual Entry
                 </button>
              </div>
           </div>
@@ -372,6 +375,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           </div>
           <button
             onClick={() => setExpenseFilter('all')}
+            aria-label="Show all expenses"
+            aria-pressed={expenseFilter === 'all'}
             className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
               expenseFilter === 'all'
                 ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
@@ -382,17 +387,21 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           </button>
           <button
             onClick={() => setExpenseFilter('split')}
+            aria-label="Show only split expenses"
+            aria-pressed={expenseFilter === 'split'}
             className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${
               expenseFilter === 'split'
                 ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
             }`}
           >
-            <Users size={14} />
+            <Users size={14} aria-hidden="true" />
             Split ({expenseCounts.split})
           </button>
           <button
             onClick={() => setExpenseFilter('personal')}
+            aria-label="Show only personal expenses"
+            aria-pressed={expenseFilter === 'personal'}
             className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
               expenseFilter === 'personal'
                 ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
@@ -438,9 +447,10 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                         </div>
                         <button
                           onClick={() => deleteExpense(exp.id)}
+                          aria-label={`Delete ${exp.notes || exp.category} expense`}
                           className="p-3 text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={18} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
@@ -481,7 +491,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
       {/* Receipt Scanner Modal */}
       {showScanner && (
-        <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
+        <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-label="Receipt scanner">
            <div className="relative w-full max-w-2xl aspect-[3/4] bg-black rounded-[4rem] overflow-hidden border-4 border-white/10 shadow-3xl">
               <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
               <canvas ref={canvasRef} className="hidden" />
@@ -501,8 +511,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
               </div>
 
               <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-8">
-                <button onClick={stopScanner} className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"><X /></button>
-                <button onClick={captureAndParse} className="w-24 h-24 rounded-[2.5rem] bg-white border-8 border-brand-primary shadow-3xl flex items-center justify-center text-brand-primary hover:scale-105 active:scale-95 transition-all"><Camera size={36}/></button>
+                <button onClick={stopScanner} aria-label="Close scanner" className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"><X aria-hidden="true" /></button>
+                <button onClick={captureAndParse} aria-label="Capture receipt" className="w-24 h-24 rounded-[2.5rem] bg-white border-8 border-brand-primary shadow-3xl flex items-center justify-center text-brand-primary hover:scale-105 active:scale-95 transition-all"><Camera size={36} aria-hidden="true" /></button>
               </div>
            </div>
         </div>
@@ -510,14 +520,14 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
       {/* Manual Expense Modal */}
       {showAddExpense && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
           <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-12 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50">
               <div>
-                <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
+                <h3 id="expense-modal-title" className="text-3xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
                 <p className="text-slate-400 font-medium">Capture capital deployment data.</p>
               </div>
-              <button onClick={() => setShowAddExpense(false)} className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"><X size={24} /></button>
+              <button onClick={() => setShowAddExpense(false)} aria-label="Close expense modal" className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"><X size={24} aria-hidden="true" /></button>
             </div>
             
             <div className="p-12 space-y-8">
