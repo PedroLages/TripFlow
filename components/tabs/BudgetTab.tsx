@@ -230,7 +230,12 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
               </div>
            </div>
            <div className="w-full md:w-64 h-64 relative">
-             <ResponsiveContainer width="100%" height="100%">
+             {/* Center labels moved before chart and explicitly given lower z-index to avoid overlapping tooltips */}
+             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</p>
+                <p className="text-2xl font-display font-bold">${totalSpent.toLocaleString()}</p>
+             </div>
+             <ResponsiveContainer width="100%" height="100%" className="z-10 relative">
                 <PieChart>
                   <Pie
                     data={expensesByCategory}
@@ -252,10 +257,6 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                   />
                 </PieChart>
              </ResponsiveContainer>
-             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</p>
-                <p className="text-2xl font-display font-bold">${totalSpent.toLocaleString()}</p>
-             </div>
            </div>
         </div>
 

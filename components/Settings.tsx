@@ -1,14 +1,20 @@
 
 import React from 'react';
 import { UserSettings } from '../types';
-import { User, Globe, DollarSign, Moon, Sun, Shield } from 'lucide-react';
+import { 
+  User, Globe, DollarSign, Moon, Sun, Shield, 
+  Database, Trash2, Download, Zap, ShieldAlert,
+  ChevronRight, CheckCircle2, AlertCircle, Activity,
+  Lock, Key
+} from 'lucide-react';
 
 interface SettingsProps {
   settings: UserSettings;
   setSettings: (settings: UserSettings) => void;
+  onLogout?: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ settings, setSettings }) => {
+const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) => {
   const handleChange = (name: keyof UserSettings, value: string) => {
     setSettings({ ...settings, [name]: value });
   };
@@ -17,85 +23,209 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings }) => {
     setSettings({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' });
   };
 
+  const handleClearCache = () => {
+    if (confirm('CRITICAL: This will wipe all local mission data and resets. Proceed?')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
+  const handleExport = () => {
+    const data = localStorage.getItem('tripflow_trips');
+    const blob = new Blob([data || '[]'], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tripflow-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+  };
+
   return (
-    <div className="p-6 md:p-10 max-w-2xl mx-auto w-full">
-      <h2 className="text-3xl font-bold mb-10">App Settings</h2>
-
-      <section className="space-y-8">
-        <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 space-y-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-sky-50 dark:bg-sky-900/30 rounded-2xl text-sky-500">
-              <User size={24} />
+    <div className="h-full overflow-y-auto no-scrollbar bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
+      <div className="p-6 md:p-12 max-w-5xl mx-auto w-full space-y-10 pb-32">
+        
+        {/* Header Section */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-brand-primary/10 text-brand-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                <Lock size={12} /> System Admin
+              </span>
             </div>
-            <div>
-              <h3 className="font-bold text-lg">Profile Information</h3>
-              <p className="text-xs text-slate-400 uppercase font-black tracking-widest">General details</p>
+            <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-slate-900 dark:text-white">
+              Operational <span className="text-brand-primary">Parameters</span>
+            </h1>
+            <p className="text-slate-500 font-medium text-lg">Configure your personal and tactical environment.</p>
+          </div>
+        </header>
+
+        {/* Profile Card */}
+        <section className="bg-white dark:bg-slate-900 rounded-[3rem] p-8 md:p-12 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none font-black text-8xl leading-none uppercase">ID-01</div>
+          <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
+            <div className="relative">
+              <img src="https://i.pravatar.cc/150?u=demo" className="w-32 h-32 rounded-[2.5rem] border-4 border-white dark:border-slate-800 shadow-2xl" alt="Pilot" />
+              <div className="absolute -bottom-2 -right-2 bg-brand-success text-white p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-800">
+                <CheckCircle2 size={16} />
+              </div>
+            </div>
+            <div className="text-center md:text-left space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary">Lead Planner Access</p>
+              <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white">{settings.name || 'Demo Traveler'}</h2>
+              <p className="text-slate-500 font-medium">{settings.email || 'demo@tripflow.ai'}</p>
+            </div>
+            <div className="md:ml-auto flex gap-3">
+               <button className="px-6 py-3 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-bold hover:bg-slate-100 transition-all border border-slate-100 dark:border-white/5">Update Photo</button>
+               {onLogout && (
+                 <button onClick={onLogout} className="px-6 py-3 bg-red-50 text-red-500 rounded-2xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all">Sign Out</button>
+               )}
             </div>
           </div>
+        </section>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-400 uppercase ml-1">Display Name</label>
-            <input 
-              value={settings.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-transparent focus:border-sky-500 rounded-2xl outline-none transition-all"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase ml-1">Home Location</label>
-              <div className="relative">
-                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        {/* Grid Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Section 1: Identity & Sector */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+              <User size={14} className="text-brand-primary" /> Phase 0: Identity
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Callsign</label>
                 <input 
-                  value={settings.homeLocation}
-                  onChange={(e) => handleChange('homeLocation', e.target.value)}
-                  className="w-full p-4 pl-12 bg-slate-50 dark:bg-slate-900 border border-transparent focus:border-sky-500 rounded-2xl outline-none transition-all"
+                  value={settings.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  placeholder="Operational Handle"
+                  className="w-full p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-[1.5rem] font-bold outline-none transition-all dark:text-white shadow-inner"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-400 uppercase ml-1">Default Currency</label>
-              <div className="relative">
-                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <select 
-                  value={settings.currency}
-                  onChange={(e) => handleChange('currency', e.target.value)}
-                  className="w-full p-4 pl-12 bg-slate-50 dark:bg-slate-900 border border-transparent focus:border-sky-500 rounded-2xl outline-none transition-all appearance-none"
-                >
-                  {['USD', 'EUR', 'GBP', 'JPY', 'CAD'].map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Home Sector</label>
+                <div className="relative">
+                  <Globe className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input 
+                    value={settings.homeLocation}
+                    onChange={(e) => handleChange('homeLocation', e.target.value)}
+                    className="w-full p-5 pl-14 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-[1.5rem] font-bold outline-none transition-all dark:text-white shadow-inner"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl ${settings.theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-yellow-50 text-yellow-600'}`}>
-              {settings.theme === 'dark' ? <Moon size={24} /> : <Sun size={24} />}
-            </div>
-            <div>
-              <h3 className="font-bold text-lg">Dark Mode</h3>
-              <p className="text-xs text-slate-400 font-medium">Toggle application appearance</p>
+          {/* Section 2: Environment UI */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+              <Activity size={14} className="text-brand-primary" /> Phase 1: Environment
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Currency Protocol</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <select 
+                    value={settings.currency}
+                    onChange={(e) => handleChange('currency', e.target.value)}
+                    className="w-full p-5 pl-14 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-[1.5rem] font-bold outline-none transition-all dark:text-white appearance-none shadow-inner"
+                  >
+                    {['USD', 'EUR', 'GBP', 'JPY', 'CAD'].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Interface Mode</label>
+                <button 
+                  onClick={toggleTheme}
+                  className="w-full flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent hover:border-brand-primary/20 rounded-[1.5rem] transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${settings.theme === 'dark' ? 'bg-indigo-900/30 text-indigo-400' : 'bg-orange-50 text-orange-600'}`}>
+                      {settings.theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+                    </div>
+                    <span className="font-bold dark:text-white capitalize">{settings.theme} Theme Active</span>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-all relative ${settings.theme === 'dark' ? 'bg-brand-primary' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${settings.theme === 'dark' ? 'left-7' : 'left-1'}`} />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
-          <button 
-            onClick={toggleTheme}
-            className={`w-14 h-8 rounded-full transition-all relative ${settings.theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-200'}`}
-          >
-            <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-sm transition-all ${settings.theme === 'dark' ? 'left-7' : 'left-1'}`} />
-          </button>
-        </div>
 
-        <div className="p-8 text-center">
-          <p className="text-slate-400 text-sm">TripFlow Prototype v1.0.0</p>
-          <div className="flex justify-center gap-4 mt-2">
-            <button className="text-sky-500 text-xs font-bold hover:underline">Privacy Policy</button>
-            <button className="text-sky-500 text-xs font-bold hover:underline">Terms of Service</button>
+          {/* Section 3: AI Module Status */}
+          <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden group border border-white/5">
+            <Zap className="absolute -right-6 -bottom-6 w-32 h-32 text-brand-primary opacity-5 group-hover:opacity-10 transition-opacity" />
+            <div className="space-y-6 relative z-10">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 flex items-center gap-3">
+                <Zap size={14} className="text-brand-primary" /> Intelligence Module
+              </h3>
+              <div className="space-y-6">
+                 <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xl font-display font-bold">Gemini Engine</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-brand-primary mt-1">Status: Active Service</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-2xl bg-brand-primary/20 flex items-center justify-center text-brand-primary">
+                      <Key size={20} />
+                    </div>
+                 </div>
+                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-xs font-medium text-white/50 leading-relaxed italic">
+                   "AI Recon protocols are currently enabled across Itinerary and Budget sectors."
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Maintenance Protocols */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+              <Database size={14} className="text-brand-primary" /> Maintenance
+            </h3>
+            <div className="grid grid-cols-1 gap-4">
+              <button 
+                onClick={handleExport}
+                className="w-full p-6 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl flex items-center justify-between group transition-all"
+              >
+                <div className="flex items-center gap-4">
+                   <Download size={20} className="text-brand-primary" />
+                   <div className="text-left">
+                      <p className="font-bold text-slate-900 dark:text-white text-sm">Extraction Protocol</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Backup trip data (JSON)</p>
+                   </div>
+                </div>
+                <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+              </button>
+              
+              <button 
+                onClick={handleClearCache}
+                className="w-full p-6 bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-3xl flex items-center justify-between group transition-all"
+              >
+                <div className="flex items-center gap-4">
+                   <Trash2 size={20} className="text-red-500" />
+                   <div className="text-left">
+                      <p className="font-bold text-red-600 dark:text-red-400 text-sm">Wipe Operations</p>
+                      <p className="text-[10px] text-red-400/60 font-bold uppercase tracking-widest">Clear all local mission data</p>
+                   </div>
+                </div>
+                <ShieldAlert size={18} className="text-red-200" />
+              </button>
+            </div>
           </div>
         </div>
-      </section>
+
+        {/* System Info Footer */}
+        <footer className="pt-10 text-center space-y-4">
+          <div className="inline-flex items-center gap-3 px-6 py-2 bg-slate-100 dark:bg-slate-900 rounded-full text-slate-400 dark:text-slate-600 text-[10px] font-black uppercase tracking-widest">
+            TripFlow Prototype • Build v1.4.2-Tactical
+          </div>
+          <div className="flex justify-center gap-8">
+            <button className="text-[10px] font-black text-slate-400 hover:text-brand-primary uppercase tracking-widest transition-colors">Privacy Policy</button>
+            <button className="text-[10px] font-black text-slate-400 hover:text-brand-primary uppercase tracking-widest transition-colors">Operational Terms</button>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };
