@@ -1,8 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Trip, Expense } from '../../types';
-import { 
-  DollarSign, PieChart as ChartIcon, Plus, Trash2, 
+import {
+  DollarSign, PieChart as ChartIcon, Plus, Trash2,
   Calendar, TrendingUp, RefreshCw, ArrowRightLeft,
   Camera, Zap, Loader2, X, Check, AlertCircle,
   TrendingDown, Info, Receipt, Wallet
@@ -11,6 +11,9 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { GoogleGenAI, Type } from "@google/genai";
+import { calculateUserBalances } from '../../utils/expenseSplitCalculations';
+import SplitIndicator from '../expense/SplitIndicator';
+import UserBalanceCard from '../expense/UserBalanceCard';
 
 interface BudgetTabProps {
   trip: Trip;
@@ -59,6 +62,15 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     name: cat,
     value: trip.expenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0)
   })).filter(cat => cat.value > 0);
+
+  // Calculate user balances for split expenses
+  const userBalances = useMemo(() => {
+    return calculateUserBalances(trip.expenses, trip.collaborators, trip.ownerEmail);
+  }, [trip.expenses, trip.collaborators, trip.ownerEmail]);
+
+  // Get current user's balance (demo user for now)
+  const currentUserEmail = 'demo@tripflow.ai';
+  const currentUserBalance = userBalances.get(currentUserEmail);
 
   // Grouping expenses by date
   const groupedExpenses = trip.expenses.reduce((groups: Record<string, Expense[]>, expense) => {
@@ -292,6 +304,18 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
         </div>
       </section>
 
+      {/* User Balance Card */}
+      {currentUserBalance && (
+        <section className="px-4">
+          <UserBalanceCard
+            balance={currentUserBalance}
+            currency="USD"
+            userName="You"
+            className="max-w-md"
+          />
+        </section>
+      )}
+
       {/* Grouped Ledger */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
@@ -315,30 +339,42 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {groupedExpenses[date].map(exp => (
-                  <div key={exp.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-xl transition-all">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: CATEGORY_COLORS[exp.category] }}>
-                        <DollarSign size={20} />
+                  <div key={exp.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-white/5 group hover:shadow-xl transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-5 flex-1 min-w-0">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[exp.category] }}>
+                          <DollarSign size={20} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-slate-900 dark:text-white leading-tight truncate">{exp.notes || exp.category}</h4>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{exp.category}</span>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white leading-tight">{exp.notes || exp.category}</h4>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{exp.category}</span>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-xl font-display font-bold text-slate-900 dark:text-white">${exp.amount}</p>
+                          {exp.amount > currentDailyAvg * 1.5 && (
+                            <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest">Outlier</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteExpense(exp.id)}
+                          className="p-3 text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="text-xl font-display font-bold text-slate-900 dark:text-white">${exp.amount}</p>
-                        {exp.amount > currentDailyAvg * 1.5 && (
-                          <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest">Outlier</span>
-                        )}
+                    {/* Split Indicator */}
+                    {exp.isSplit && (
+                      <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
+                        <SplitIndicator
+                          expense={exp}
+                          collaborators={trip.collaborators}
+                          ownerEmail={trip.ownerEmail}
+                        />
                       </div>
-                      <button 
-                        onClick={() => deleteExpense(exp.id)}
-                        className="p-3 text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
