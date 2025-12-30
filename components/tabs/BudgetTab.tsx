@@ -5,7 +5,7 @@ import {
   DollarSign, PieChart as ChartIcon, Plus, Trash2,
   Calendar, TrendingUp, RefreshCw, ArrowRightLeft,
   Camera, Zap, Loader2, X, Check, AlertCircle,
-  TrendingDown, Info, Receipt, Wallet
+  TrendingDown, Info, Receipt, Wallet, Users, Filter
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
@@ -31,11 +31,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Other': '#94a3b8'
 };
 
+type ExpenseFilter = 'all' | 'split' | 'personal';
+
 const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [expenseFilter, setExpenseFilter] = useState<ExpenseFilter>('all');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -51,8 +54,25 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     notes: ''
   });
 
+  // Filter expenses based on selection
+  const filteredExpenses = useMemo(() => {
+    if (expenseFilter === 'split') {
+      return trip.expenses.filter(exp => exp.isSplit);
+    } else if (expenseFilter === 'personal') {
+      return trip.expenses.filter(exp => !exp.isSplit);
+    }
+    return trip.expenses;
+  }, [trip.expenses, expenseFilter]);
+
+  // Count expenses by filter type
+  const expenseCounts = useMemo(() => ({
+    all: trip.expenses.length,
+    split: trip.expenses.filter(exp => exp.isSplit).length,
+    personal: trip.expenses.filter(exp => !exp.isSplit).length,
+  }), [trip.expenses]);
+
   // Calculations
-  const totalSpent = trip.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalSpent = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const remainingBudget = Math.max(0, trip.budget - totalSpent);
   const tripDuration = Math.max(1, differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1);
   const dailyAllocated = trip.budget / tripDuration;
@@ -62,7 +82,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
   const expensesByCategory = Object.keys(CATEGORY_COLORS).map(cat => ({
     name: cat,
-    value: trip.expenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0)
+    value: filteredExpenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0)
   })).filter(cat => cat.value > 0);
 
   // Calculate user balances for split expenses
@@ -74,8 +94,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const currentUserEmail = 'demo@tripflow.ai';
   const currentUserBalance = userBalances.get(currentUserEmail);
 
-  // Grouping expenses by date
-  const groupedExpenses = trip.expenses.reduce((groups: Record<string, Expense[]>, expense) => {
+  // Grouping expenses by date (using filtered expenses)
+  const groupedExpenses = filteredExpenses.reduce((groups: Record<string, Expense[]>, expense) => {
     const date = expense.date;
     if (!groups[date]) groups[date] = [];
     groups[date].push(expense);
@@ -341,6 +361,45 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           </div>
         </div>
 
+        {/* Expense Filter Controls */}
+        <div className="flex flex-wrap items-center gap-3 px-4">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <Filter size={14} />
+            <span>Filter:</span>
+          </div>
+          <button
+            onClick={() => setExpenseFilter('all')}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+              expenseFilter === 'all'
+                ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
+            }`}
+          >
+            All ({expenseCounts.all})
+          </button>
+          <button
+            onClick={() => setExpenseFilter('split')}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${
+              expenseFilter === 'split'
+                ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
+            }`}
+          >
+            <Users size={14} />
+            Split ({expenseCounts.split})
+          </button>
+          <button
+            onClick={() => setExpenseFilter('personal')}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+              expenseFilter === 'personal'
+                ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
+            }`}
+          >
+            Personal ({expenseCounts.personal})
+          </button>
+        </div>
+
         <div className="space-y-12">
           {sortedDates.map(date => (
             <div key={date} className="space-y-6">
@@ -392,13 +451,21 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
               </div>
             </div>
           ))}
-          {trip.expenses.length === 0 && (
+          {filteredExpenses.length === 0 && (
             <div className="py-24 text-center bg-white dark:bg-slate-900 rounded-[4rem] border border-slate-100 dark:border-white/5">
                <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 text-slate-200">
                  <AlertCircle size={48} />
                </div>
-               <h4 className="text-2xl font-display font-bold">No Expenditure Detected</h4>
-               <p className="text-slate-400 mt-2">Begin deploying capital to see the mission matrix.</p>
+               <h4 className="text-2xl font-display font-bold">
+                 {expenseFilter === 'all' ? 'No Expenditure Detected' :
+                  expenseFilter === 'split' ? 'No Split Expenses' :
+                  'No Personal Expenses'}
+               </h4>
+               <p className="text-slate-400 mt-2">
+                 {expenseFilter === 'all' ? 'Begin deploying capital to see the mission matrix.' :
+                  expenseFilter === 'split' ? 'Split expenses will appear here when created.' :
+                  'Personal expenses will appear here when created.'}
+               </p>
             </div>
           )}
         </div>
