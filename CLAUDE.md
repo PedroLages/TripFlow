@@ -409,6 +409,47 @@ Reviews:
 
 **Note**: The workflows use `claude_code_oauth_token` which leverages your Claude Code subscription. This is different from `anthropic_api_key` which requires separate API credits.
 
+**Workflow Badges**: The status badges in README.md will show as "unknown" until workflows run successfully for the first time. After the first successful PR review, badges will display proper status.
+
+### Playwright Setup for Design Reviews
+
+To run comprehensive design reviews using the design-review agent:
+
+1. **Install Playwright**
+
+   ```bash
+   npm install -D @playwright/test
+   npx playwright install
+   ```
+
+2. **Configure Playwright MCP Server**
+
+   If using Claude Code with MCP support, add to your MCP configuration:
+
+   ```json
+   {
+     "mcpServers": {
+       "playwright": {
+         "command": "npx",
+         "args": ["-y", "@playwright/mcp-server"]
+       }
+     }
+   }
+   ```
+
+3. **Start Dev Server for Testing**
+
+   ```bash
+   npm run dev
+   # Server will be available at http://localhost:5173 (or next available port)
+   ```
+
+4. **Run Design Review**
+
+   Use the `/design-review` slash command in Claude Code, or manually invoke the design-review agent from `.claude/agents/design-review.md`.
+
+**Note**: Design reviews require a running preview/dev environment to test interactive elements, responsiveness, and accessibility.
+
 ### Local Development Setup
 
 ```bash

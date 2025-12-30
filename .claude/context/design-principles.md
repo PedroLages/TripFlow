@@ -84,6 +84,8 @@ Use Tailwind's spacing scale (4px base unit):
 - Padding: `p-6` (24px)
 - Hover: Lift effect with `hover:shadow-lg`
 
+**Reference Implementation**: See `components/Dashboard.tsx` for trip card implementation with proper hover states and responsive grid layout.
+
 #### Buttons
 
 **Primary Action**
@@ -104,11 +106,13 @@ Use Tailwind's spacing scale (4px base unit):
 
 **Destructive Action**
 ```tsx
-<button className="bg-red-500 hover:bg-red-600 text-white font-medium 
+<button className="bg-red-500 hover:bg-red-600 text-white font-medium
                    px-4 py-2 rounded-lg transition-colors">
   Delete
 </button>
 ```
+
+**Reference Implementation**: See `components/TripForm.tsx` for button usage in form contexts with proper loading states and validation.
 
 #### Form Inputs
 ```tsx
@@ -140,6 +144,8 @@ Use Tailwind's spacing scale (4px base unit):
 └─────────────┴──────────────────────────────────┘
 ```
 
+**Reference Implementation**: See `components/Dashboard.tsx` for main dashboard layout and `components/Sidebar.tsx` for desktop navigation. Mobile version uses `components/MobileNav.tsx`.
+
 ### TripDetail Layout (Tabbed)
 ```
 ┌─────────────────────────────────────────────────┐
@@ -152,6 +158,8 @@ Use Tailwind's spacing scale (4px base unit):
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
+
+**Reference Implementation**: See `components/TripDetail.tsx` for tab-based navigation pattern. Individual tabs are in `components/tabs/` directory (ItineraryTab.tsx, BudgetTab.tsx, PackingTab.tsx, DocumentsTab.tsx, WishlistTab.tsx, MapTab.tsx).
 
 ## 4. Interactions & Animations
 
