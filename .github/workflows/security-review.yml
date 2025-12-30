@@ -1,0 +1,50 @@
+name: Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Security Scan
+        uses: anthropics/claude-code-security-review@main
+        with:
+          comment-pr: true
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
+          claude-model: claude-opus-4-1-20250805
+          custom-security-scan-instructions: |
+            ## TripFlow Security Context
+
+            This is a React-based trip planning application that handles:
+            - User trip data (destinations, dates, budgets)
+            - Document uploads and management
+            - Budget and expense tracking
+            - Google Gemini API integration for AI features
+
+            ### High-Priority Security Areas
+
+            1. **API Key Exposure**: Ensure Google Gemini API keys are never exposed in client-side code
+            2. **XSS Vulnerabilities**: Check for proper sanitization of user-generated content (trip names, descriptions, notes)
+            3. **File Upload Security**: Validate document upload handling for malicious files
+            4. **Data Validation**: Ensure all user inputs (dates, amounts, text fields) are properly validated
+            5. **Local Storage Security**: Check if sensitive data is stored securely in browser storage
+
+            ### React/TypeScript Specific Checks
+
+            - Check for dangerouslySetInnerHTML usage without sanitization
+            - Verify proper type safety to prevent injection attacks
+            - Look for eval() or Function() constructor usage
+            - Check for unsafe dynamic imports or code execution
+
+            ### Focus on HIGH confidence findings only (>80% confidence)
+            Exclude theoretical vulnerabilities and focus on concrete security risks.
