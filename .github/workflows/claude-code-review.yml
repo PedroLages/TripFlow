@@ -21,11 +21,9 @@ jobs:
       - name: Claude Code Review
         uses: anthropics/claude-code-action@main
         with:
-          # Use OAuth token OR API key
-          # oauth-token: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
-          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
-          enable-checkbox-progress: true
-          claude-model: claude-opus-4-1-20250805
+          anthropic_api_key: ${{ secrets.CLAUDE_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          track_progress: true
           prompt: |
             You are conducting a comprehensive code review for TripFlow, a smart trip planning application built with React, TypeScript, and Vite.
 
