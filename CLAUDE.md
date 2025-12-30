@@ -388,14 +388,26 @@ Reviews:
 
 ### GitHub Actions Setup
 
-1. **Add Claude API Key to GitHub Secrets**
-   - Go to repository Settings → Secrets and variables → Actions
-   - Add secret: `CLAUDE_API_KEY` with your Anthropic API key
+1. **Generate OAuth Token from Claude Code CLI**
 
-2. **Workflows are automatically triggered on PRs**
+   ```bash
+   claude auth token
+   ```
+
+   This outputs your OAuth token tied to your Claude Code subscription.
+
+2. **Add OAuth Token to GitHub Secrets**
+   - Go to repository Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `CLAUDE_CODE_OAUTH_TOKEN`
+   - Value: Paste the token from step 1
+
+3. **Workflows are automatically triggered on PRs**
    - Code review runs on every PR
    - Security scan runs on every PR
    - Check PR comments for automated feedback
+
+**Note**: The workflows use `claude_code_oauth_token` which leverages your Claude Code subscription. This is different from `anthropic_api_key` which requires separate API credits.
 
 ### Local Development Setup
 
