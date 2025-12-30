@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, Compass, Settings as SettingsIcon, 
-  PlusCircle, LogOut, History, ChevronRight, 
+import {
+  LayoutDashboard, Compass, Settings as SettingsIcon,
+  PlusCircle, LogOut, History, ChevronRight,
   ChevronLeft, MapPin, Maximize2, Minimize2
 } from 'lucide-react';
 import { Trip } from '../types';
+import OfflineIndicator from './OfflineIndicator';
 
 interface SidebarProps {
   className?: string;
@@ -14,9 +15,11 @@ interface SidebarProps {
   trips?: Trip[];
   isCollapsed?: boolean;
   onToggle?: () => void;
+  isOffline?: boolean;
+  hasPendingSync?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCollapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCollapsed, onToggle, isOffline = false, hasPendingSync = false }) => {
   const location = useLocation();
   const recentTrips = [...trips].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 3);
   
@@ -137,7 +140,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCo
             </div>
           </div>
         )}
-        
+
+        {/* Offline Indicator */}
+        {!isCollapsed && <OfflineIndicator isOffline={isOffline} hasPendingSync={hasPendingSync} />}
+
         <div className={`p-2 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center transition-all duration-500 ${isCollapsed ? 'flex-col gap-2' : 'justify-between px-4'}`}>
            <div className={`flex items-center gap-4 ${isCollapsed ? 'flex-col' : ''}`}>
               <div className="relative flex-shrink-0">

@@ -2,14 +2,16 @@
 export type TripType = 'Solo' | 'Couple' | 'Family' | 'Friends' | 'Business';
 export type UserRole = 'Editor' | 'Viewer';
 
-export type ActivityType = 
-  | 'Attraction' 
-  | 'Restaurant' 
-  | 'Transportation' 
-  | 'Accommodation' 
-  | 'Tour' 
-  | 'Free time' 
+export type ActivityType =
+  | 'Attraction'
+  | 'Restaurant'
+  | 'Transportation'
+  | 'Accommodation'
+  | 'Tour'
+  | 'Free time'
   | 'Custom';
+
+export type SplitMethod = 'equal' | 'custom' | 'percentage' | 'shares';
 
 export interface Activity {
   id: string;
@@ -37,12 +39,47 @@ export interface WishlistPlace {
   rating: number;
 }
 
+export interface ExpenseSplit {
+  userId: string;          // Matches Collaborator.email
+  amount: number;
+  percentage?: number;     // For percentage splits (0-100)
+  shares?: number;         // For share-based splits
+  isPaid: boolean;         // Settlement status
+  paidAt?: string;         // ISO timestamp when settled
+}
+
+export interface Settlement {
+  id: string;
+  fromUser: string;        // Who owes (email)
+  toUser: string;          // Who is owed (email)
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed';
+  createdAt: string;
+  completedAt?: string;
+  notes?: string;
+}
+
+export interface UserBalance {
+  userId: string;
+  owes: number;            // Total amount this user owes
+  owed: number;            // Total amount this user is owed
+  netBalance: number;      // Positive = owed money, Negative = owes money
+}
+
 export interface Expense {
   id: string;
   amount: number;
   category: 'Flights' | 'Accommodation' | 'Food' | 'Activities' | 'Transport' | 'Shopping' | 'Other';
   date: string;
   notes: string;
+
+  // Split expense fields (all optional for backward compatibility)
+  isSplit?: boolean;
+  paidBy?: string;          // User email who paid
+  splitMethod?: SplitMethod;
+  splits?: ExpenseSplit[];
+  currency?: string;         // Defaults to trip currency if not specified
 }
 
 export interface PackingItem {
@@ -108,7 +145,8 @@ export interface Trip {
   activityLogs: ActivityLog[];
   ownerEmail: string;
   isPast?: boolean;
-  currentUserRole?: UserRole; 
+  currentUserRole?: UserRole;
+  settlements?: Settlement[];   // Calculated settlements for split expenses
 }
 
 export interface User {

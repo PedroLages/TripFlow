@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripFlow - Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+    }
+
+    .icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-center;
+      font-size: 60px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin-bottom: 32px;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 14px 32px;
+      background: white;
+      color: #667eea;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .tips {
+      margin-top: 48px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .tips h2 {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .tips ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .tips li {
+      padding: 8px 0;
+      padding-left: 28px;
+      position: relative;
+      opacity: 0.9;
+    }
+
+    .tips li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      🧳
+    </div>
+
+    <h1>You're Offline</h1>
+
+    <p>
+      It looks like you're not connected to the internet. TripFlow needs an internet connection for this page.
+    </p>
+
+    <a href="/" class="button">Try Again</a>
+
+    <div class="tips">
+      <h2>While Offline, You Can:</h2>
+      <ul>
+        <li>View your saved trips</li>
+        <li>Edit trip details and itineraries</li>
+        <li>Update budgets and expenses</li>
+        <li>Manage packing lists</li>
+      </ul>
+      <p style="margin-top: 16px; font-size: 14px;">
+        Your changes will sync automatically when you're back online.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

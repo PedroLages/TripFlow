@@ -115,9 +115,96 @@ export const INITIAL_TRIPS: Trip[] = [
       { id: 'w-4', name: 'Don Quijote Ginza', category: 'Shopping', notes: 'For all the weird Japanese snacks.', rating: 5 }
     ],
     expenses: [
-      { id: 'exp-1', amount: 1150, category: 'Flights', date: format(today, 'yyyy-MM-dd'), notes: 'ANA Round Trip from SFO' },
-      { id: 'exp-2', amount: 1400, category: 'Accommodation', date: format(today, 'yyyy-MM-dd'), notes: '7 Nights at Park Hotel' },
-      { id: 'exp-3', amount: 350, category: 'Transport', date: format(today, 'yyyy-MM-dd'), notes: 'JR Pass 7-Day' }
+      {
+        id: 'exp-1',
+        amount: 1150,
+        category: 'Flights',
+        date: format(today, 'yyyy-MM-dd'),
+        notes: 'ANA Round Trip from SFO'
+      },
+      {
+        id: 'exp-2',
+        amount: 1400,
+        category: 'Accommodation',
+        date: format(today, 'yyyy-MM-dd'),
+        notes: '7 Nights at Park Hotel'
+      },
+      {
+        id: 'exp-3',
+        amount: 350,
+        category: 'Transport',
+        date: format(today, 'yyyy-MM-dd'),
+        notes: 'JR Pass 7-Day'
+      },
+      // Split Expense Examples
+      {
+        id: 'exp-4',
+        amount: 180,
+        category: 'Food',
+        date: format(addDays(today, 14), 'yyyy-MM-dd'),
+        notes: 'Welcome dinner at Shimbashi Yakitori',
+        isSplit: true,
+        paidBy: 'demo@tripflow.ai',
+        splitMethod: 'equal',
+        currency: 'USD',
+        splits: [
+          { userId: 'demo@tripflow.ai', amount: 45, isPaid: true, paidAt: new Date().toISOString() },
+          { userId: 'alex@tripflow.ai', amount: 45, isPaid: false },
+          { userId: 'jordan@tripflow.ai', amount: 45, isPaid: false },
+          { userId: 'mia@tripflow.ai', amount: 45, isPaid: true, paidAt: new Date().toISOString() }
+        ]
+      },
+      {
+        id: 'exp-5',
+        amount: 240,
+        category: 'Accommodation',
+        date: format(addDays(today, 16), 'yyyy-MM-dd'),
+        notes: 'Hakone Ryokan - 2 night stay',
+        isSplit: true,
+        paidBy: 'alex@tripflow.ai',
+        splitMethod: 'custom',
+        currency: 'USD',
+        splits: [
+          { userId: 'demo@tripflow.ai', amount: 60, isPaid: false },
+          { userId: 'alex@tripflow.ai', amount: 60, isPaid: true, paidAt: new Date().toISOString() },
+          { userId: 'jordan@tripflow.ai', amount: 60, isPaid: true, paidAt: new Date().toISOString() },
+          { userId: 'mia@tripflow.ai', amount: 60, isPaid: false }
+        ]
+      },
+      {
+        id: 'exp-6',
+        amount: 150,
+        category: 'Activities',
+        date: format(addDays(today, 15), 'yyyy-MM-dd'),
+        notes: 'TeamLab Borderless tickets for group',
+        isSplit: true,
+        paidBy: 'jordan@tripflow.ai',
+        splitMethod: 'percentage',
+        currency: 'USD',
+        splits: [
+          { userId: 'demo@tripflow.ai', amount: 37.50, percentage: 25, isPaid: false },
+          { userId: 'alex@tripflow.ai', amount: 37.50, percentage: 25, isPaid: true, paidAt: new Date().toISOString() },
+          { userId: 'jordan@tripflow.ai', amount: 37.50, percentage: 25, isPaid: true, paidAt: new Date().toISOString() },
+          { userId: 'mia@tripflow.ai', amount: 37.50, percentage: 25, isPaid: false }
+        ]
+      },
+      {
+        id: 'exp-7',
+        amount: 120,
+        category: 'Food',
+        date: format(addDays(today, 17), 'yyyy-MM-dd'),
+        notes: 'Kyoto street food tour',
+        isSplit: true,
+        paidBy: 'mia@tripflow.ai',
+        splitMethod: 'shares',
+        currency: 'USD',
+        splits: [
+          { userId: 'demo@tripflow.ai', amount: 40, shares: 2, isPaid: false },
+          { userId: 'alex@tripflow.ai', amount: 40, shares: 2, isPaid: false },
+          { userId: 'jordan@tripflow.ai', amount: 20, shares: 1, isPaid: true, paidAt: new Date().toISOString() },
+          { userId: 'mia@tripflow.ai', amount: 20, shares: 1, isPaid: true, paidAt: new Date().toISOString() }
+        ]
+      }
     ],
     packingList: [
       { id: 'p-1', name: 'Passport', category: 'Documents', isPacked: true },

@@ -16,6 +16,7 @@ import WishlistTab from './tabs/WishlistTab';
 import BudgetTab from './tabs/BudgetTab';
 import PackingTab from './tabs/PackingTab';
 import DocumentsTab from './tabs/DocumentsTab';
+import SettlementsTab from './tabs/SettlementsTab';
 
 interface TripDetailProps {
   trips: Trip[];
@@ -104,6 +105,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     { name: 'Map', path: 'map', icon: <MapIcon size={18} /> },
     { name: 'Places', path: 'places', icon: <Heart size={18} /> },
     { name: 'Budget', path: 'budget', icon: <DollarSign size={18} /> },
+    { name: 'Settlements', path: 'settlements', icon: <Users size={18} /> },
     { name: 'Packing', path: 'packing', icon: <Package size={18} /> },
     { name: 'Documents', path: 'docs', icon: <FileText size={18} /> },
   ];
@@ -244,6 +246,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           <Route path="map" element={<MapTab trip={trip} />} />
           <Route path="places" element={<WishlistTab trip={trip} updateTrip={(t) => { updateTrip(t); logAction("Updated wishlist"); }} />} />
           <Route path="budget" element={<BudgetTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Modified expenses"); }} />} />
+          <Route path="settlements" element={<SettlementsTab trip={trip} updateTrip={(t) => { updateTrip(t); logAction("Managed settlements"); }} currentUserEmail={currentUser.email} />} />
           <Route path="packing" element={<PackingTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Updated packing list"); }} />} />
           <Route path="docs" element={<DocumentsTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Modified documents"); }} />} />
           <Route path="*" element={<div className="p-20 text-center text-slate-400 font-bold uppercase tracking-widest italic opacity-50">Mapping your coordinates...</div>} />

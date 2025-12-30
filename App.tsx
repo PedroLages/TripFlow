@@ -11,6 +11,12 @@ import Settings from './components/Settings';
 import MobileNav from './components/MobileNav';
 import TripMobileNav from './components/TripMobileNav';
 import { LogIn, Compass, UserPlus } from 'lucide-react';
+import { storage } from './src/services/StorageManager';
+import { usePWA } from './src/hooks/usePWA';
+import { syncService } from './src/services/SyncService';
+import type { SyncStatus } from './src/services/SyncService';
+import UpdateBanner from './components/UpdateBanner';
+import InstallPrompt from './components/InstallPrompt';
 
 // Added setSettings to the destructured props in AppContent to fix the compilation error
 const AppContent: React.FC<{
@@ -22,23 +28,27 @@ const AppContent: React.FC<{
   setSettings: React.Dispatch<React.SetStateAction<UserSettings>>;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (v: boolean) => void;
+  isOffline: boolean;
+  hasPendingSync: boolean;
   handleLogout: () => void;
   updateTrip: (t: Trip) => void;
   addTrip: (t: Trip) => void;
   deleteTrip: (id: string) => void;
-}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, setIsSidebarCollapsed, handleLogout, updateTrip, addTrip, deleteTrip }) => {
+}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, setIsSidebarCollapsed, isOffline, hasPendingSync, handleLogout, updateTrip, addTrip, deleteTrip }) => {
   const location = useLocation();
   const isTripView = location.pathname.startsWith('/trip/');
   const currentTripId = isTripView ? location.pathname.split('/')[2] : null;
 
   return (
     <div className={`min-h-screen ${settings.theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-[#F8FAFC] text-slate-900'} flex overflow-hidden`}>
-      <Sidebar 
-        trips={trips} 
-        className="hidden md:flex" 
-        onLogout={handleLogout} 
-        isCollapsed={isSidebarCollapsed} 
-        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+      <Sidebar
+        trips={trips}
+        className="hidden md:flex"
+        onLogout={handleLogout}
+        isCollapsed={isSidebarCollapsed}
+        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isOffline={isOffline}
+        hasPendingSync={hasPendingSync}
       />
       <main className="flex-1 flex flex-col relative h-screen overflow-hidden">
         <Routes>
@@ -73,32 +83,133 @@ const App: React.FC = () => {
     return saved === 'true';
   });
 
-  const [trips, setTrips] = useState<Trip[]>(() => {
-    const saved = localStorage.getItem('tripflow_trips');
-    return saved ? JSON.parse(saved) : INITIAL_TRIPS;
+  const [trips, setTrips] = useState<Trip[]>(INITIAL_TRIPS);
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true);
+
+  const [settings, setSettings] = useState<UserSettings>({
+    name: 'Traveler',
+    email: '',
+    homeLocation: 'San Francisco',
+    currency: 'USD',
+    theme: 'light'
   });
 
-  const [settings, setSettings] = useState<UserSettings>(() => {
-    const saved = localStorage.getItem('tripflow_settings');
-    return saved ? JSON.parse(saved) : {
-      name: 'Traveler',
-      email: '',
-      homeLocation: 'San Francisco',
-      currency: 'USD',
-      theme: 'light'
-    };
-  });
+  // PWA state management
+  const { isOffline, needRefresh, updateServiceWorker, isInstallable, installPrompt } = usePWA();
 
+  // Sync state management
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({ isSyncing: false, message: '' });
+
+  // Listen for sync status changes
   useEffect(() => {
-    localStorage.setItem('tripflow_trips', JSON.stringify(trips));
-  }, [trips]);
+    const handleSyncStatus = (status: SyncStatus) => {
+      setSyncStatus(status);
+
+      // Show sync notification to user
+      if (status.message && !status.isSyncing) {
+        console.log('[App] Sync status:', status.message);
+      }
+    };
+
+    syncService.addSyncListener(handleSyncStatus);
+
+    return () => {
+      syncService.removeSyncListener(handleSyncStatus);
+    };
+  }, []);
+
+  // Listen for service worker sync messages
+  useEffect(() => {
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      const { data } = event;
+
+      if (data.type === 'SYNC_COMPLETE') {
+        console.log('[App] Service worker sync complete:', data.message);
+        setSyncStatus({
+          isSyncing: false,
+          message: data.message,
+        });
+
+        // Reload trips after successful sync
+        if (data.success && data.synced > 0) {
+          storage.getAllTrips().then((loadedTrips) => {
+            setTrips(loadedTrips);
+          });
+        }
+      }
+
+      if (data.type === 'SYNC_ERROR') {
+        console.error('[App] Service worker sync error:', data.error);
+        setSyncStatus({
+          isSyncing: false,
+          message: `Sync failed: ${data.error}`,
+        });
+      }
+    };
+
+    // Add message listener if service worker is supported
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    }
+
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+      }
+    };
+  }, []);
+
+  // Load trips and settings from IndexedDB on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Run migration from localStorage to IndexedDB
+        await storage.migrateFromLocalStorage();
+
+        // Load trips
+        const loadedTrips = await storage.getAllTrips();
+        if (loadedTrips.length > 0) {
+          setTrips(loadedTrips);
+        }
+
+        // Load settings
+        const loadedSettings = await storage.getSetting<UserSettings>('tripflow_settings');
+        if (loadedSettings) {
+          setSettings(loadedSettings);
+        }
+
+        setIsLoadingTrips(false);
+      } catch (error) {
+        console.error('[App] Error loading data:', error);
+        setIsLoadingTrips(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Save trips to IndexedDB when they change
+  useEffect(() => {
+    if (!isLoadingTrips) {
+      trips.forEach((trip) => {
+        storage.saveTrip(trip).catch((error) => {
+          console.error('[App] Error saving trip:', error);
+        });
+      });
+    }
+  }, [trips, isLoadingTrips]);
 
   useEffect(() => {
     localStorage.setItem('tripflow_sidebar_collapsed', String(isSidebarCollapsed));
   }, [isSidebarCollapsed]);
 
   useEffect(() => {
-    localStorage.setItem('tripflow_settings', JSON.stringify(settings));
+    // Save settings to IndexedDB
+    storage.saveSetting('tripflow_settings', settings).catch((error) => {
+      console.error('[App] Error saving settings:', error);
+    });
+
+    // Apply theme
     if (settings.theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -115,9 +226,21 @@ const App: React.FC = () => {
     }
   }, [user]);
 
-  const addTrip = (newTrip: Trip) => setTrips(prev => [...prev, { ...newTrip, ownerEmail: user?.email || '' }]);
-  const updateTrip = (updatedTrip: Trip) => setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
-  const deleteTrip = (id: string) => setTrips(prev => prev.filter(t => t.id !== id));
+  const addTrip = async (newTrip: Trip) => {
+    const tripWithOwner = { ...newTrip, ownerEmail: user?.email || '' };
+    setTrips(prev => [...prev, tripWithOwner]);
+    await storage.saveTrip(tripWithOwner);
+  };
+
+  const updateTrip = async (updatedTrip: Trip) => {
+    setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    await storage.saveTrip(updatedTrip);
+  };
+
+  const deleteTrip = async (id: string) => {
+    setTrips(prev => prev.filter(t => t.id !== id));
+    await storage.deleteTrip(id);
+  };
 
   const handleLogout = () => {
     setUser(null);
@@ -153,22 +276,32 @@ const App: React.FC = () => {
   }
 
   return (
-    <Router>
-      <AppContent 
-        user={user} 
-        setUser={setUser} 
-        trips={trips} 
-        setTrips={setTrips} 
-        settings={settings} 
-        setSettings={setSettings} 
-        isSidebarCollapsed={isSidebarCollapsed} 
-        setIsSidebarCollapsed={setIsSidebarCollapsed} 
-        handleLogout={handleLogout}
-        updateTrip={updateTrip}
-        addTrip={addTrip}
-        deleteTrip={deleteTrip}
-      />
-    </Router>
+    <>
+      {/* PWA Update Banner */}
+      {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
+
+      <Router>
+        <AppContent
+          user={user}
+          setUser={setUser}
+          trips={trips}
+          setTrips={setTrips}
+          settings={settings}
+          setSettings={setSettings}
+          isSidebarCollapsed={isSidebarCollapsed}
+          setIsSidebarCollapsed={setIsSidebarCollapsed}
+          isOffline={isOffline}
+          hasPendingSync={syncStatus.isSyncing}
+          handleLogout={handleLogout}
+          updateTrip={updateTrip}
+          addTrip={addTrip}
+          deleteTrip={deleteTrip}
+        />
+      </Router>
+
+      {/* PWA Install Prompt */}
+      {isInstallable && <InstallPrompt onInstall={installPrompt} />}
+    </>
   );
 };
 

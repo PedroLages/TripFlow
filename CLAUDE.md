@@ -479,6 +479,8 @@ Skills are available via slash commands in Claude Code:
 
 - `/code-review` - Run comprehensive code review on current changes
 - `/security-review` - Run security scan on current changes
+- `/todos` - View feature roadmap and todo list
+- `/add-todo "P2 | feature/name | Description"` - Add new todo item
 - Design reviews are triggered by calling the design-review agent
 
 ## Common Patterns
@@ -594,6 +596,114 @@ describe('calculateBudgetStatus', () => {
 - Verify Tailwind classes are correct
 - Check for conflicting styles
 - Test responsive classes at different breakpoints
+
+## Documentation Organization
+
+### Folder Structure
+
+```
+TripFlow/
+├── README.md              # Project overview (root - don't move)
+├── CLAUDE.md              # Claude Code config (root - don't move)
+├── TODOS.md               # Feature roadmap (root - don't move)
+├── SECURITY.md            # Security guidelines (root - don't move)
+│
+├── docs/                  # Detailed documentation
+│   ├── README.md          # Documentation index
+│   ├── guides/            # How-to guides
+│   │   ├── getting-started.md
+│   │   ├── development.md
+│   │   └── deployment.md
+│   ├── architecture/      # Technical design
+│   │   ├── overview.md
+│   │   ├── components.md
+│   │   └── data-flow.md
+│   ├── api/               # API references
+│   │   ├── types.md
+│   │   ├── services.md
+│   │   └── integrations.md
+│   └── design/            # Design documentation
+│       ├── design-system.md
+│       └── ui-patterns.md
+│
+└── .claude/               # Claude Code configuration
+    ├── agents/            # Agent definitions
+    │   └── design-review.md
+    ├── context/           # Context files
+    │   └── design-principles.md
+    └── skills/            # Slash commands
+        ├── code-review.md
+        ├── security-review.md
+        ├── todos.md
+        └── add-todo.md
+```
+
+### Documentation Guidelines
+
+#### What Goes Where
+
+| Document Type | Location | Examples |
+|---------------|----------|----------|
+| Project overview | Root | README.md |
+| Coding standards | Root | CLAUDE.md |
+| Task tracking | Root | TODOS.md |
+| Security policy | Root | SECURITY.md |
+| How-to guides | `docs/guides/` | Getting started, deployment |
+| Architecture docs | `docs/architecture/` | System design, data flow |
+| API references | `docs/api/` | Types, services |
+| Design docs | `docs/design/` | Design system, UI patterns |
+| Claude Code skills | `.claude/skills/` | Slash commands |
+| Claude Code agents | `.claude/agents/` | Automated agents |
+| Claude context | `.claude/context/` | Design principles |
+
+#### Creating New Documentation
+
+1. **Choose the correct folder** based on document type
+2. **Follow the template**:
+   ```markdown
+   # Document Title
+
+   > Brief description of what this document covers
+
+   ## Overview
+   [Introduction and context]
+
+   ## [Main Sections]
+   [Content with clear headings]
+
+   ## Related Documentation
+   - [Links to related docs]
+   ```
+3. **Update index files** when adding new docs:
+   - Add to `docs/README.md` for general docs
+   - Update CLAUDE.md Resources section for important refs
+4. **Keep docs in sync** with code changes
+
+#### Linking Between Documents
+
+```markdown
+<!-- From docs/ to root -->
+[CLAUDE.md](../CLAUDE.md)
+[TODOS.md](../TODOS.md)
+
+<!-- From docs/ to .claude/ -->
+[Design Principles](../.claude/context/design-principles.md)
+
+<!-- Within docs/ -->
+[Architecture Overview](../architecture/overview.md)
+```
+
+### Task Management
+
+#### TODOS.md Structure
+- **Root location**: `/TODOS.md`
+- **Priority levels**: P0 (Critical) → P4 (Wishlist)
+- **Status markers**: `[ ]` pending, `[~]` in-progress, `[x]` completed
+- **Format**: `- [ ] **P2** | \`feature/name\` | Description`
+
+#### Slash Commands
+- `/todos` - View todo list with filtering options
+- `/add-todo "P2 | feature/name | Description"` - Add new item
 
 ## Resources
 

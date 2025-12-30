@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserSettings } from '../types';
-import { 
-  User, Globe, DollarSign, Moon, Sun, Shield, 
+import {
+  User, Globe, DollarSign, Moon, Sun, Shield,
   Database, Trash2, Download, Zap, ShieldAlert,
   ChevronRight, CheckCircle2, AlertCircle, Activity,
-  Lock, Key
+  Lock, Key, HardDrive, RefreshCw
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -15,6 +15,29 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) => {
+  const [cacheSize, setCacheSize] = useState<string>('Calculating...');
+
+  // Calculate cache size on mount
+  useEffect(() => {
+    const calculateCacheSize = async () => {
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        try {
+          const estimate = await navigator.storage.estimate();
+          const usedMB = ((estimate.usage || 0) / (1024 * 1024)).toFixed(2);
+          const quotaMB = ((estimate.quota || 0) / (1024 * 1024)).toFixed(0);
+          setCacheSize(`${usedMB} MB / ${quotaMB} MB`);
+        } catch (error) {
+          console.error('[Settings] Error estimating storage:', error);
+          setCacheSize('Unable to estimate');
+        }
+      } else {
+        setCacheSize('Not supported');
+      }
+    };
+
+    calculateCacheSize();
+  }, []);
+
   const handleChange = (name: keyof UserSettings, value: string) => {
     setSettings({ ...settings, [name]: value });
   };
@@ -27,6 +50,63 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
     if (confirm('CRITICAL: This will wipe all local mission data and resets. Proceed?')) {
       localStorage.clear();
       window.location.reload();
+    }
+  };
+
+  const handleClearPWACache = async () => {
+    if (confirm('Clear service worker cache? This will free up space but the app may be slower on next load.')) {
+      try {
+        // Clear all caches
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+
+        alert('Cache cleared successfully!');
+
+        // Recalculate cache size
+        const estimate = await navigator.storage.estimate();
+        const usedMB = ((estimate.usage || 0) / (1024 * 1024)).toFixed(2);
+        const quotaMB = ((estimate.quota || 0) / (1024 * 1024)).toFixed(0);
+        setCacheSize(`${usedMB} MB / ${quotaMB} MB`);
+      } catch (error) {
+        console.error('[Settings] Error clearing cache:', error);
+        alert('Failed to clear cache. Please try again.');
+      }
+    }
+  };
+
+  const handleClearAllData = async () => {
+    if (
+      confirm(
+        'DANGER: This will delete ALL app data including trips, settings, and cache. This cannot be undone. Are you sure?'
+      )
+    ) {
+      try {
+        // Clear IndexedDB
+        const dbs = await indexedDB.databases();
+        await Promise.all(dbs.map((db) => {
+          if (db.name) {
+            return new Promise((resolve, reject) => {
+              const request = indexedDB.deleteDatabase(db.name!);
+              request.onsuccess = () => resolve(undefined);
+              request.onerror = () => reject(request.error);
+            });
+          }
+          return Promise.resolve();
+        }));
+
+        // Clear localStorage
+        localStorage.clear();
+
+        // Clear caches
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+
+        alert('All data cleared. The app will now reload.');
+        window.location.reload();
+      } catch (error) {
+        console.error('[Settings] Error clearing all data:', error);
+        alert('Failed to clear all data. Please try again or clear your browser data manually.');
+      }
     }
   };
 
@@ -208,6 +288,62 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
                       <p className="font-bold text-red-600 dark:text-red-400 text-sm">Wipe Operations</p>
                       <p className="text-[10px] text-red-400/60 font-bold uppercase tracking-widest">Clear all local mission data</p>
                    </div>
+                </div>
+                <ShieldAlert size={18} className="text-red-200" />
+              </button>
+            </div>
+          </div>
+
+          {/* Section 5: PWA Storage & Cache */}
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3">
+              <HardDrive size={14} className="text-brand-primary" /> Storage & Cache
+            </h3>
+
+            {/* Cache Size Display */}
+            <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-3xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Cache Usage</p>
+                  <p className="text-2xl font-display font-bold text-slate-900 dark:text-white">{cacheSize}</p>
+                </div>
+                <Activity size={32} className="text-brand-primary opacity-20" />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-1 gap-4">
+              <button
+                onClick={handleClearPWACache}
+                className="w-full p-6 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-3xl flex items-center justify-between group transition-all"
+              >
+                <div className="flex items-center gap-4">
+                  <RefreshCw size={20} className="text-blue-500" />
+                  <div className="text-left">
+                    <p className="font-bold text-slate-900 dark:text-white text-sm">Clear Cache</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                      Free up space, keep data
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight
+                  size={18}
+                  className="text-slate-300 group-hover:translate-x-1 transition-transform"
+                />
+              </button>
+
+              <button
+                onClick={handleClearAllData}
+                className="w-full p-6 bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-3xl flex items-center justify-between group transition-all"
+              >
+                <div className="flex items-center gap-4">
+                  <Trash2 size={20} className="text-red-500" />
+                  <div className="text-left">
+                    <p className="font-bold text-red-600 dark:text-red-400 text-sm">Clear All Data</p>
+                    <p className="text-[10px] text-red-400/60 font-bold uppercase tracking-widest">
+                      Delete everything (irreversible)
+                    </p>
+                  </div>
                 </div>
                 <ShieldAlert size={18} className="text-red-200" />
               </button>

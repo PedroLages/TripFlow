@@ -1,16 +1,21 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Trip, Expense } from '../../types';
-import { 
-  DollarSign, PieChart as ChartIcon, Plus, Trash2, 
+import {
+  DollarSign, PieChart as ChartIcon, Plus, Trash2,
   Calendar, TrendingUp, RefreshCw, ArrowRightLeft,
   Camera, Zap, Loader2, X, Check, AlertCircle,
-  TrendingDown, Info, Receipt, Wallet
+  TrendingDown, Info, Receipt, Wallet, Users, Filter
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { GoogleGenAI, Type } from "@google/genai";
+import { calculateUserBalances } from '../../utils/expenseSplitCalculations';
+import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../../utils/currencyHelpers';
+import SplitIndicator from '../expense/SplitIndicator';
+import UserBalanceCard from '../expense/UserBalanceCard';
+import SplitExpenseModal from '../modals/SplitExpenseModal';
 
 interface BudgetTabProps {
   trip: Trip;
@@ -27,10 +32,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Other': '#94a3b8'
 };
 
+type ExpenseFilter = 'all' | 'split' | 'personal';
+
 const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showSplitModal, setShowSplitModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [expenseFilter, setExpenseFilter] = useState<ExpenseFilter>('all');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -43,11 +52,29 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     amount: 0,
     category: 'Food',
     date: format(new Date(), 'yyyy-MM-dd'),
-    notes: ''
+    notes: '',
+    currency: 'USD'
   });
 
+  // Filter expenses based on selection
+  const filteredExpenses = useMemo(() => {
+    if (expenseFilter === 'split') {
+      return trip.expenses.filter(exp => exp.isSplit);
+    } else if (expenseFilter === 'personal') {
+      return trip.expenses.filter(exp => !exp.isSplit);
+    }
+    return trip.expenses;
+  }, [trip.expenses, expenseFilter]);
+
+  // Count expenses by filter type
+  const expenseCounts = useMemo(() => ({
+    all: trip.expenses.length,
+    split: trip.expenses.filter(exp => exp.isSplit).length,
+    personal: trip.expenses.filter(exp => !exp.isSplit).length,
+  }), [trip.expenses]);
+
   // Calculations
-  const totalSpent = trip.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalSpent = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const remainingBudget = Math.max(0, trip.budget - totalSpent);
   const tripDuration = Math.max(1, differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1);
   const dailyAllocated = trip.budget / tripDuration;
@@ -57,11 +84,20 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
   const expensesByCategory = Object.keys(CATEGORY_COLORS).map(cat => ({
     name: cat,
-    value: trip.expenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0)
+    value: filteredExpenses.filter(e => e.category === cat).reduce((sum, e) => sum + e.amount, 0)
   })).filter(cat => cat.value > 0);
 
-  // Grouping expenses by date
-  const groupedExpenses = trip.expenses.reduce((groups: Record<string, Expense[]>, expense) => {
+  // Calculate user balances for split expenses
+  const userBalances = useMemo(() => {
+    return calculateUserBalances(trip.expenses, trip.collaborators, trip.ownerEmail);
+  }, [trip.expenses, trip.collaborators, trip.ownerEmail]);
+
+  // Get current user's balance (demo user for now)
+  const currentUserEmail = 'demo@tripflow.ai';
+  const currentUserBalance = userBalances.get(currentUserEmail);
+
+  // Grouping expenses by date (using filtered expenses)
+  const groupedExpenses = filteredExpenses.reduce((groups: Record<string, Expense[]>, expense) => {
     const date = expense.date;
     if (!groups[date]) groups[date] = [];
     groups[date].push(expense);
@@ -75,11 +111,16 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     const expense: Expense = {
       ...newExpense as Expense,
       id: uuidv4(),
-      date: newExpense.date || format(new Date(), 'yyyy-MM-dd')
+      date: newExpense.date || format(new Date(), 'yyyy-MM-dd'),
+      currency: newExpense.currency || 'USD'
     };
     updateTrip({ ...trip, expenses: [expense, ...trip.expenses] });
-    setNewExpense({ amount: 0, category: 'Food', date: format(new Date(), 'yyyy-MM-dd'), notes: '' });
+    setNewExpense({ amount: 0, category: 'Food', date: format(new Date(), 'yyyy-MM-dd'), notes: '', currency: 'USD' });
     setShowAddExpense(false);
+  };
+
+  const handleAddSplitExpense = (expense: Expense) => {
+    updateTrip({ ...trip, expenses: [expense, ...trip.expenses] });
   };
 
   const deleteExpense = (id: string) => {
@@ -173,17 +214,26 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
              <h2 className="text-5xl md:text-6xl font-display font-bold">Expenditure <span className="text-brand-primary">Ops</span></h2>
              <p className="text-white/50 text-lg font-medium">Monitoring capital deployment across {tripDuration} phases. AI-enhanced tracking for mission critical spend.</p>
              <div className="flex flex-wrap gap-4 pt-4">
-                <button 
+                <button
                   onClick={startScanner}
+                  aria-label="Scan receipt with camera"
                   className="bg-white text-slate-950 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-slate-100 transition-all shadow-xl"
                 >
-                  <Camera size={18} className="text-brand-primary" /> Scan Receipt
+                  <Camera size={18} className="text-brand-primary" aria-hidden="true" /> Scan Receipt
                 </button>
-                <button 
+                <button
+                  onClick={() => setShowSplitModal(true)}
+                  aria-label="Create split expense"
+                  className="bg-brand-primary text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-brand-secondary transition-all shadow-xl shadow-indigo-500/20"
+                >
+                  <Users size={18} aria-hidden="true" /> Split Expense
+                </button>
+                <button
                   onClick={() => setShowAddExpense(true)}
+                  aria-label="Add expense manually"
                   className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all"
                 >
-                  <Plus size={18} /> Manual Entry
+                  <Plus size={18} aria-hidden="true" /> Manual Entry
                 </button>
              </div>
           </div>
@@ -292,6 +342,18 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
         </div>
       </section>
 
+      {/* User Balance Card */}
+      {currentUserBalance && (
+        <section className="px-4">
+          <UserBalanceCard
+            balance={currentUserBalance}
+            currency="USD"
+            userName="You"
+            className="max-w-md"
+          />
+        </section>
+      )}
+
       {/* Grouped Ledger */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
@@ -305,6 +367,51 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           </div>
         </div>
 
+        {/* Expense Filter Controls */}
+        <div className="flex flex-wrap items-center gap-3 px-4">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <Filter size={14} />
+            <span>Filter:</span>
+          </div>
+          <button
+            onClick={() => setExpenseFilter('all')}
+            aria-label="Show all expenses"
+            aria-pressed={expenseFilter === 'all'}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+              expenseFilter === 'all'
+                ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
+            }`}
+          >
+            All ({expenseCounts.all})
+          </button>
+          <button
+            onClick={() => setExpenseFilter('split')}
+            aria-label="Show only split expenses"
+            aria-pressed={expenseFilter === 'split'}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${
+              expenseFilter === 'split'
+                ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
+            }`}
+          >
+            <Users size={14} aria-hidden="true" />
+            Split ({expenseCounts.split})
+          </button>
+          <button
+            onClick={() => setExpenseFilter('personal')}
+            aria-label="Show only personal expenses"
+            aria-pressed={expenseFilter === 'personal'}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+              expenseFilter === 'personal'
+                ? 'bg-brand-primary text-white shadow-lg shadow-indigo-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-brand-primary/30'
+            }`}
+          >
+            Personal ({expenseCounts.personal})
+          </button>
+        </div>
+
         <div className="space-y-12">
           {sortedDates.map(date => (
             <div key={date} className="space-y-6">
@@ -315,42 +422,68 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {groupedExpenses[date].map(exp => (
-                  <div key={exp.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-xl transition-all">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: CATEGORY_COLORS[exp.category] }}>
-                        <DollarSign size={20} />
+                  <div key={exp.id} className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-white/5 group hover:shadow-xl transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-5 flex-1 min-w-0">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[exp.category] }}>
+                          <DollarSign size={20} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-slate-900 dark:text-white leading-tight truncate">{exp.notes || exp.category}</h4>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{exp.category}</span>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white leading-tight">{exp.notes || exp.category}</h4>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{exp.category}</span>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-xl font-display font-bold text-slate-900 dark:text-white">
+                            {getCurrencySymbol(exp.currency || 'USD')}{exp.amount}
+                            {exp.currency && exp.currency !== 'USD' && (
+                              <span className="text-xs font-bold text-slate-400 ml-1">{exp.currency}</span>
+                            )}
+                          </p>
+                          {exp.amount > currentDailyAvg * 1.5 && (
+                            <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest">Outlier</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteExpense(exp.id)}
+                          aria-label={`Delete ${exp.notes || exp.category} expense`}
+                          className="p-3 text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
+                        >
+                          <Trash2 size={18} aria-hidden="true" />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="text-xl font-display font-bold text-slate-900 dark:text-white">${exp.amount}</p>
-                        {exp.amount > currentDailyAvg * 1.5 && (
-                          <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest">Outlier</span>
-                        )}
+                    {/* Split Indicator */}
+                    {exp.isSplit && (
+                      <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
+                        <SplitIndicator
+                          expense={exp}
+                          collaborators={trip.collaborators}
+                          ownerEmail={trip.ownerEmail}
+                        />
                       </div>
-                      <button 
-                        onClick={() => deleteExpense(exp.id)}
-                        className="p-3 text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
           ))}
-          {trip.expenses.length === 0 && (
+          {filteredExpenses.length === 0 && (
             <div className="py-24 text-center bg-white dark:bg-slate-900 rounded-[4rem] border border-slate-100 dark:border-white/5">
                <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 text-slate-200">
                  <AlertCircle size={48} />
                </div>
-               <h4 className="text-2xl font-display font-bold">No Expenditure Detected</h4>
-               <p className="text-slate-400 mt-2">Begin deploying capital to see the mission matrix.</p>
+               <h4 className="text-2xl font-display font-bold">
+                 {expenseFilter === 'all' ? 'No Expenditure Detected' :
+                  expenseFilter === 'split' ? 'No Split Expenses' :
+                  'No Personal Expenses'}
+               </h4>
+               <p className="text-slate-400 mt-2">
+                 {expenseFilter === 'all' ? 'Begin deploying capital to see the mission matrix.' :
+                  expenseFilter === 'split' ? 'Split expenses will appear here when created.' :
+                  'Personal expenses will appear here when created.'}
+               </p>
             </div>
           )}
         </div>
@@ -358,7 +491,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
       {/* Receipt Scanner Modal */}
       {showScanner && (
-        <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
+        <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-label="Receipt scanner">
            <div className="relative w-full max-w-2xl aspect-[3/4] bg-black rounded-[4rem] overflow-hidden border-4 border-white/10 shadow-3xl">
               <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
               <canvas ref={canvasRef} className="hidden" />
@@ -378,8 +511,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
               </div>
 
               <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-8">
-                <button onClick={stopScanner} className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"><X /></button>
-                <button onClick={captureAndParse} className="w-24 h-24 rounded-[2.5rem] bg-white border-8 border-brand-primary shadow-3xl flex items-center justify-center text-brand-primary hover:scale-105 active:scale-95 transition-all"><Camera size={36}/></button>
+                <button onClick={stopScanner} aria-label="Close scanner" className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-all"><X aria-hidden="true" /></button>
+                <button onClick={captureAndParse} aria-label="Capture receipt" className="w-24 h-24 rounded-[2.5rem] bg-white border-8 border-brand-primary shadow-3xl flex items-center justify-center text-brand-primary hover:scale-105 active:scale-95 transition-all"><Camera size={36} aria-hidden="true" /></button>
               </div>
            </div>
         </div>
@@ -387,35 +520,52 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
       {/* Manual Expense Modal */}
       {showAddExpense && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
           <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-12 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50">
               <div>
-                <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
+                <h3 id="expense-modal-title" className="text-3xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
                 <p className="text-slate-400 font-medium">Capture capital deployment data.</p>
               </div>
-              <button onClick={() => setShowAddExpense(false)} className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"><X size={24} /></button>
+              <button onClick={() => setShowAddExpense(false)} aria-label="Close expense modal" className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"><X size={24} aria-hidden="true" /></button>
             </div>
             
             <div className="p-12 space-y-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Total Amount</label>
-                <div className="relative">
-                   <div className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-2xl">$</div>
-                   <input 
-                    type="number"
-                    value={newExpense.amount}
-                    onChange={(e) => setNewExpense({ ...newExpense, amount: Number(e.target.value) })}
-                    className="w-full p-6 pl-12 bg-slate-50 dark:bg-slate-950 rounded-3xl font-display font-bold text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
-                    placeholder="0.00"
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2 relative">
+                     <div className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-2xl">
+                       {getCurrencySymbol(newExpense.currency || 'USD')}
+                     </div>
+                     <input
+                      type="number"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense({ ...newExpense, amount: Number(e.target.value) })}
+                      className="w-full p-6 pl-12 bg-slate-50 dark:bg-slate-950 rounded-3xl font-display font-bold text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <select
+                      value={newExpense.currency}
+                      onChange={(e) => setNewExpense({ ...newExpense, currency: e.target.value })}
+                      className="w-full h-full p-5 bg-slate-50 dark:bg-slate-950 rounded-3xl font-bold text-sm outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                    >
+                      {SUPPORTED_CURRENCIES.map(curr => (
+                        <option key={curr.code} value={curr.code}>
+                          {curr.code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Sector</label>
-                  <select 
+                  <select
                     value={newExpense.category}
                     onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as any })}
                     className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
@@ -425,7 +575,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
-                  <input 
+                  <input
                     type="date"
                     value={newExpense.date}
                     onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
@@ -454,6 +604,16 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           </div>
         </div>
       )}
+
+      {/* Split Expense Modal */}
+      <SplitExpenseModal
+        isOpen={showSplitModal}
+        onClose={() => setShowSplitModal(false)}
+        onSubmit={handleAddSplitExpense}
+        collaborators={trip.collaborators}
+        ownerEmail={trip.ownerEmail}
+        tripCurrency="USD"
+      />
 
       <style>{`
         .animate-spin-slow { animation: spin 10s linear infinite; }
