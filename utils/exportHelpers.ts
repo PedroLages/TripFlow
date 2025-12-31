@@ -407,8 +407,9 @@ export function printExpenseReport(trip: Trip): void {
       }, 1000);
     };
   } else {
-    console.error('Failed to open print window. Please check popup blocker settings.');
+    // Cleanup and throw error for proper error handling
     URL.revokeObjectURL(url);
+    throw new Error('Failed to open print window. Please check popup blocker settings and try again.');
   }
 }
 

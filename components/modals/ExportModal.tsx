@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, FileText, Table, Printer, Download, CheckCircle2 } from 'lucide-react';
+import { X, FileText, Table, Printer, Download, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { Trip } from '../../types';
 import {
   downloadExpensesCSV,
@@ -25,6 +25,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ trip, onClose }) => {
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('expense-csv');
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const formats: Array<{
     id: ExportFormat;
@@ -66,6 +67,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ trip, onClose }) => {
   const handleExport = async () => {
     setIsExporting(true);
     setExportSuccess(false);
+    setError('');
 
     try {
       const selectedExport = formats.find(f => f.id === selectedFormat);
@@ -78,9 +80,13 @@ const ExportModal: React.FC<ExportModalProps> = ({ trip, onClose }) => {
           onClose();
         }, 1500);
       }
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('Export failed. Please try again.');
+    } catch (err) {
+      console.error('Export failed:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Export failed. Please try again.'
+      );
     } finally {
       setIsExporting(false);
     }
@@ -190,6 +196,14 @@ const ExportModal: React.FC<ExportModalProps> = ({ trip, onClose }) => {
               </p>
             </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <span className="text-sm text-red-700 dark:text-red-400">{error}</span>
+            </div>
+          )}
 
           {/* Export Button */}
           <button
