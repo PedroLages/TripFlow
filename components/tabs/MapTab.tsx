@@ -20,6 +20,7 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Map as MapGL, Marker, NavigationControl, ScaleControl, Source, Layer, Popup } from '@vis.gl/react-maplibre';
 import type { MapRef, MarkerEvent, LngLatLike } from '@vis.gl/react-maplibre';
 import type { LineLayerSpecification } from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Trip, Activity, ActivityType, WishlistPlace, Expense } from '../../types';
 import {
@@ -331,13 +332,45 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
 
   // Route visualization
   const routeSegments = useMemo(() => {
-    if (geocodedActivities.size === 0) return [];
-    return generateRouteSegments(trip.itinerary, geocodedActivities);
+    if (geocodedActivities.size === 0) {
+      console.log('[RouteViz] No geocoded activities yet, skipping route generation');
+      return [];
+    }
+    const segments = generateRouteSegments(trip.itinerary, geocodedActivities);
+    console.log(`[RouteViz] Generated ${segments.length} route segments`, segments);
+    return segments;
   }, [trip.itinerary, geocodedActivities]);
 
   const routesGeoJSON = useMemo(() => {
-    return createRoutesGeoJSON(routeSegments, selectedDay);
+    const geoJSON = createRoutesGeoJSON(routeSegments, selectedDay);
+    console.log(`[RouteViz] Created GeoJSON with ${geoJSON.features.length} features (Day filter: ${selectedDay || 'All'})`, geoJSON);
+    return geoJSON;
   }, [routeSegments, selectedDay]);
+
+  // Automatically fit map bounds to show all activities
+  useEffect(() => {
+    if (!mapRef.current || activities.length === 0) return;
+
+    const map = mapRef.current.getMap();
+    if (!map) return;
+
+    // Calculate bounds that include all activity markers
+    const bounds = activities.reduce((bounds, activity) => {
+      return bounds.extend([activity.coords[1], activity.coords[0]]);
+    }, new maplibregl.LngLatBounds(
+      [activities[0].coords[1], activities[0].coords[0]],
+      [activities[0].coords[1], activities[0].coords[0]]
+    ));
+
+    // Fit map to bounds with padding
+    map.fitBounds(bounds, {
+      padding: { top: 80, bottom: 80, left: 80, right: 80 },
+      duration: 1000, // Smooth animation
+      maxZoom: 15, // Don't zoom in too close
+    });
+
+    console.log('[MapTab] Fitted map bounds to show all activities');
+  }, [activities]);
 
   // Offline map caching
   const {
