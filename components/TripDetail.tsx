@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { Trip, Collaborator, UserRole, User, ActivityLog } from '../types';
-import { 
-  Calendar, Map as MapIcon, Heart, DollarSign, Package, FileText, 
+import {
+  Calendar, Map as MapIcon, Heart, DollarSign, Package, FileText,
   Settings, Users, X, Bell, Radio, CloudSun, Clock, Sparkles, Edit3, Eye,
-  ChevronLeft
+  ChevronLeft, BarChart3
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 // Added missing import for format from date-fns
@@ -14,6 +14,7 @@ import ItineraryTab from './tabs/ItineraryTab';
 import MapTab from './tabs/MapTab';
 import WishlistTab from './tabs/WishlistTab';
 import BudgetTab from './tabs/BudgetTab';
+import AnalyticsTab from './tabs/AnalyticsTab';
 import PackingTab from './tabs/PackingTab';
 import DocumentsTab from './tabs/DocumentsTab';
 import SettlementsTab from './tabs/SettlementsTab';
@@ -105,6 +106,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     { name: 'Map', path: 'map', icon: <MapIcon size={18} /> },
     { name: 'Places', path: 'places', icon: <Heart size={18} /> },
     { name: 'Budget', path: 'budget', icon: <DollarSign size={18} /> },
+    { name: 'Analytics', path: 'analytics', icon: <BarChart3 size={18} /> },
     { name: 'Settlements', path: 'settlements', icon: <Users size={18} /> },
     { name: 'Packing', path: 'packing', icon: <Package size={18} /> },
     { name: 'Documents', path: 'docs', icon: <FileText size={18} /> },
@@ -246,6 +248,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           <Route path="map" element={<MapTab trip={trip} />} />
           <Route path="places" element={<WishlistTab trip={trip} updateTrip={(t) => { updateTrip(t); logAction("Updated wishlist"); }} />} />
           <Route path="budget" element={<BudgetTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Modified expenses"); }} />} />
+          <Route path="analytics" element={<AnalyticsTab trip={trip} />} />
           <Route path="settlements" element={<SettlementsTab trip={trip} updateTrip={(t) => { updateTrip(t); logAction("Managed settlements"); }} currentUserEmail={currentUser.email} />} />
           <Route path="packing" element={<PackingTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Updated packing list"); }} />} />
           <Route path="docs" element={<DocumentsTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Modified documents"); }} />} />
