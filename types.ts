@@ -31,12 +31,30 @@ export interface DayPlan {
   activities: Activity[];
 }
 
+/**
+ * Route segment connecting two consecutive activities
+ * Used for map visualization of travel routes
+ */
+export interface RouteSegment {
+  id: string;                    // Unique ID: `${fromId}-${toId}`
+  fromActivity: Activity;
+  toActivity: Activity;
+  fromCoords: [number, number];  // [lat, lng]
+  toCoords: [number, number];    // [lat, lng]
+  day: number;                   // Day number (1-indexed)
+  distance: number;              // Distance in meters
+  geometry: GeoJSON.LineString;  // GeoJSON for MapLibre
+}
+
 export interface WishlistPlace {
   id: string;
   name: string;
   category: 'Must See' | 'Maybe' | 'Restaurant' | 'Shopping';
   notes: string;
   rating: number;
+  // Optional location for map display
+  location?: string;           // Address or place name
+  coordinates?: [number, number]; // [lat, lng]
 }
 
 export interface PaymentHistoryEntry {
