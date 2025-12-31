@@ -5,7 +5,7 @@ import {
   DollarSign, PieChart as ChartIcon, Plus, Trash2,
   Calendar, TrendingUp, RefreshCw, ArrowRightLeft,
   Camera, Zap, Loader2, X, Check, AlertCircle,
-  TrendingDown, Info, Receipt, Wallet, Users, Filter
+  TrendingDown, Info, Receipt, Wallet, Users, Filter, Globe
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +16,8 @@ import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../../utils/currencyHel
 import SplitIndicator from '../expense/SplitIndicator';
 import UserBalanceCard from '../expense/UserBalanceCard';
 import SplitExpenseModal from '../modals/SplitExpenseModal';
+import { ConvertedAmount } from '../ConvertedAmount';
+import { useBatchCurrencyConversion } from '../../hooks/useCurrencyConversion';
 
 interface BudgetTabProps {
   trip: Trip;
@@ -40,6 +42,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [showScanner, setShowScanner] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [expenseFilter, setExpenseFilter] = useState<ExpenseFilter>('all');
+  const [showInPreferredCurrency, setShowInPreferredCurrency] = useState(false);
+  const [preferredCurrency, setPreferredCurrency] = useState<string>('USD');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -95,6 +99,23 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   // Get current user's balance (demo user for now)
   const currentUserEmail = 'demo@tripflow.ai';
   const currentUserBalance = userBalances.get(currentUserEmail);
+
+  // Multi-currency conversion for expenses
+  const expenseConversions = useMemo(() => {
+    return filteredExpenses.map(exp => ({
+      amount: exp.amount,
+      currency: exp.currency || 'USD',
+    }));
+  }, [filteredExpenses]);
+
+  const { results: convertedExpenses, totalConverted, isLoading: isConverting } =
+    useBatchCurrencyConversion(
+      expenseConversions,
+      showInPreferredCurrency ? preferredCurrency : 'USD'
+    );
+
+  // Use converted total if showing in preferred currency, otherwise use original
+  const displayTotal = showInPreferredCurrency ? totalConverted : totalSpent;
 
   // Grouping expenses by date (using filtered expenses)
   const groupedExpenses = filteredExpenses.reduce((groups: Record<string, Expense[]>, expense) => {
@@ -282,8 +303,16 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
            <div className="w-full md:w-64 h-64 relative">
              {/* Center labels moved before chart and explicitly given lower z-index to avoid overlapping tooltips */}
              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Spent</p>
-                <p className="text-2xl font-display font-bold">${totalSpent.toLocaleString()}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  Total Spent {showInPreferredCurrency && `(${preferredCurrency})`}
+                </p>
+                <p className="text-2xl font-display font-bold">
+                  {getCurrencySymbol(showInPreferredCurrency ? preferredCurrency : 'USD')}
+                  {displayTotal.toLocaleString()}
+                </p>
+                {showInPreferredCurrency && isConverting && (
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-primary mt-1" />
+                )}
              </div>
              <ResponsiveContainer width="100%" height="100%" className="z-10 relative">
                 <PieChart>
@@ -410,6 +439,39 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           >
             Personal ({expenseCounts.personal})
           </button>
+
+          {/* Currency Display Separator */}
+          <div className="h-6 w-px bg-slate-200 dark:bg-white/10" />
+
+          {/* Currency Display Toggle */}
+          <div className="flex items-center gap-2">
+            <Globe size={14} className="text-slate-400" />
+            <button
+              onClick={() => setShowInPreferredCurrency(!showInPreferredCurrency)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                showInPreferredCurrency
+                  ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-white/5 hover:border-green-500/30'
+              }`}
+              aria-label={showInPreferredCurrency ? 'Showing in preferred currency' : 'Showing in original currency'}
+            >
+              {showInPreferredCurrency ? `Show in ${preferredCurrency}` : 'Original Currency'}
+            </button>
+            {showInPreferredCurrency && (
+              <select
+                value={preferredCurrency}
+                onChange={(e) => setPreferredCurrency(e.target.value)}
+                className="px-3 py-2 rounded-full text-xs font-bold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-white/5 outline-none focus:border-brand-primary transition-all"
+                aria-label="Select preferred currency"
+              >
+                {SUPPORTED_CURRENCIES.map(curr => (
+                  <option key={curr.code} value={curr.code}>
+                    {curr.code}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
         </div>
 
         <div className="space-y-12">
@@ -435,14 +497,16 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                       </div>
                       <div className="flex items-center gap-4 flex-shrink-0">
                         <div className="text-right">
-                          <p className="text-xl font-display font-bold text-slate-900 dark:text-white">
-                            {getCurrencySymbol(exp.currency || 'USD')}{exp.amount}
-                            {exp.currency && exp.currency !== 'USD' && (
-                              <span className="text-xs font-bold text-slate-400 ml-1">{exp.currency}</span>
-                            )}
-                          </p>
+                          <ConvertedAmount
+                            amount={exp.amount}
+                            currency={exp.currency || 'USD'}
+                            displayCurrency={showInPreferredCurrency ? preferredCurrency : undefined}
+                            showOriginal={showInPreferredCurrency}
+                            className="text-xl font-display font-bold text-slate-900 dark:text-white"
+                            compact={false}
+                          />
                           {exp.amount > currentDailyAvg * 1.5 && (
-                            <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest">Outlier</span>
+                            <span className="text-[8px] font-black bg-red-50 text-red-500 px-2 py-0.5 rounded-lg uppercase tracking-widest mt-1 inline-block">Outlier</span>
                           )}
                         </div>
                         <button
