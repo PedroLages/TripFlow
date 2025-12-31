@@ -50,6 +50,75 @@
 
 ---
 
+## 🗺️ Map Features (Based on Competitive Research)
+
+### Route Visualization
+- [ ] **P1** | `feature/route-visualization` | Connect activities with polylines on map
+  - Draw routes between consecutive activities (day-colored polylines)
+  - Display distance and travel time annotations on routes
+  - Add transport mode icons (walking/driving/transit)
+  - Animated route rendering showing travel direction
+  - **Files**: `components/tabs/MapTab.tsx`, `services/RouteService.ts`
+  - **Research**: See `docs/map-feature-research.md` for details
+
+### Route Optimization
+- [ ] **P1** | `feature/route-optimization` | Optimize activity order within a day
+  - Implement 2-opt TSP algorithm for route optimization
+  - "Optimize Day" button to reorder activities for minimum travel
+  - Preview before/after comparison
+  - Undo capability to revert to original order
+  - Handle constraints (opening hours, must-visit times)
+  - **Files**: `utils/routeOptimizer.ts`, `components/tabs/MapTab.tsx`
+  - **Research**: See `docs/map-feature-research.md` for algorithm details
+
+### Directions & Travel Times
+- [ ] **P2** | `feature/directions-api` | Real directions and travel times
+  - Integrate OpenRouteService API (2000 free requests/day)
+  - Calculate actual walking/driving/transit times between activities
+  - Cache route calculations in IndexedDB
+  - Support multiple transport modes
+  - Batch geocoding with rate limit handling
+  - **Files**: `services/DirectionsService.ts`, `components/tabs/MapTab.tsx`
+  - **API**: OpenRouteService (free tier)
+
+### Marker Clustering
+- [ ] **P2** | `feature/marker-clustering` | Cluster markers at lower zoom levels
+  - Enable MapLibre GL JS built-in clustering
+  - Custom cluster styles with day-colored backgrounds
+  - Click-to-expand behavior (zoom to cluster extent)
+  - Show activity preview in cluster tooltips
+  - Smart clustering by day or all activities
+  - **Files**: `components/tabs/MapTab.tsx`
+  - **Docs**: MapLibre clustering API
+
+### Enhanced Offline Maps
+- [ ] **P2** | `feature/offline-enhancement` | Better offline map download experience
+  - "Download for Trip" button with progress indicator
+  - Calculate offline area around trip activities
+  - Show storage estimate before download
+  - Selective zoom level downloads (higher near POIs)
+  - Auto-suggest download before trip starts
+  - **Files**: `services/offlineMapService.ts`, `components/tabs/MapTab.tsx`
+
+### Collaborative Maps
+- [ ] **P3** | `feature/collab-maps` | Real-time collaborative map viewing
+  - Share trip link with viewer/editor roles
+  - Live cursors showing where others are looking
+  - Comments on markers/activities
+  - Live location sharing (optional during trip)
+  - **Backend**: Supabase Realtime integration
+  - **Files**: `services/realtimeSync.ts`, `components/tabs/MapTab.tsx`
+
+### Advanced Visualizations
+- [ ] **P4** | `feature/map-viz` | Heatmaps and isochrones
+  - Activity density heatmap layer
+  - "Reachable in X minutes" isochrone areas
+  - Mini-map overview control
+  - Route elevation profiles (3D terrain)
+  - **Files**: `components/tabs/MapTab.tsx`, MapLibre advanced layers
+
+---
+
 ## 🎯 Tier 2: Major Features (2-4 weeks each)
 
 ### AI Trip Planner 2.0
