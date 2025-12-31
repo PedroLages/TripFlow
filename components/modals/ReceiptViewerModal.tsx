@@ -25,6 +25,7 @@ export default function ReceiptViewerModal({
 }: ReceiptViewerModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const currentImage = images[currentIndex];
 
@@ -49,19 +50,26 @@ export default function ReceiptViewerModal({
     link.click();
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = () => {
     if (!onDelete) return;
 
-    if (confirm('Delete this receipt image? This cannot be undone.')) {
-      onDelete(currentImage.id);
+    onDelete(currentImage.id);
+    setShowDeleteConfirm(false);
 
-      // Move to previous image or close if none left
-      if (images.length === 1) {
-        onClose();
-      } else if (currentIndex === images.length - 1) {
-        setCurrentIndex(currentIndex - 1);
-      }
+    // Move to previous image or close if none left
+    if (images.length === 1) {
+      onClose();
+    } else if (currentIndex === images.length - 1) {
+      setCurrentIndex(currentIndex - 1);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
   };
 
   const handleZoomIn = () => {
@@ -142,7 +150,7 @@ export default function ReceiptViewerModal({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDelete();
+                  handleDeleteClick();
                 }}
                 className="p-3 bg-red-500/80 hover:bg-red-500 rounded-xl transition-colors"
                 aria-label="Delete image"
@@ -222,6 +230,37 @@ export default function ReceiptViewerModal({
       <div className="absolute bottom-6 right-6 text-xs text-white/50">
         Use ← → to navigate • ESC to close
       </div>
+
+      {/* Delete Confirmation */}
+      {showDeleteConfirm && (
+        <div
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md mx-4 shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+              Delete Receipt Image?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              This action cannot be undone. The receipt image will be permanently deleted.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteCancel}
+                className="flex-1 px-6 py-3 bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white rounded-2xl font-bold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="flex-1 px-6 py-3 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,21 +35,28 @@ export function PaymentProgressBar({
     return (
       <div className="flex items-center gap-2">
         {progress.isFullyPaid ? (
-          <CheckCircle2 className="w-4 h-4 text-green-500" />
+          <CheckCircle2 className="w-4 h-4 text-green-500" aria-hidden="true" />
         ) : progress.isPartiallyPaid ? (
-          <Clock className="w-4 h-4 text-orange-500" />
+          <Clock className="w-4 h-4 text-orange-500" aria-hidden="true" />
         ) : (
-          <DollarSign className="w-4 h-4 text-red-500" />
+          <DollarSign className="w-4 h-4 text-red-500" aria-hidden="true" />
         )}
         <div className="flex-1">
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={progress.percentagePaid}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Payment progress: ${progress.percentagePaid.toFixed(0)}% paid, ${formatCurrency(progress.amountPaid, currency)} of ${formatCurrency(progress.totalAmount, currency)}`}
+          >
             <div
               className={`h-full ${progress.isFullyPaid ? 'bg-green-500' : progress.isPartiallyPaid ? 'bg-orange-500' : 'bg-red-500'} transition-all duration-500`}
               style={{ width: `${progress.percentagePaid}%` }}
             />
           </div>
         </div>
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+        <span className="text-xs font-medium text-gray-600 dark:text-gray-400" aria-hidden="true">
           {progress.percentagePaid.toFixed(0)}%
         </span>
       </div>
@@ -63,24 +70,31 @@ export function PaymentProgressBar({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {progress.isFullyPaid ? (
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
+              <CheckCircle2 className="w-5 h-5 text-green-500" aria-hidden="true" />
             ) : progress.isPartiallyPaid ? (
-              <Clock className="w-5 h-5 text-orange-500" />
+              <Clock className="w-5 h-5 text-orange-500" aria-hidden="true" />
             ) : (
-              <DollarSign className="w-5 h-5 text-red-500" />
+              <DollarSign className="w-5 h-5 text-red-500" aria-hidden="true" />
             )}
             <span className={`text-sm font-bold ${colors.text}`}>
               {label}
             </span>
           </div>
-          <span className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+          <span className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest" aria-hidden="true">
             {progress.percentagePaid.toFixed(0)}%
           </span>
         </div>
 
         {/* Progress Bar */}
         <div className="relative">
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={progress.percentagePaid}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Payment progress: ${label}, ${progress.percentagePaid.toFixed(0)}% paid`}
+          >
             <div
               className={`h-full ${
                 progress.isFullyPaid
