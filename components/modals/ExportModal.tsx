@@ -176,7 +176,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ trip, onClose }) => {
           </div>
 
           {/* Stats Preview */}
-          <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-slate-950 rounded-2xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-slate-950 rounded-2xl">
             <div className="text-center">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Expenses</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
