@@ -39,13 +39,23 @@ export interface WishlistPlace {
   rating: number;
 }
 
+export interface PaymentHistoryEntry {
+  id: string;
+  amount: number;
+  paidAt: string;          // ISO timestamp
+  notes?: string;
+  method?: 'cash' | 'card' | 'transfer' | 'other';
+}
+
 export interface ExpenseSplit {
   userId: string;          // Matches Collaborator.email
   amount: number;
   percentage?: number;     // For percentage splits (0-100)
   shares?: number;         // For share-based splits
-  isPaid: boolean;         // Settlement status
-  paidAt?: string;         // ISO timestamp when settled
+  isPaid: boolean;         // Full settlement status
+  paidAt?: string;         // ISO timestamp when fully settled
+  amountPaid?: number;     // Partial payment tracking (0 to amount)
+  paymentHistory?: PaymentHistoryEntry[];  // Record of all payments
 }
 
 export interface Settlement {

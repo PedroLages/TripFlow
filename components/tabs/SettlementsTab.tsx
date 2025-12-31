@@ -12,12 +12,14 @@ import React, { useState, useMemo } from 'react';
 import {
   DollarSign, TrendingUp, TrendingDown, Check, X,
   ArrowRight, History, Filter, CheckCircle, XCircle,
-  Users, Calendar, AlertCircle
+  Users, Calendar, AlertCircle, CreditCard
 } from 'lucide-react';
 import { format } from 'date-fns';
-import type { Trip, Settlement } from '../../types';
+import type { Trip, Settlement, ExpenseSplit } from '../../types';
 import { calculateSettlements, calculateUserBalances } from '../../utils/expenseSplitCalculations';
 import { formatCurrency } from '../../utils/currencyHelpers';
+import { PaymentProgressBar } from '../PaymentProgressBar';
+import PartialPaymentModal from '../modals/PartialPaymentModal';
 
 interface SettlementsTabProps {
   trip: Trip;
@@ -33,6 +35,8 @@ const SettlementsTab: React.FC<SettlementsTabProps> = ({
   currentUserEmail
 }) => {
   const [filter, setFilter] = useState<FilterType>('pending');
+  const [partialPaymentModalOpen, setPartialPaymentModalOpen] = useState(false);
+  const [selectedExpenseSplit, setSelectedExpenseSplit] = useState<{ expense: any; split: ExpenseSplit } | null>(null);
 
   // Calculate settlements from split expenses
   const calculatedSettlements = useMemo(() => {
