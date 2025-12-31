@@ -5,7 +5,7 @@ import {
   DollarSign, PieChart as ChartIcon, Plus, Trash2,
   Calendar, TrendingUp, RefreshCw, ArrowRightLeft,
   Camera, Zap, Loader2, X, Check, AlertCircle,
-  TrendingDown, Info, Receipt, Wallet, Users, Filter, Globe
+  TrendingDown, Info, Receipt, Wallet, Users, Filter, Globe, Download
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,6 +16,7 @@ import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../../utils/currencyHel
 import SplitIndicator from '../expense/SplitIndicator';
 import UserBalanceCard from '../expense/UserBalanceCard';
 import SplitExpenseModal from '../modals/SplitExpenseModal';
+import ExportModal from '../modals/ExportModal';
 import { ConvertedAmount } from '../ConvertedAmount';
 import { useBatchCurrencyConversion } from '../../hooks/useCurrencyConversion';
 
@@ -40,6 +41,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [expenseFilter, setExpenseFilter] = useState<ExpenseFilter>('all');
   const [showInPreferredCurrency, setShowInPreferredCurrency] = useState(false);
@@ -255,6 +257,13 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                   className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all"
                 >
                   <Plus size={18} aria-hidden="true" /> Manual Entry
+                </button>
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  aria-label="Export trip data"
+                  className="bg-white/5 backdrop-blur-xl border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all"
+                >
+                  <Download size={18} aria-hidden="true" /> Export
                 </button>
              </div>
           </div>
@@ -678,6 +687,14 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
         ownerEmail={trip.ownerEmail}
         tripCurrency="USD"
       />
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <ExportModal
+          trip={trip}
+          onClose={() => setShowExportModal(false)}
+        />
+      )}
 
       <style>{`
         .animate-spin-slow { animation: spin 10s linear infinite; }
