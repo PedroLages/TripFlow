@@ -77,6 +77,16 @@ export interface UserBalance {
   netBalance: number;      // Positive = owed money, Negative = owes money
 }
 
+export interface ReceiptImage {
+  id: string;
+  data: string;              // Base64 encoded image data
+  mimeType: string;          // e.g., 'image/jpeg', 'image/png'
+  filename: string;
+  uploadedAt: string;        // ISO timestamp
+  size: number;              // File size in bytes
+  thumbnail?: string;        // Optional thumbnail (base64)
+}
+
 export interface Expense {
   id: string;
   amount: number;
@@ -90,6 +100,9 @@ export interface Expense {
   splitMethod?: SplitMethod;
   splits?: ExpenseSplit[];
   currency?: string;         // Defaults to trip currency if not specified
+
+  // Receipt image storage
+  receiptImages?: ReceiptImage[];
 }
 
 export interface PackingItem {
