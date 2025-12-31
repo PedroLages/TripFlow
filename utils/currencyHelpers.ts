@@ -84,57 +84,48 @@ export const getCurrencySymbol = (
 };
 
 /**
- * Static exchange rates (for Phase 1 MVP)
- * In Phase 2, integrate with real-time API (e.g., exchangerate-api.com)
+ * Convert amount from one currency to another using live rates
+ *
+ * @param amount - Amount to convert
+ * @param fromCurrency - Source currency code
+ * @param toCurrency - Target currency code
+ * @param useLiveRates - Use live rates from CurrencyService (default: true)
+ * @returns Promise<Converted amount>
  */
-const EXCHANGE_RATES: Record<string, Record<string, number>> = {
-  USD: {
-    USD: 1,
-    EUR: 0.92,
-    GBP: 0.79,
-    JPY: 149.50,
-    CAD: 1.36,
-    AUD: 1.53,
-    CHF: 0.88,
-    CNY: 7.24,
-    INR: 83.12,
-    MXN: 17.08,
-  },
-  EUR: {
-    USD: 1.09,
-    EUR: 1,
-    GBP: 0.86,
-    JPY: 162.50,
-    CAD: 1.48,
-    AUD: 1.66,
-    CHF: 0.96,
-    CNY: 7.87,
-    INR: 90.33,
-    MXN: 18.58,
-  },
-  GBP: {
-    USD: 1.27,
-    EUR: 1.16,
-    GBP: 1,
-    JPY: 189.00,
-    CAD: 1.72,
-    AUD: 1.93,
-    CHF: 1.11,
-    CNY: 9.15,
-    INR: 105.00,
-    MXN: 21.60,
-  },
+export const convertCurrency = async (
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string,
+  useLiveRates: boolean = true
+): Promise<number> => {
+  if (fromCurrency === toCurrency) {
+    return amount;
+  }
+
+  // Use live rates if requested and service is available
+  if (useLiveRates) {
+    try {
+      const { CurrencyService } = await import('../src/services/CurrencyService');
+      return await CurrencyService.convertCurrency(amount, fromCurrency, toCurrency);
+    } catch (error) {
+      console.warn('Failed to use live rates, falling back to static conversion:', error);
+      // Fall through to static conversion
+    }
+  }
+
+  // Fallback: Static conversion for backward compatibility
+  return convertCurrencyStatic(amount, fromCurrency, toCurrency);
 };
 
 /**
- * Convert amount from one currency to another
+ * Static fallback conversion (for offline/fallback scenarios)
  *
  * @param amount - Amount to convert
  * @param fromCurrency - Source currency code
  * @param toCurrency - Target currency code
  * @returns Converted amount
  */
-export const convertCurrency = (
+export const convertCurrencyStatic = (
   amount: number,
   fromCurrency: string,
   toCurrency: string
@@ -143,7 +134,47 @@ export const convertCurrency = (
     return amount;
   }
 
-  const rates = EXCHANGE_RATES[fromCurrency];
+  // Static fallback rates
+  const STATIC_RATES: Record<string, Record<string, number>> = {
+    USD: {
+      USD: 1,
+      EUR: 0.92,
+      GBP: 0.79,
+      JPY: 149.50,
+      CAD: 1.36,
+      AUD: 1.53,
+      CHF: 0.88,
+      CNY: 7.24,
+      INR: 83.12,
+      MXN: 17.08,
+    },
+    EUR: {
+      USD: 1.09,
+      EUR: 1,
+      GBP: 0.86,
+      JPY: 162.50,
+      CAD: 1.48,
+      AUD: 1.66,
+      CHF: 0.96,
+      CNY: 7.87,
+      INR: 90.33,
+      MXN: 18.58,
+    },
+    GBP: {
+      USD: 1.27,
+      EUR: 1.16,
+      GBP: 1,
+      JPY: 189.00,
+      CAD: 1.72,
+      AUD: 1.93,
+      CHF: 1.11,
+      CNY: 9.15,
+      INR: 105.00,
+      MXN: 21.60,
+    },
+  };
+
+  const rates = STATIC_RATES[fromCurrency];
   if (!rates) {
     console.warn(`No exchange rates available for ${fromCurrency}, returning original amount`);
     return amount;

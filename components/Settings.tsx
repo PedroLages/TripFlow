@@ -7,6 +7,7 @@ import {
   ChevronRight, CheckCircle2, AlertCircle, Activity,
   Lock, Key, HardDrive, RefreshCw
 } from 'lucide-react';
+import { CurrencyRateInfo } from './CurrencyRateInfo';
 
 interface SettingsProps {
   settings: UserSettings;
@@ -205,7 +206,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Currency Protocol</label>
                 <div className="relative">
                   <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <select 
+                  <select
                     value={settings.currency}
                     onChange={(e) => handleChange('currency', e.target.value)}
                     className="w-full p-5 pl-14 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-[1.5rem] font-bold outline-none transition-all dark:text-white appearance-none shadow-inner"
@@ -213,6 +214,11 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
                     {['USD', 'EUR', 'GBP', 'JPY', 'CAD'].map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
+              </div>
+
+              {/* Exchange Rate Status */}
+              <div className="mt-6">
+                <CurrencyRateInfo baseCurrency={settings.currency} />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Interface Mode</label>
