@@ -6,17 +6,18 @@
  * - Day-by-day filtering with color-coded markers
  * - Activity type filtering
  * - Route lines connecting waypoints
- * - Satellite/Map toggle
+ * - Light/Dark theme toggle (Voyager styles)
  * - AI-powered neighborhood scanning
  * - Place search with geocoding
- * - Bottom sheet for activity details
+ * - Weather radar overlay
  *
- * Tile Providers (in order of preference):
- * 1. OpenFreeMap - completely free, no API key
- * 2. MapLibre demo tiles - for fallback
+ * Tile Providers:
+ * - Carto Vector Tiles (free, no API key required)
+ * - MapLibre demo tiles (fallback)
  */
 
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Map as MapGL, Marker, NavigationControl, ScaleControl, Source, Layer, Popup } from '@vis.gl/react-maplibre';
 import type { MapRef, MarkerEvent, LngLatLike } from '@vis.gl/react-maplibre';
 import type { LineLayerSpecification } from 'maplibre-gl';
@@ -43,28 +44,19 @@ interface MapTabProps {
 }
 
 // Map style URLs - Using Carto's free vector tiles (no API key required)
-// Enhanced with multiple themes and satellite imagery
 const MAP_STYLES = {
   // Vector styles from Carto (free, no API key)
-  light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-  dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-  voyager: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+  light: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json', // Voyager - Colorful & detailed
+  dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json', // Dark Voyager
   // Fallback to demo tiles if Carto is unavailable
   fallbackLight: 'https://demotiles.maplibre.org/style.json',
-};
-
-// Satellite imagery - Esri World Imagery (free, no API key, high-resolution)
-// Uses commercial satellite + aerial imagery from multiple sources
-const SATELLITE_TILES = {
-  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  attribution: 'Esri, Maxar, Earthstar Geographics, CNES/Airbus DS, USDA FSA, USGS, Getmapping, Aerogrid, IGN, IGP, and the GIS User Community',
 };
 
 // Weather radar - RainViewer API (free for personal use)
 const RAINVIEWER_API = 'https://api.rainviewer.com/public/weather-maps.json';
 
 // Map style display names and icons
-type MapStyleKey = 'light' | 'dark' | 'voyager' | 'satellite';
+type MapStyleKey = 'light' | 'dark';
 
 interface MapStyleOption {
   key: MapStyleKey;
@@ -73,10 +65,8 @@ interface MapStyleOption {
 }
 
 const MAP_STYLE_OPTIONS: MapStyleOption[] = [
-  { key: 'light', name: 'Light', description: 'Clean minimal style' },
-  { key: 'dark', name: 'Dark', description: 'Night mode' },
-  { key: 'voyager', name: 'Voyager', description: 'Colorful & detailed' },
-  { key: 'satellite', name: 'Satellite', description: 'Aerial imagery' },
+  { key: 'light', name: 'Voyager', description: 'Colorful & detailed' },
+  { key: 'dark', name: 'Dark Voyager', description: 'Night mode voyager' },
 ];
 
 // Day colors for markers and routes
@@ -273,6 +263,8 @@ function WishlistMarker({ place, isActive, onClick, index = 0 }: WishlistMarkerP
 }
 
 const MapTab: React.FC<MapTabProps> = ({ trip }) => {
+  const location = useLocation();
+
   // Theme detection
   const [isDarkMode, setIsDarkMode] = useState(() =>
     typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -298,8 +290,11 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
   const [showWeatherRadar, setShowWeatherRadar] = useState(false);
   const [show3DBuildings, setShow3DBuildings] = useState(false);
   const [showTerrain, setShowTerrain] = useState(false);
+  const [showRoutes, setShowRoutes] = useState(true);
   const [weatherRadarPath, setWeatherRadarPath] = useState<string | null>(null);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Geocoding state
   const [baseCoords, setBaseCoords] = useState<[number, number]>([139.6503, 35.6762]); // Default Tokyo [lng, lat]
@@ -309,7 +304,11 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
   const [showSearch, setShowSearch] = useState(false);
 
   // Layer visibility toggles
-  const [showWishlist, setShowWishlist] = useState(true);
+  const [showWishlist, setShowWishlist] = useState(() => {
+    // Check if we're navigating from wishlist tab
+    const state = location.state as { showWishlist?: boolean } | null;
+    return state?.showWishlist ?? true;
+  });
   const [activeWishlistPlace, setActiveWishlistPlace] = useState<WishlistPlace | null>(null);
 
   // AI scanning state
@@ -330,47 +329,65 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
   // Initial animation state
   const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
 
-  // Route visualization
-  const routeSegments = useMemo(() => {
+  // Route visualization - now async with OpenRouteService
+  const [routeSegments, setRouteSegments] = useState<any[]>([]);
+  const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
+
+  // Generate route segments (async - fetches from OpenRouteService)
+  useEffect(() => {
     if (geocodedActivities.size === 0) {
-      console.log('[RouteViz] No geocoded activities yet, skipping route generation');
-      return [];
+      setRouteSegments([]);
+      return;
     }
-    const segments = generateRouteSegments(trip.itinerary, geocodedActivities);
-    console.log(`[RouteViz] Generated ${segments.length} route segments`, segments);
-    return segments;
+
+    let cancelled = false;
+
+    const fetchRoutes = async () => {
+      setIsLoadingRoutes(true);
+      try {
+        const segments = await generateRouteSegments(
+          trip.itinerary,
+          geocodedActivities,
+          {
+            useRealRoutes: true, // Enable OpenRouteService routing
+            onProgress: (current, total) => {
+              console.log(`RouteService: Generating routes ${current}/${total}`);
+            },
+          }
+        );
+
+        if (!cancelled) {
+          setRouteSegments(segments);
+        }
+      } catch (error) {
+        console.error('Failed to generate route segments:', error);
+        if (!cancelled) {
+          setRouteSegments([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingRoutes(false);
+        }
+      }
+    };
+
+    fetchRoutes();
+
+    return () => {
+      cancelled = true;
+    };
   }, [trip.itinerary, geocodedActivities]);
 
   const routesGeoJSON = useMemo(() => {
-    const geoJSON = createRoutesGeoJSON(routeSegments, selectedDay);
-    console.log(`[RouteViz] Created GeoJSON with ${geoJSON.features.length} features (Day filter: ${selectedDay || 'All'})`, geoJSON);
-    return geoJSON;
-  }, [routeSegments, selectedDay]);
+    // Convert day ID ('day-1', 'day-2', 'all') to day number (1, 2, null)
+    let dayNumber: number | null = null;
+    if (selectedDay !== 'all') {
+      const dayIndex = trip.itinerary.findIndex(day => day.id === selectedDay);
+      dayNumber = dayIndex >= 0 ? dayIndex + 1 : null;
+    }
 
-  // Automatically fit map bounds to show all activities
-  useEffect(() => {
-    if (!mapRef.current || activities.length === 0) return;
-
-    const map = mapRef.current.getMap();
-    if (!map) return;
-
-    // Calculate bounds that include all activity markers
-    const bounds = activities.reduce((bounds, activity) => {
-      return bounds.extend([activity.coords[1], activity.coords[0]]);
-    }, new maplibregl.LngLatBounds(
-      [activities[0].coords[1], activities[0].coords[0]],
-      [activities[0].coords[1], activities[0].coords[0]]
-    ));
-
-    // Fit map to bounds with padding
-    map.fitBounds(bounds, {
-      padding: { top: 80, bottom: 80, left: 80, right: 80 },
-      duration: 1000, // Smooth animation
-      maxZoom: 15, // Don't zoom in too close
-    });
-
-    console.log('[MapTab] Fitted map bounds to show all activities');
-  }, [activities]);
+    return createRoutesGeoJSON(routeSegments, dayNumber);
+  }, [routeSegments, selectedDay, trip.itinerary]);
 
   // Offline map caching
   const {
@@ -509,9 +526,17 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
           if (results.length > 0) {
             newCoords.set(activity.id, [results[0].lat, results[0].lng]);
             console.log(`MapTab: Geocoded activity "${activity.name}" to`, results[0]);
+          } else {
+            // Nominatim returned 0 results - use fallback offset coordinates
+            const fallbackCoords = generateOffsetCoords(activity.id, [baseCoords[1], baseCoords[0]]);
+            newCoords.set(activity.id, fallbackCoords);
+            console.log(`MapTab: Used fallback coords for activity "${activity.name}" (geocoding failed)`);
           }
         } catch (error) {
-          console.error(`MapTab: Failed to geocode activity "${activity.name}"`, error);
+          // Error during geocoding - use fallback offset coordinates
+          const fallbackCoords = generateOffsetCoords(activity.id, [baseCoords[1], baseCoords[0]]);
+          newCoords.set(activity.id, fallbackCoords);
+          console.error(`MapTab: Failed to geocode activity "${activity.name}", using fallback coords`, error);
         }
       }
 
@@ -606,6 +631,29 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
       );
   }, [trip.itinerary, selectedDay, activeTypeFilter, baseCoords, geocodedActivities]);
 
+  // Automatically fit map bounds to show all activities
+  useEffect(() => {
+    if (!mapRef.current || activities.length === 0) return;
+
+    const map = mapRef.current.getMap();
+    if (!map) return;
+
+    // Calculate bounds that include all activity markers
+    const bounds = activities.reduce((bounds, activity) => {
+      return bounds.extend([activity.coords[1], activity.coords[0]]);
+    }, new maplibregl.LngLatBounds(
+      [activities[0].coords[1], activities[0].coords[0]],
+      [activities[0].coords[1], activities[0].coords[0]]
+    ));
+
+    // Fit map to bounds with padding (consistent padding to prevent "cutting" effect)
+    map.fitBounds(bounds, {
+      padding: { top: 100, bottom: 100, left: 100, right: 100 },
+      duration: 1000, // Smooth animation
+      maxZoom: 15, // Don't zoom in too close
+    });
+  }, [activities]);
+
   // Get day index for an activity
   const getDayIndex = useCallback((activityId: string): number => {
     for (let i = 0; i < trip.itinerary.length; i++) {
@@ -621,38 +669,8 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
 
   // Map style based on selected style key
   const mapStyle = useMemo(() => {
-    if (mapStyleKey === 'satellite') {
-      // For satellite, create a custom style with EOX raster tiles
-      // EOX Sentinel-2 cloudless has native resolution up to zoom ~14
-      // Setting maxzoom on source tells MapLibre to oversample (scale up) beyond that
-      return {
-        version: 8 as const,
-        sources: {
-          'satellite': {
-            type: 'raster' as const,
-            tiles: [SATELLITE_TILES.url],
-            tileSize: 256,
-            maxzoom: 14, // EOX max native zoom - beyond this, tiles will be scaled up
-            attribution: SATELLITE_TILES.attribution,
-          },
-        },
-        layers: [
-          {
-            id: 'satellite-layer',
-            type: 'raster' as const,
-            source: 'satellite',
-            minzoom: 0,
-            maxzoom: 22, // Allow viewing up to zoom 22, MapLibre will oversample
-          },
-        ],
-      };
-    }
-    // For dark mode, auto-switch to dark style if on light
-    if (isDarkMode && mapStyleKey === 'light') {
-      return MAP_STYLES.dark;
-    }
     return MAP_STYLES[mapStyleKey] || MAP_STYLES.light;
-  }, [mapStyleKey, isDarkMode]);
+  }, [mapStyleKey]);
 
   // Fetch weather radar data from RainViewer
   const fetchWeatherRadar = useCallback(async () => {
@@ -693,7 +711,7 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
     if (!map) return;
 
     const handleStyleLoad = () => {
-      if (show3DBuildings && mapStyleKey !== 'satellite') {
+      if (show3DBuildings) {
         // Add 3D building extrusion layer
         if (!map.getLayer('3d-buildings')) {
           // Check if source exists
@@ -738,7 +756,117 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
     return () => {
       map.off('style.load', handleStyleLoad);
     };
-  }, [show3DBuildings, mapStyleKey, isDarkMode]);
+  }, [show3DBuildings, isDarkMode]);
+
+  // Add/update route visualization layer
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const handleStyleLoad = () => {
+      // Add routes source if not exists
+      if (!map.getSource('routes')) {
+        map.addSource('routes', {
+          type: 'geojson',
+          data: routesGeoJSON,
+        });
+      } else {
+        // Update existing source with new data
+        const source = map.getSource('routes') as maplibregl.GeoJSONSource;
+        source.setData(routesGeoJSON);
+      }
+
+      // Add routes layer if not exists
+      if (!map.getLayer('routes-layer')) {
+        map.addLayer({
+          id: 'routes-layer',
+          type: 'line',
+          source: 'routes',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round',
+            'visibility': showRoutes ? 'visible' : 'none',
+          },
+          paint: {
+            'line-color': ['get', 'color'], // Use day color from properties
+            'line-width': 3,
+            'line-opacity': 0.8,
+          },
+        });
+      }
+
+      // Add route labels layer if not exists
+      if (!map.getLayer('routes-labels')) {
+        map.addLayer({
+          id: 'routes-labels',
+          type: 'symbol',
+          source: 'routes',
+          layout: {
+            'text-field': [
+              'concat',
+              ['get', 'distanceText'],
+              ' • ',
+              ['get', 'walkingTime']
+            ],
+            'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+            'text-size': 12,
+            'symbol-placement': 'line-center',
+            'text-rotation-alignment': 'map',
+            'text-pitch-alignment': 'viewport',
+            'text-max-angle': 45,
+            'visibility': showRoutes ? 'visible' : 'none',
+          },
+          paint: {
+            'text-color': '#ffffff',
+            'text-halo-color': ['get', 'color'], // Match route color
+            'text-halo-width': 2,
+            'text-halo-blur': 1,
+          },
+          minzoom: 13, // Only show labels when zoomed in
+        });
+      }
+    };
+
+    map.on('style.load', handleStyleLoad);
+    // Also run immediately if style is already loaded
+    if (map.isStyleLoaded()) {
+      handleStyleLoad();
+    }
+
+    return () => {
+      map.off('style.load', handleStyleLoad);
+    };
+  }, [routesGeoJSON]);
+
+  // Update route layer visibility when toggle changes
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    const updateVisibility = () => {
+      const visibility = showRoutes ? 'visible' : 'none';
+
+      if (map.getLayer('routes-layer')) {
+        map.setLayoutProperty('routes-layer', 'visibility', visibility);
+      }
+
+      if (map.getLayer('routes-labels')) {
+        map.setLayoutProperty('routes-labels', 'visibility', visibility);
+      }
+    };
+
+    // Update immediately if style is loaded
+    if (map.isStyleLoaded()) {
+      updateVisibility();
+    }
+
+    // Also listen for style load in case map is reinitialized
+    map.on('style.load', updateVisibility);
+
+    return () => {
+      map.off('style.load', updateVisibility);
+    };
+  }, [showRoutes]);
 
   // Focus on an activity
   const focusWaypoint = useCallback((activity: Activity & { coords: [number, number] }) => {
@@ -838,7 +966,7 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
     }
   };
 
-  // Route line layer style with day-based colors
+  // Route line layer style with day-based colors and transport mode patterns
   const routeLayerStyle: LineLayerSpecification = {
     id: 'route',
     type: 'line',
@@ -851,6 +979,16 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
       'line-color': ['get', 'color'], // Use color from feature properties
       'line-width': 4,
       'line-opacity': 0.8,
+      // Different line patterns based on transport mode
+      'line-dasharray': [
+        'match',
+        ['get', 'mode'],
+        'walking', ['literal', [2, 2]],      // Dashed for walking
+        'cycling', ['literal', [0.5, 2]],    // Dotted for cycling
+        'transit', ['literal', [4, 2]],      // Long dash for transit
+        'driving', ['literal', [1]],         // Solid for driving (default)
+        ['literal', [1]]                      // Default solid line
+      ],
     },
   };
 
@@ -878,7 +1016,7 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
       className={`h-full flex flex-col md:flex-row bg-white dark:bg-slate-950 overflow-hidden font-sans transition-all duration-500 ${isFullscreen ? 'fixed inset-0 z-[100]' : ''}`}
     >
       {/* HUD Navigator Sidebar */}
-      <div className="w-full md:w-[460px] bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-white/10 p-8 flex flex-col z-30 shadow-3xl overflow-y-auto no-scrollbar transition-colors">
+      <div className="w-full md:w-[460px] h-full bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-white/10 p-8 flex flex-col z-30 shadow-3xl overflow-y-auto no-scrollbar transition-colors flex-shrink-0">
         <div className="mb-8">
           <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <Compass size={14} className="text-brand-primary" /> Phase Grid
@@ -997,8 +1135,9 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
         </div>
       </div>
 
-      {/* Main Map Engine */}
-      <div className="flex-1 relative bg-slate-100 dark:bg-slate-900">
+      {/* Main Map Engine - Using absolute positioning for reliable height */}
+      <div className="flex-1 relative">
+        <div className="absolute inset-0 bg-slate-100 dark:bg-slate-900 overflow-hidden">
         {/* Loading overlay during geocoding */}
         {isGeocodingDestination && (
           <div className="absolute inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
@@ -1019,6 +1158,43 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
           </div>
         )}
 
+        {/* Map Error Overlay */}
+        {mapError && (
+          <div className="absolute inset-0 z-50 bg-red-50 dark:bg-red-900/20 backdrop-blur-sm flex items-center justify-center p-8">
+            <div className="bg-white dark:bg-slate-900 border-2 border-red-500 rounded-2xl p-8 max-w-md text-center shadow-2xl">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <MapIcon className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                Map Loading Error
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                {mapError}
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => {
+                    setMapError(null);
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                >
+                  Reload Page
+                </button>
+                <button
+                  onClick={() => setMapError(null)}
+                  className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-4">
+                Check browser console (F12) for details
+              </p>
+            </div>
+          </div>
+        )}
+
         <MapGL
           ref={mapRef}
           initialViewState={{
@@ -1032,6 +1208,24 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
           onClick={() => {
             setPopupInfo(null);
             setActiveActivity(null);
+          }}
+          onLoad={() => {
+            console.log('[MapTab] Map loaded successfully');
+            setIsMapLoaded(true);
+            setMapError(null);
+          }}
+          onError={(error) => {
+            console.error('[MapTab] Map error:', error);
+            setMapError(`Map failed to load: ${error?.message || 'Unknown error'}`);
+            setIsMapLoaded(false);
+
+            // Try fallback to demo tiles
+            if (mapStyle !== MAP_STYLES.fallbackLight) {
+              console.warn('[MapTab] Falling back to demo tiles');
+              setTimeout(() => {
+                setMapStyleKey('light');
+              }, 1000);
+            }
           }}
         >
           {/* Navigation controls */}
@@ -1327,7 +1521,7 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                 <Palette size={12} /> Base Map Style
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 {MAP_STYLE_OPTIONS.map((style) => (
                   <button
                     key={style.key}
@@ -1339,10 +1533,8 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      {style.key === 'light' && <Sun size={14} className="text-amber-500" />}
+                      {style.key === 'light' && <Palette size={14} className="text-emerald-500" />}
                       {style.key === 'dark' && <Moon size={14} className="text-indigo-500" />}
-                      {style.key === 'voyager' && <Palette size={14} className="text-emerald-500" />}
-                      {style.key === 'satellite' && <Globe size={14} className="text-blue-500" />}
                       <span className={`text-xs font-bold ${
                         mapStyleKey === style.key ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'
                       }`}>
@@ -1393,34 +1585,29 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
                 {/* 3D Buildings Toggle */}
                 <button
                   onClick={() => setShow3DBuildings(!show3DBuildings)}
-                  disabled={mapStyleKey === 'satellite'}
                   className={`w-full p-3 rounded-xl border transition-all flex items-center justify-between ${
-                    mapStyleKey === 'satellite'
-                      ? 'opacity-50 cursor-not-allowed'
-                      : show3DBuildings
+                    show3DBuildings
                       ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/20'
                       : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                      show3DBuildings && mapStyleKey !== 'satellite' ? 'bg-violet-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      show3DBuildings ? 'bg-violet-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                     }`}>
                       <Building2 size={16} />
                     </div>
                     <div className="text-left">
                       <span className={`text-xs font-bold block ${
-                        show3DBuildings && mapStyleKey !== 'satellite' ? 'text-violet-600 dark:text-violet-400' : 'text-slate-700 dark:text-slate-300'
+                        show3DBuildings ? 'text-violet-600 dark:text-violet-400' : 'text-slate-700 dark:text-slate-300'
                       }`}>
                         3D Buildings
                       </span>
-                      <span className="text-[9px] text-slate-400">
-                        {mapStyleKey === 'satellite' ? 'Not available in satellite mode' : 'Building extrusion at zoom 14+'}
-                      </span>
+                      <span className="text-[9px] text-slate-400">Building extrusion at zoom 14+</span>
                     </div>
                   </div>
-                  <div className={`transition-colors ${show3DBuildings && mapStyleKey !== 'satellite' ? 'text-violet-500' : 'text-slate-300 dark:text-slate-600'}`}>
-                    {show3DBuildings && mapStyleKey !== 'satellite' ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
+                  <div className={`transition-colors ${show3DBuildings ? 'text-violet-500' : 'text-slate-300 dark:text-slate-600'}`}>
+                    {show3DBuildings ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
                   </div>
                 </button>
 
@@ -1452,8 +1639,49 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
                     {showWishlist ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
                   </div>
                 </button>
+
+                {/* Route Visualization Toggle */}
+                <button
+                  onClick={() => setShowRoutes(!showRoutes)}
+                  className={`w-full p-3 rounded-xl border transition-all flex items-center justify-between ${
+                    showRoutes
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      showRoutes ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    }`}>
+                      {isLoadingRoutes ? <Loader2 size={16} className="animate-spin" /> : <Route size={16} />}
+                    </div>
+                    <div className="text-left">
+                      <span className={`text-xs font-bold block ${
+                        showRoutes ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'
+                      }`}>
+                        Activity Routes
+                      </span>
+                      <span className="text-[9px] text-slate-400">
+                        {isLoadingRoutes ? 'Generating...' : `${routeSegments.length} route segments`}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`transition-colors ${showRoutes ? 'text-blue-500' : 'text-slate-300 dark:text-slate-600'}`}>
+                    {showRoutes ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
+                  </div>
+                </button>
               </div>
             </div>
+
+            {/* Route Generation Loading Indicator */}
+            {isLoadingRoutes && (
+              <div className="px-4 pb-4">
+                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs">
+                  <Loader2 size={14} className="animate-spin" />
+                  <span>Generating route segments...</span>
+                </div>
+              </div>
+            )}
 
             {/* Weather Loading Indicator */}
             {isLoadingWeather && (
@@ -1468,7 +1696,7 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
             {/* Attribution Footer */}
             <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-white/5">
               <p className="text-[8px] text-slate-400 text-center">
-                Weather: RainViewer • Satellite: EOX Sentinel-2 • Base: Carto
+                Weather: RainViewer • Map Tiles: Carto Vector
               </p>
             </div>
           </div>
@@ -1593,6 +1821,7 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
             </div>
           </div>
         )}
+        </div>{/* Close absolute inset-0 wrapper */}
       </div>
 
       {/* Custom popup styles */}

@@ -17,6 +17,7 @@ import SplitIndicator from '../expense/SplitIndicator';
 import UserBalanceCard from '../expense/UserBalanceCard';
 import SplitExpenseModal from '../modals/SplitExpenseModal';
 import ExportModal from '../modals/ExportModal';
+import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
 import { ConvertedAmount } from '../ConvertedAmount';
 import { useBatchCurrencyConversion } from '../../hooks/useCurrencyConversion';
 
@@ -46,6 +47,8 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [expenseFilter, setExpenseFilter] = useState<ExpenseFilter>('all');
   const [showInPreferredCurrency, setShowInPreferredCurrency] = useState(false);
   const [preferredCurrency, setPreferredCurrency] = useState<string>('USD');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -146,8 +149,22 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     updateTrip({ ...trip, expenses: [expense, ...trip.expenses] });
   };
 
-  const deleteExpense = (id: string) => {
-    updateTrip({ ...trip, expenses: trip.expenses.filter(e => e.id !== id) });
+  const requestDeleteExpense = (id: string) => {
+    setExpenseToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteExpense = () => {
+    if (expenseToDelete) {
+      updateTrip({ ...trip, expenses: trip.expenses.filter(e => e.id !== expenseToDelete) });
+    }
+    setShowDeleteModal(false);
+    setExpenseToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setExpenseToDelete(null);
   };
 
   const startScanner = async () => {
@@ -519,9 +536,9 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                           )}
                         </div>
                         <button
-                          onClick={() => deleteExpense(exp.id)}
+                          onClick={() => requestDeleteExpense(exp.id)}
                           aria-label={`Delete ${exp.notes || exp.category} expense`}
-                          className="p-3 text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-200 hover:text-red-500 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl transition-all"
                         >
                           <Trash2 size={18} aria-hidden="true" />
                         </button>
@@ -695,6 +712,16 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
           onClose={() => setShowExportModal(false)}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onConfirm={confirmDeleteExpense}
+        onCancel={cancelDelete}
+        title="Delete Expense?"
+        message="Are you sure you want to delete this expense? This action cannot be undone and will permanently remove it from your trip budget."
+        itemType="expense"
+      />
 
       <style>{`
         .animate-spin-slow { animation: spin 10s linear infinite; }

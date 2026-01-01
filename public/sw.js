@@ -58,6 +58,103 @@ registerRoute(
   })
 );
 
+// Map Tiles - Cache First (Carto, MapTiler, Stadia, ArcGIS, OSM, EOX, RainViewer)
+// These rarely change and can be cached aggressively
+const TILE_PROVIDERS = [
+  // Carto basemaps (free, no API key)
+  'basemaps.cartocdn.com',
+  'cartodb-basemaps-a.global.ssl.fastly.net',
+  'cartodb-basemaps-b.global.ssl.fastly.net',
+  'cartodb-basemaps-c.global.ssl.fastly.net',
+  // Other tile providers
+  'api.maptiler.com',
+  'tiles.stadiamaps.com',
+  'server.arcgisonline.com',
+  // OpenStreetMap
+  'a.tile.openstreetmap.org',
+  'b.tile.openstreetmap.org',
+  'c.tile.openstreetmap.org',
+  // EOX Sentinel-2 Satellite (free, no API key)
+  'tiles.maps.eox.at',
+  // RainViewer Weather Radar (free for personal use)
+  'tilecache.rainviewer.com',
+];
+
+registerRoute(
+  ({ url }) => TILE_PROVIDERS.some(provider => url.hostname.includes(provider)),
+  new CacheFirst({
+    cacheName: 'map-tiles',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 2000, // ~50-100MB for typical area
+        maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+        purgeOnQuotaError: true, // Free up space if quota exceeded
+      }),
+    ],
+  })
+);
+
+// Map Style JSON - Cache First with shorter TTL
+registerRoute(
+  ({ url }) =>
+    url.pathname.endsWith('style.json') ||
+    url.pathname.includes('/styles/'),
+  new CacheFirst({
+    cacheName: 'map-styles',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 20,
+        maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+      }),
+    ],
+  })
+);
+
+// Nominatim Geocoding - Network First (results should be fresh but cache for offline)
+registerRoute(
+  ({ url }) => url.hostname === 'nominatim.openstreetmap.org',
+  new NetworkFirst({
+    cacheName: 'geocoding',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 100,
+        maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+      }),
+    ],
+    networkTimeoutSeconds: 5,
+  })
+);
+
+// Exchange Rate API - Network First (currency rates should be fresh)
+registerRoute(
+  ({ url }) => url.hostname === 'open.exchangerate-api.com',
+  new NetworkFirst({
+    cacheName: 'exchange-rates',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 10,
+        maxAgeSeconds: 60 * 60 * 24, // 24 hours
+      }),
+    ],
+    networkTimeoutSeconds: 5,
+  })
+);
+
+// RainViewer Weather API - Network First (weather data should be fresh, cached for offline)
+registerRoute(
+  ({ url }) => url.hostname === 'api.rainviewer.com',
+  new NetworkFirst({
+    cacheName: 'weather-api',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 5,
+        maxAgeSeconds: 60 * 10, // 10 minutes (weather data updates frequently)
+      }),
+    ],
+    networkTimeoutSeconds: 5,
+  })
+);
+
 // Background Sync Event Handler
 self.addEventListener('sync', (event) => {
   console.log('[SW] Sync event triggered:', event.tag);
@@ -163,7 +260,184 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SYNC_NOW') {
     event.waitUntil(syncPendingChanges());
   }
+
+  if (event.data && event.data.type === 'CACHE_MAP_TILES') {
+    event.waitUntil(cacheMapTiles(event.data.payload, event.source));
+  }
+
+  if (event.data && event.data.type === 'GET_CACHE_STATS') {
+    event.waitUntil(getCacheStats(event.source));
+  }
+
+  if (event.data && event.data.type === 'CLEAR_MAP_CACHE') {
+    event.waitUntil(clearMapCache(event.source));
+  }
 });
+
+/**
+ * Pre-cache map tiles for a specific area
+ *
+ * @param {Object} payload - Contains bounds, zoom levels, and tile style URL
+ * @param {Client} client - The client to send progress updates to
+ */
+async function cacheMapTiles(payload, client) {
+  const { bounds, minZoom = 10, maxZoom = 15, styleUrl } = payload;
+
+  if (!bounds || !bounds.north || !bounds.south || !bounds.east || !bounds.west) {
+    client?.postMessage({
+      type: 'CACHE_TILES_ERROR',
+      error: 'Invalid bounds provided',
+    });
+    return;
+  }
+
+  console.log('[SW] Starting tile cache for bounds:', bounds, 'zoom:', minZoom, '-', maxZoom);
+
+  const cache = await caches.open('map-tiles');
+  let cachedCount = 0;
+  let failedCount = 0;
+  let totalTiles = 0;
+
+  // Calculate total tiles first
+  for (let z = minZoom; z <= maxZoom; z++) {
+    const minTile = latLngToTile(bounds.south, bounds.west, z);
+    const maxTile = latLngToTile(bounds.north, bounds.east, z);
+    const tilesInZoom = (Math.abs(maxTile.x - minTile.x) + 1) * (Math.abs(maxTile.y - minTile.y) + 1);
+    totalTiles += tilesInZoom;
+  }
+
+  console.log('[SW] Total tiles to cache:', totalTiles);
+
+  client?.postMessage({
+    type: 'CACHE_TILES_STARTED',
+    totalTiles,
+  });
+
+  // Cache tiles for each zoom level
+  for (let z = minZoom; z <= maxZoom; z++) {
+    const minTile = latLngToTile(bounds.south, bounds.west, z);
+    const maxTile = latLngToTile(bounds.north, bounds.east, z);
+
+    for (let x = Math.min(minTile.x, maxTile.x); x <= Math.max(minTile.x, maxTile.x); x++) {
+      for (let y = Math.min(minTile.y, maxTile.y); y <= Math.max(minTile.y, maxTile.y); y++) {
+        try {
+          // OpenStreetMap tile URL format
+          const tileUrl = `https://a.tile.openstreetmap.org/${z}/${x}/${y}.png`;
+
+          // Check if already cached
+          const cached = await cache.match(tileUrl);
+          if (!cached) {
+            const response = await fetch(tileUrl);
+            if (response.ok) {
+              await cache.put(tileUrl, response);
+              cachedCount++;
+            } else {
+              failedCount++;
+            }
+          } else {
+            cachedCount++;
+          }
+
+          // Send progress update every 10 tiles
+          if ((cachedCount + failedCount) % 10 === 0) {
+            client?.postMessage({
+              type: 'CACHE_TILES_PROGRESS',
+              cached: cachedCount,
+              failed: failedCount,
+              total: totalTiles,
+              percent: Math.round(((cachedCount + failedCount) / totalTiles) * 100),
+            });
+          }
+        } catch (error) {
+          console.warn('[SW] Failed to cache tile:', error);
+          failedCount++;
+        }
+      }
+    }
+  }
+
+  console.log('[SW] Tile caching complete:', cachedCount, 'cached,', failedCount, 'failed');
+
+  client?.postMessage({
+    type: 'CACHE_TILES_COMPLETE',
+    cached: cachedCount,
+    failed: failedCount,
+    total: totalTiles,
+  });
+}
+
+/**
+ * Convert lat/lng to tile coordinates
+ */
+function latLngToTile(lat, lng, zoom) {
+  const n = Math.pow(2, zoom);
+  const x = Math.floor((lng + 180) / 360 * n);
+  const latRad = lat * Math.PI / 180;
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n);
+  return { x, y };
+}
+
+/**
+ * Get cache statistics
+ */
+async function getCacheStats(client) {
+  try {
+    const cacheNames = ['map-tiles', 'map-styles', 'geocoding', 'app-shell', 'static-assets'];
+    const stats = {};
+    let totalSize = 0;
+
+    for (const name of cacheNames) {
+      const cache = await caches.open(name);
+      const keys = await cache.keys();
+      stats[name] = {
+        entries: keys.length,
+      };
+    }
+
+    // Estimate storage usage
+    if (navigator.storage && navigator.storage.estimate) {
+      const estimate = await navigator.storage.estimate();
+      stats.storage = {
+        used: estimate.usage,
+        quota: estimate.quota,
+        percent: Math.round((estimate.usage / estimate.quota) * 100),
+      };
+    }
+
+    client?.postMessage({
+      type: 'CACHE_STATS',
+      stats,
+    });
+  } catch (error) {
+    console.error('[SW] Failed to get cache stats:', error);
+    client?.postMessage({
+      type: 'CACHE_STATS_ERROR',
+      error: error.message,
+    });
+  }
+}
+
+/**
+ * Clear map tile cache
+ */
+async function clearMapCache(client) {
+  try {
+    const deleted = await caches.delete('map-tiles');
+    console.log('[SW] Map tiles cache cleared:', deleted);
+
+    client?.postMessage({
+      type: 'CACHE_CLEARED',
+      cache: 'map-tiles',
+      success: deleted,
+    });
+  } catch (error) {
+    console.error('[SW] Failed to clear map cache:', error);
+    client?.postMessage({
+      type: 'CACHE_CLEAR_ERROR',
+      error: error.message,
+    });
+  }
+}
 
 // Activate immediately
 self.addEventListener('activate', (event) => {

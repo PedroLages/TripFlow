@@ -145,8 +145,12 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none font-black text-8xl leading-none uppercase">ID-01</div>
           <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
             <div className="relative">
-              <img src="https://i.pravatar.cc/150?u=demo" className="w-32 h-32 rounded-[2.5rem] border-4 border-white dark:border-slate-800 shadow-2xl" alt="Pilot" />
-              <div className="absolute -bottom-2 -right-2 bg-brand-success text-white p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-800">
+              <img
+                src={settings.avatar || 'https://i.pravatar.cc/150?u=demo'}
+                className="w-32 h-32 rounded-[2.5rem] border-4 border-white dark:border-slate-800 shadow-2xl object-cover"
+                alt="Profile"
+              />
+              <div className="absolute -bottom-2 -right-2 bg-brand-success text-white p-2 rounded-xl shadow-lg border-2 border-white dark:border-slate-800" title={settings.avatar ? "Synced from Google account" : "Default avatar"}>
                 <CheckCircle2 size={16} />
               </div>
             </div>

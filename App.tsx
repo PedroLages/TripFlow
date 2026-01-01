@@ -10,31 +10,34 @@ import TripDetail from './components/TripDetail';
 import Settings from './components/Settings';
 import MobileNav from './components/MobileNav';
 import TripMobileNav from './components/TripMobileNav';
-import { LogIn, Compass, UserPlus } from 'lucide-react';
+import AuthModal from './components/AuthModal';
+import AuthCallback from './components/AuthCallback';
+import { Compass, Loader2 } from 'lucide-react';
 import { storage } from './src/services/StorageManager';
 import { usePWA } from './src/hooks/usePWA';
 import { syncService } from './src/services/SyncService';
 import type { SyncStatus } from './src/services/SyncService';
 import UpdateBanner from './components/UpdateBanner';
 import InstallPrompt from './components/InstallPrompt';
+import { useSupabaseAuth } from './hooks/useSupabaseAuth';
+import { useSupabaseTrips } from './hooks/useSupabaseTrips';
+import { useSupabaseSettings } from './hooks/useSupabaseSettings';
+import { isSupabaseReady } from './src/lib/supabase';
 
-// Added setSettings to the destructured props in AppContent to fix the compilation error
 const AppContent: React.FC<{
   user: User | null;
-  setUser: (user: User | null) => void;
   trips: Trip[];
-  setTrips: React.Dispatch<React.SetStateAction<Trip[]>>;
   settings: UserSettings;
   setSettings: React.Dispatch<React.SetStateAction<UserSettings>>;
   isSidebarCollapsed: boolean;
-  setIsSidebarCollapsed: (v: boolean) => void;
+  handleSidebarToggle: () => void;
   isOffline: boolean;
   hasPendingSync: boolean;
   handleLogout: () => void;
   updateTrip: (t: Trip) => void;
   addTrip: (t: Trip) => void;
   deleteTrip: (id: string) => void;
-}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, setIsSidebarCollapsed, isOffline, hasPendingSync, handleLogout, updateTrip, addTrip, deleteTrip }) => {
+}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, handleSidebarToggle, isOffline, hasPendingSync, handleLogout, updateTrip, addTrip, deleteTrip }) => {
   const location = useLocation();
   const isTripView = location.pathname.startsWith('/trip/');
   const currentTripId = isTripView ? location.pathname.split('/')[2] : null;
@@ -46,7 +49,7 @@ const AppContent: React.FC<{
         className="hidden md:flex"
         onLogout={handleLogout}
         isCollapsed={isSidebarCollapsed}
-        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onToggle={handleSidebarToggle}
         isOffline={isOffline}
         hasPendingSync={hasPendingSync}
       />
@@ -57,6 +60,7 @@ const AppContent: React.FC<{
           <Route path="/edit/:id" element={<TripForm trips={trips} onSubmit={updateTrip} />} />
           <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={updateTrip} currentUser={user!} />} />
           <Route path="/settings" element={<Settings settings={settings} setSettings={setSettings} onLogout={handleLogout} />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         
@@ -73,26 +77,71 @@ const AppContent: React.FC<{
 };
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('tripflow_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  // Supabase authentication
+  const {
+    user: supabaseUser,
+    loading: authLoading,
+    signOut: supabaseSignOut,
+    isSupabaseConfigured
+  } = useSupabaseAuth();
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem('tripflow_sidebar_collapsed');
-    return saved === 'true';
-  });
+  // Supabase trips (only if configured and authenticated)
+  const {
+    trips: supabaseTrips,
+    loading: tripsLoading,
+    createTrip: supabaseCreateTrip,
+    updateTrip: supabaseUpdateTrip,
+    deleteTrip: supabaseDeleteTrip,
+    isRealtime
+  } = useSupabaseTrips();
 
-  const [trips, setTrips] = useState<Trip[]>(INITIAL_TRIPS);
+  // Sidebar state (will be synced with Supabase via settings)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Local trips state (fallback when Supabase not configured)
+  const [localTrips, setLocalTrips] = useState<Trip[]>(INITIAL_TRIPS);
   const [isLoadingTrips, setIsLoadingTrips] = useState(true);
 
-  const [settings, setSettings] = useState<UserSettings>({
-    name: 'Traveler',
-    email: '',
-    homeLocation: 'San Francisco',
-    currency: 'USD',
-    theme: 'light'
-  });
+  // Auth modal state
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Determine which trips to use
+  const trips = isSupabaseConfigured ? supabaseTrips : localTrips;
+  const loading = isSupabaseConfigured ? (authLoading || tripsLoading) : isLoadingTrips;
+
+  // Convert Supabase user to app User type (memoized to prevent infinite loops)
+  const user: User | null = React.useMemo(() => {
+    if (!supabaseUser) return null;
+    return {
+      email: supabaseUser.email || '',
+      name: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
+      avatar: supabaseUser.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${supabaseUser.email}`
+    };
+  }, [supabaseUser]);
+
+  // Settings sync with Supabase (includes Google avatar auto-import)
+  const {
+    settings: supabaseSettings,
+    loading: settingsLoading,
+    updateSettings: updateSupabaseSettings
+  } = useSupabaseSettings();
+
+  // Fallback settings for when not authenticated or loading (memoized to prevent infinite loops)
+  const settings: UserSettings = React.useMemo(() => {
+    return supabaseSettings || {
+      name: user?.name || 'Traveler',
+      email: user?.email || '',
+      avatar: user?.avatar,
+      homeLocation: 'San Francisco',
+      currency: 'USD',
+      theme: 'light'
+    };
+  }, [supabaseSettings, user?.name, user?.email, user?.avatar]);
+
+  // Wrapper function for Settings component compatibility (memoized to prevent infinite loops)
+  const setSettings = React.useCallback((newSettings: UserSettings) => {
+    updateSupabaseSettings(newSettings);
+  }, [updateSupabaseSettings]);
 
   // PWA state management
   const { isOffline, needRefresh, updateServiceWorker, isInstallable, installPrompt } = usePWA();
@@ -133,7 +182,7 @@ const App: React.FC = () => {
         // Reload trips after successful sync
         if (data.success && data.synced > 0) {
           storage.getAllTrips().then((loadedTrips) => {
-            setTrips(loadedTrips);
+            setLocalTrips(loadedTrips);
           });
         }
       }
@@ -159,23 +208,19 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Load trips and settings from IndexedDB on mount
+  // Load trips from IndexedDB on mount (settings now come from Supabase)
   useEffect(() => {
     const loadData = async () => {
       try {
         // Run migration from localStorage to IndexedDB
         await storage.migrateFromLocalStorage();
 
-        // Load trips
-        const loadedTrips = await storage.getAllTrips();
-        if (loadedTrips.length > 0) {
-          setTrips(loadedTrips);
-        }
-
-        // Load settings
-        const loadedSettings = await storage.getSetting<UserSettings>('tripflow_settings');
-        if (loadedSettings) {
-          setSettings(loadedSettings);
+        // Load trips (if not using Supabase)
+        if (!isSupabaseConfigured) {
+          const loadedTrips = await storage.getAllTrips();
+          if (loadedTrips.length > 0) {
+            setLocalTrips(loadedTrips);
+          }
         }
 
         setIsLoadingTrips(false);
@@ -186,7 +231,7 @@ const App: React.FC = () => {
     };
 
     loadData();
-  }, []);
+  }, [isSupabaseConfigured]);
 
   // Save trips to IndexedDB when they change
   useEffect(() => {
@@ -199,54 +244,136 @@ const App: React.FC = () => {
     }
   }, [trips, isLoadingTrips]);
 
+  // Sync sidebar state FROM settings (when settings load or change)
   useEffect(() => {
-    localStorage.setItem('tripflow_sidebar_collapsed', String(isSidebarCollapsed));
-  }, [isSidebarCollapsed]);
+    if (settings.sidebarCollapsed !== undefined) {
+      setIsSidebarCollapsed(settings.sidebarCollapsed);
+    }
+  }, [settings.sidebarCollapsed]);
 
+  // Sync sidebar state TO Supabase (when user toggles)
+  const handleSidebarToggle = React.useCallback(() => {
+    const newState = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newState);
+    // Update in Supabase - use direct update to avoid dependency on full settings object
+    updateSupabaseSettings({ sidebarCollapsed: newState });
+  }, [isSidebarCollapsed, updateSupabaseSettings]);
+
+  // Apply theme from settings (settings are now synced with Supabase)
   useEffect(() => {
-    // Save settings to IndexedDB
-    storage.saveSetting('tripflow_settings', settings).catch((error) => {
-      console.error('[App] Error saving settings:', error);
-    });
-
-    // Apply theme
     if (settings.theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [settings]);
+  }, [settings.theme]);
 
+  // Keep user in localStorage for backward compatibility
   useEffect(() => {
     if (user) {
       localStorage.setItem('tripflow_user', JSON.stringify(user));
-      setSettings(prev => ({ ...prev, name: user.name, email: user.email }));
     } else {
       localStorage.removeItem('tripflow_user');
     }
   }, [user]);
 
+  // Note: User settings (name, email, avatar, theme) now come from Supabase profiles table
+  // and are automatically synced via useSupabaseSettings hook
+
+  // CRUD operations - use Supabase if configured, otherwise local storage
   const addTrip = async (newTrip: Trip) => {
-    const tripWithOwner = { ...newTrip, ownerEmail: user?.email || '' };
-    setTrips(prev => [...prev, tripWithOwner]);
-    await storage.saveTrip(tripWithOwner);
+    if (isSupabaseConfigured && supabaseUser) {
+      const result = await supabaseCreateTrip(newTrip);
+      if (!result.success) {
+        console.error('Failed to create trip:', result.error);
+        alert(`Failed to create trip: ${result.error}`);
+      }
+      // Real-time subscription will update trips automatically
+    } else {
+      const tripWithOwner = { ...newTrip, ownerEmail: user?.email || '' };
+      setLocalTrips(prev => [...prev, tripWithOwner]);
+      await storage.saveTrip(tripWithOwner);
+    }
   };
 
   const updateTrip = async (updatedTrip: Trip) => {
-    setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
-    await storage.saveTrip(updatedTrip);
+    if (isSupabaseConfigured && updatedTrip.id) {
+      await supabaseUpdateTrip(updatedTrip.id, updatedTrip);
+    } else {
+      setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+      await storage.saveTrip(updatedTrip);
+    }
   };
 
   const deleteTrip = async (id: string) => {
-    setTrips(prev => prev.filter(t => t.id !== id));
-    await storage.deleteTrip(id);
+    if (isSupabaseConfigured) {
+      const result = await supabaseDeleteTrip(id);
+      if (!result.success) {
+        console.error('Failed to delete trip:', result.error);
+        alert(`Failed to delete trip: ${result.error}`);
+      }
+    } else {
+      setLocalTrips(prev => prev.filter(t => t.id !== id));
+      await storage.deleteTrip(id);
+    }
   };
 
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    if (isSupabaseConfigured) {
+      await supabaseSignOut();
+    }
+    // Local logout is handled by Supabase hook
   };
 
-  if (!user) {
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 mx-auto text-blue-500 animate-spin" />
+          <p className="text-slate-600">Loading TripFlow...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth modal if Supabase is configured but no user
+  if (isSupabaseConfigured && !user) {
+    return (
+      <>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+          <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-md w-full text-center space-y-8">
+            <div className="flex justify-center">
+              <div className="p-4 bg-brand-primary rounded-3xl shadow-xl shadow-indigo-100">
+                <Compass className="text-white" size={48} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-display font-bold">Welcome to TripFlow</h1>
+              <p className="text-slate-500">Plan your next adventure with confidence.</p>
+              {isRealtime && (
+                <p className="text-xs text-green-600">✓ Real-time sync enabled</p>
+              )}
+            </div>
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="w-full bg-brand-secondary text-white py-4 rounded-2xl font-bold hover:bg-brand-primary transition-all shadow-xl"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => setShowAuthModal(false)}
+        />
+      </>
+    );
+  }
+
+  // If Supabase not configured, show offline mode (local storage)
+  if (!isSupabaseConfigured && !user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-md w-full text-center space-y-8">
@@ -258,18 +385,23 @@ const App: React.FC = () => {
           <div className="space-y-2">
             <h1 className="text-3xl font-display font-bold">Welcome to TripFlow</h1>
             <p className="text-slate-500">Plan your next adventure with confidence.</p>
+            <p className="text-xs text-amber-600">⚠️ Offline Mode - Data stored locally</p>
           </div>
-          <div className="space-y-4 pt-4">
-            <button 
-              onClick={() => setUser({ email: 'demo@tripflow.ai', name: 'Demo Traveler', avatar: 'https://i.pravatar.cc/150?u=demo' })}
-              className="w-full bg-brand-secondary text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-brand-primary transition-all shadow-xl"
-            >
-              <LogIn size={20} /> Sign In to Dashboard
-            </button>
-            <button className="w-full bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-3">
-              <UserPlus size={20} /> Create New Account
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              // Create demo user for offline mode
+              const demoUser: User = {
+                email: 'offline@tripflow.local',
+                name: 'Offline User',
+                avatar: 'https://i.pravatar.cc/150?u=offline'
+              };
+              localStorage.setItem('tripflow_user', JSON.stringify(demoUser));
+              window.location.reload();
+            }}
+            className="w-full bg-brand-secondary text-white py-4 rounded-2xl font-bold hover:bg-brand-primary transition-all shadow-xl"
+          >
+            Continue Offline
+          </button>
         </div>
       </div>
     );
@@ -283,13 +415,11 @@ const App: React.FC = () => {
       <Router>
         <AppContent
           user={user}
-          setUser={setUser}
           trips={trips}
-          setTrips={setTrips}
           settings={settings}
           setSettings={setSettings}
           isSidebarCollapsed={isSidebarCollapsed}
-          setIsSidebarCollapsed={setIsSidebarCollapsed}
+          handleSidebarToggle={handleSidebarToggle}
           isOffline={isOffline}
           hasPendingSync={syncStatus.isSyncing}
           handleLogout={handleLogout}

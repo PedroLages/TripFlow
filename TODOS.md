@@ -119,6 +119,86 @@
 
 ---
 
+## 📍 Wishlist/Places Tab Improvements
+
+### Quick Wins (High Impact)
+
+- [ ] **P1** | `feature/wishlist-search` | Search and advanced filtering
+  - Search bar for place names
+  - Sort by: priority, name, date added
+  - Filter combinations (category + rating)
+  - **Files**: `components/tabs/WishlistTab.tsx`
+
+- [ ] **P1** | `feature/wishlist-add-to-itinerary` | Add to Itinerary quick action
+  - Replace non-functional "Phase" button
+  - Click to add place to specific day's itinerary
+  - Day selector dropdown
+  - Confirmation feedback
+  - **Files**: `components/tabs/WishlistTab.tsx`, `types.ts`
+
+- [ ] **P1** | `feature/wishlist-map-view` | Map view integration
+  - "View All on Map" button
+  - Open MapTab with all wishlist markers
+  - Different marker style for wishlist vs itinerary
+  - Click marker to see place details
+  - **Files**: `components/tabs/WishlistTab.tsx`, `components/tabs/MapTab.tsx`
+
+### Medium Effort Features
+
+- [ ] **P2** | `feature/wishlist-drag-drop` | Drag & drop reordering
+  - Reorder cards by dragging
+  - Visual priority management
+  - Save order preference
+  - React DnD or @dnd-kit library
+  - **Files**: `components/tabs/WishlistTab.tsx`
+
+- [ ] **P2** | `feature/wishlist-smart-tags` | Smart tags with real data
+  - Google Places API integration for:
+    - Real opening hours
+    - Distance from hotel/center
+    - Price range indicators ($-$$$$)
+    - Actual user review count
+  - Replace hardcoded static tags
+  - **Files**: `components/tabs/WishlistTab.tsx`, `services/PlacesService.ts`
+
+- [ ] **P2** | `feature/wishlist-photos` | Photo thumbnails
+  - Google Places photos
+  - Unsplash integration as fallback
+  - Image lazy loading
+  - Lightbox view on click
+  - **Files**: `components/tabs/WishlistTab.tsx`
+
+- [ ] **P2** | `feature/wishlist-bulk-actions` | Bulk operations
+  - Multi-select places
+  - Bulk delete
+  - Bulk add to specific day
+  - "Select all Must-See" shortcut
+  - **Files**: `components/tabs/WishlistTab.tsx`
+
+### Polish & Details
+
+- [ ] **P3** | `feature/wishlist-visited` | Visited status toggle
+  - Mark places as visited during trip
+  - Filter: Visited / Not Visited / All
+  - Visual indicator (checkmark, greyed out)
+  - **Files**: `components/tabs/WishlistTab.tsx`, `types.ts`
+
+- [ ] **P3** | `feature/wishlist-export` | Export and sharing
+  - Generate PDF of wishlist
+  - Copy as text list
+  - Share via email/messaging
+  - Markdown export option
+  - **Files**: `components/tabs/WishlistTab.tsx`, `utils/export.ts`
+
+- [ ] **P3** | `feature/wishlist-distance` | Distance calculator
+  - Show distance from hotel
+  - Show distance from other landmarks
+  - "15 min walk from Eiffel Tower"
+  - Requires hotel/accommodation in itinerary
+  - **Files**: `components/tabs/WishlistTab.tsx`, `services/RouteService.ts`
+
+---
+
 ## 🎯 Tier 2: Major Features (2-4 weeks each)
 
 ### AI Trip Planner 2.0

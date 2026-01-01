@@ -111,7 +111,7 @@
         {
           "title": "MapTab - Accessibility Audit",
           "file": "map-accessibility.spec.ts",
-          "line": 27,
+          "line": 79,
           "column": 6,
           "specs": [
             {
@@ -130,12 +130,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 15851,
+                      "duration": 9002,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:08.672Z",
+                      "startTime": "2025-12-31T12:47:02.043Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -151,7 +151,7 @@
               ],
               "id": "2611d780727213f527c3-d5abfa695a881fa1eec5",
               "file": "map-accessibility.spec.ts",
-              "line": 37,
+              "line": 80,
               "column": 3
             },
             {
@@ -170,12 +170,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 16489,
+                      "duration": 9208,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:08.678Z",
+                      "startTime": "2025-12-31T12:47:02.051Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -191,7 +191,7 @@
               ],
               "id": "2611d780727213f527c3-ab6218271b2dda7fda54",
               "file": "map-accessibility.spec.ts",
-              "line": 59,
+              "line": 108,
               "column": 3
             },
             {
@@ -210,12 +210,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 16700,
+                      "duration": 9163,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:08.668Z",
+                      "startTime": "2025-12-31T12:47:02.056Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -231,11 +231,11 @@
               ],
               "id": "2611d780727213f527c3-068b4eb7997ada1638c0",
               "file": "map-accessibility.spec.ts",
-              "line": 72,
+              "line": 121,
               "column": 3
             },
             {
-              "title": "should close layer panel with Escape key",
+              "title": "should handle Escape key to close layer panel",
               "ok": true,
               "tags": [],
               "tests": [
@@ -250,18 +250,18 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 15993,
+                      "duration": 10425,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:08.670Z",
+                      "startTime": "2025-12-31T12:47:02.042Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---5039d-layer-panel-with-Escape-key-chromium-desktop/test-finished-1.png"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---4cdaf-pe-key-to-close-layer-panel-chromium-desktop/test-finished-1.png"
                         }
                       ]
                     }
@@ -269,9 +269,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "2611d780727213f527c3-246ff4864deae9ed5632",
+              "id": "2611d780727213f527c3-3b9340a667b7ed3887fd",
               "file": "map-accessibility.spec.ts",
-              "line": 85,
+              "line": 140,
               "column": 3
             },
             {
@@ -290,14 +290,20 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 16328,
+                      "duration": 6142,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:25.059Z",
+                      "startTime": "2025-12-31T12:47:12.636Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---1425c-ve-proper-heading-hierarchy-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
                   "status": "expected"
@@ -305,7 +311,7 @@
               ],
               "id": "2611d780727213f527c3-9063fcb16a8b48dad3fa",
               "file": "map-accessibility.spec.ts",
-              "line": 102,
+              "line": 156,
               "column": 3
             },
             {
@@ -321,17 +327,23 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 22057,
+                      "duration": 6778,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:25.205Z",
+                      "startTime": "2025-12-31T12:47:12.776Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---9de76-ent-color-contrast-for-text-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
                   "status": "expected"
@@ -339,7 +351,7 @@
               ],
               "id": "2611d780727213f527c3-48865eec39d34d09f178",
               "file": "map-accessibility.spec.ts",
-              "line": 120,
+              "line": 176,
               "column": 3
             },
             {
@@ -358,14 +370,20 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 24365,
+                      "duration": 6775,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:25.753Z",
+                      "startTime": "2025-12-31T12:47:12.857Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---5f0bb-e-minimum-touch-target-size-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
                   "status": "expected"
@@ -373,12 +391,12 @@
               ],
               "id": "2611d780727213f527c3-ab7c32c65e5f4c1af0f3",
               "file": "map-accessibility.spec.ts",
-              "line": 131,
+              "line": 195,
               "column": 3
             },
             {
-              "title": "should have descriptive link text",
-              "ok": false,
+              "title": "should have GPS navigation link with proper attributes",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -389,54 +407,36 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 81318,
-                      "error": {
-                        "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div[class*=\"rounded-[2rem]\"]').filter({ hasText: /^\\d+/ }).first()\u001b[22m\n\u001b[2m    - locator resolved to <div class=\"relative flex items-center gap-4 p-5 rounded-[2rem] transition-all cursor-pointer group border hover:bg-slate-50 dark:hover:bg-white/5 border-transparent\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
-                        "stack": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div[class*=\"rounded-[2rem]\"]').filter({ hasText: /^\\d+/ }).first()\u001b[22m\n\u001b[2m    - locator resolved to <div class=\"relative flex items-center gap-4 p-5 rounded-[2rem] transition-all cursor-pointer group border hover:bg-slate-50 dark:hover:bg-white/5 border-transparent\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:149:35",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 35,
-                          "line": 149
-                        },
-                        "snippet": "  147 |\n  148 |     if (await waypointItems.first().isVisible()) {\n> 149 |       await waypointItems.first().click();\n      |                                   ^\n  150 |       await page.waitForTimeout(500);\n  151 |\n  152 |       // Check for GPS Engage link"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 35,
-                            "line": 149
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div[class*=\"rounded-[2rem]\"]').filter({ hasText: /^\\d+/ }).first()\u001b[22m\n\u001b[2m    - locator resolved to <div class=\"relative flex items-center gap-4 p-5 rounded-[2rem] transition-all cursor-pointer group border hover:bg-slate-50 dark:hover:bg-white/5 border-transparent\">…</div>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  147 |\n  148 |     if (await waypointItems.first().isVisible()) {\n> 149 |       await waypointItems.first().click();\n      |                                   ^\n  150 |       await page.waitForTimeout(500);\n  151 |\n  152 |       // Check for GPS Engage link\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:149:35"
-                        }
-                      ],
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 10093,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:25.914Z",
+                      "startTime": "2025-12-31T12:47:14.092Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 35,
-                        "line": 149
-                      }
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---f2f0b-link-with-proper-attributes-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "2611d780727213f527c3-473e13b26ed837dc2c94",
+              "id": "2611d780727213f527c3-4683fbea7f1c79724fdb",
               "file": "map-accessibility.spec.ts",
-              "line": 143,
+              "line": 211,
               "column": 3
             },
             {
               "title": "interactive elements should be focusable",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -449,47 +449,29 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 44372,
-                      "error": {
-                        "message": "TimeoutError: locator.focus: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Day 1')\u001b[22m\n",
-                        "stack": "TimeoutError: locator.focus: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Day 1')\u001b[22m\n\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:170:22",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 22,
-                          "line": 170
-                        },
-                        "snippet": "  168 |     // Day filter buttons should be focusable\n  169 |     const day1Button = page.getByText('Day 1');\n> 170 |     await day1Button.focus();\n      |                      ^\n  171 |     await expect(day1Button).toBeFocused();\n  172 |\n  173 |     // All Phases button"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 22,
-                            "line": 170
-                          },
-                          "message": "TimeoutError: locator.focus: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Day 1')\u001b[22m\n\n\n  168 |     // Day filter buttons should be focusable\n  169 |     const day1Button = page.getByText('Day 1');\n> 170 |     await day1Button.focus();\n      |                      ^\n  171 |     await expect(day1Button).toBeFocused();\n  172 |\n  173 |     // All Phases button\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:170:22"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 5716,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:41.596Z",
+                      "startTime": "2025-12-31T12:47:18.800Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 22,
-                        "line": 170
-                      }
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---3a502-lements-should-be-focusable-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "2611d780727213f527c3-f4ec46305f0069db7f2c",
               "file": "map-accessibility.spec.ts",
-              "line": 162,
+              "line": 237,
               "column": 3
             },
             {
@@ -505,17 +487,23 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 38592,
+                      "duration": 6968,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:47.353Z",
+                      "startTime": "2025-12-31T12:47:19.649Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---6df4b--attributes-on-map-controls-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
                   "status": "expected"
@@ -523,7 +511,7 @@
               ],
               "id": "2611d780727213f527c3-4de9147709f11c2c7e19",
               "file": "map-accessibility.spec.ts",
-              "line": 179,
+              "line": 263,
               "column": 3
             }
           ]
@@ -531,12 +519,12 @@
         {
           "title": "MapTab - Keyboard Navigation",
           "file": "map-accessibility.spec.ts",
-          "line": 187,
+          "line": 279,
           "column": 6,
           "specs": [
             {
               "title": "should navigate map with keyboard shortcuts",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -549,52 +537,34 @@
                     {
                       "workerIndex": 1,
                       "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 68708,
-                      "error": {
-                        "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.maplibregl-canvas')\u001b[22m\n\u001b[2m    - locator resolved to <canvas tabindex=\"0\" width=\"1172\" height=\"776\" role=\"region\" aria-label=\"Map\" class=\"maplibregl-canvas\"></canvas>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n",
-                        "stack": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.maplibregl-canvas')\u001b[22m\n\u001b[2m    - locator resolved to <canvas tabindex=\"0\" width=\"1172\" height=\"776\" role=\"region\" aria-label=\"Map\" class=\"maplibregl-canvas\"></canvas>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:201:21",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 21,
-                          "line": 201
-                        },
-                        "snippet": "  199 |\n  200 |     // Focus the map\n> 201 |     await mapCanvas.click();\n      |                     ^\n  202 |\n  203 |     // Try arrow keys for panning\n  204 |     await page.keyboard.press('ArrowRight');"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 21,
-                            "line": 201
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.maplibregl-canvas')\u001b[22m\n\u001b[2m    - locator resolved to <canvas tabindex=\"0\" width=\"1172\" height=\"776\" role=\"region\" aria-label=\"Map\" class=\"maplibregl-canvas\"></canvas>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\n\n  199 |\n  200 |     // Focus the map\n> 201 |     await mapCanvas.click();\n      |                     ^\n  202 |\n  203 |     // Try arrow keys for panning\n  204 |     await page.keyboard.press('ArrowRight');\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:201:21"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 9708,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:55:50.210Z",
+                      "startTime": "2025-12-31T12:47:19.720Z",
                       "annotations": [],
-                      "attachments": [],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 21,
-                        "line": 201
-                      }
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---7688a-map-with-keyboard-shortcuts-chromium-desktop/test-finished-1.png"
+                        }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "2611d780727213f527c3-e115c618d5a5254bf305",
               "file": "map-accessibility.spec.ts",
-              "line": 197,
+              "line": 280,
               "column": 3
             },
             {
               "title": "should activate buttons with Enter key",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -607,71 +577,34 @@
                     {
                       "workerIndex": 3,
                       "parallelIndex": 3,
-                      "status": "timedOut",
-                      "duration": 998947,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:188:8",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 8,
-                          "line": 188
-                        },
-                        "snippet": "  186 |\n  187 | test.describe('MapTab - Keyboard Navigation', () => {\n> 188 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  189 |     await page.goto('/');\n  190 |     await page.waitForTimeout(1000);\n  191 |     await page.locator('text=Tokyo').first().click();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 8,
-                            "line": 188
-                          },
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  186 |\n  187 | test.describe('MapTab - Keyboard Navigation', () => {\n> 188 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  189 |     await page.goto('/');\n  190 |     await page.waitForTimeout(1000);\n  191 |     await page.locator('text=Tokyo').first().click();\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:188:8"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 46,
-                            "line": 191
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Tokyo').first()\u001b[22m\n\n\n  189 |     await page.goto('/');\n  190 |     await page.waitForTimeout(1000);\n> 191 |     await page.locator('text=Tokyo').first().click();\n      |                                              ^\n  192 |     await page.waitForTimeout(1000);\n  193 |     await page.getByRole('link', { name: 'Map' }).click();\n  194 |     await page.waitForTimeout(3000);\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:191:46"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 6339,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T03:56:27.920Z",
+                      "startTime": "2025-12-31T12:47:24.421Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---8d318-vate-buttons-with-Enter-key-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---8d318-vate-buttons-with-Enter-key-chromium-desktop/error-context.md"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---8d318-vate-buttons-with-Enter-key-chromium-desktop/test-finished-1.png"
                         }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 8,
-                        "line": 188
-                      }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "2611d780727213f527c3-b46ec26e37a2ae9eea8d",
               "file": "map-accessibility.spec.ts",
-              "line": 220,
+              "line": 309,
               "column": 3
             },
             {
               "title": "should activate buttons with Space key",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -682,68 +615,31 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 939113,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:188:8",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 8,
-                          "line": 188
-                        },
-                        "snippet": "  186 |\n  187 | test.describe('MapTab - Keyboard Navigation', () => {\n> 188 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  189 |     await page.goto('/');\n  190 |     await page.waitForTimeout(1000);\n  191 |     await page.locator('text=Tokyo').first().click();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 8,
-                            "line": 188
-                          },
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  186 |\n  187 | test.describe('MapTab - Keyboard Navigation', () => {\n> 188 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  189 |     await page.goto('/');\n  190 |     await page.waitForTimeout(1000);\n  191 |     await page.locator('text=Tokyo').first().click();\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:188:8"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 16,
-                            "line": 189
-                          },
-                          "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/\", waiting until \"load\"\u001b[22m\n\n\n  187 | test.describe('MapTab - Keyboard Navigation', () => {\n  188 |   test.beforeEach(async ({ page }) => {\n> 189 |     await page.goto('/');\n      |                ^\n  190 |     await page.waitForTimeout(1000);\n  191 |     await page.locator('text=Tokyo').first().click();\n  192 |     await page.waitForTimeout(1000);\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:189:16"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 6733,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:13:09.564Z",
+                      "startTime": "2025-12-31T12:47:24.581Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---05f99-vate-buttons-with-Space-key-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---05f99-vate-buttons-with-Space-key-chromium-desktop/error-context.md"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---05f99-vate-buttons-with-Space-key-chromium-desktop/test-finished-1.png"
                         }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 8,
-                        "line": 188
-                      }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "2611d780727213f527c3-879ad706ebf582638320",
               "file": "map-accessibility.spec.ts",
-              "line": 231,
+              "line": 324,
               "column": 3
             }
           ]
@@ -751,12 +647,12 @@
         {
           "title": "MapTab - Screen Reader Compatibility",
           "file": "map-accessibility.spec.ts",
-          "line": 239,
+          "line": 345,
           "column": 6,
           "specs": [
             {
-              "title": "should have meaningful text content for markers",
-              "ok": false,
+              "title": "should have meaningful text content for interactive elements",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -767,73 +663,36 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 2,
                       "parallelIndex": 2,
-                      "status": "timedOut",
-                      "duration": 939676,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:240:8",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 8,
-                          "line": 240
-                        },
-                        "snippet": "  238 |\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n> 240 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  241 |     await page.goto('/');\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 8,
-                            "line": 240
-                          },
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  238 |\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n> 240 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  241 |     await page.goto('/');\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:240:8"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 16,
-                            "line": 241
-                          },
-                          "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/\", waiting until \"load\"\u001b[22m\n\n\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n  240 |   test.beforeEach(async ({ page }) => {\n> 241 |     await page.goto('/');\n      |                ^\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();\n  244 |     await page.waitForTimeout(1000);\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:241:16"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 6277,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:13:09.559Z",
+                      "startTime": "2025-12-31T12:47:26.709Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---8f19c-ul-text-content-for-markers-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---8f19c-ul-text-content-for-markers-chromium-desktop/error-context.md"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---a526f-nt-for-interactive-elements-chromium-desktop/test-finished-1.png"
                         }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 8,
-                        "line": 240
-                      }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "2611d780727213f527c3-85557f8eecc9319a2131",
+              "id": "2611d780727213f527c3-5172f3e60eca03862047",
               "file": "map-accessibility.spec.ts",
-              "line": 249,
+              "line": 346,
               "column": 3
             },
             {
-              "title": "should have status announcements for loading states",
-              "ok": false,
+              "title": "should have weather radar loading accessible",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -844,73 +703,36 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 6,
+                      "workerIndex": 1,
                       "parallelIndex": 1,
-                      "status": "timedOut",
-                      "duration": 939374,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:240:8",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 8,
-                          "line": 240
-                        },
-                        "snippet": "  238 |\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n> 240 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  241 |     await page.goto('/');\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 8,
-                            "line": 240
-                          },
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  238 |\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n> 240 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  241 |     await page.goto('/');\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:240:8"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 16,
-                            "line": 241
-                          },
-                          "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/\", waiting until \"load\"\u001b[22m\n\n\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n  240 |   test.beforeEach(async ({ page }) => {\n> 241 |     await page.goto('/');\n      |                ^\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();\n  244 |     await page.waitForTimeout(1000);\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:241:16"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 9098,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:13:09.638Z",
+                      "startTime": "2025-12-31T12:47:29.576Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---96c3e-ncements-for-loading-states-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---96c3e-ncements-for-loading-states-chromium-desktop/error-context.md"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---7f214-er-radar-loading-accessible-chromium-desktop/test-finished-1.png"
                         }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 8,
-                        "line": 240
-                      }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "2611d780727213f527c3-835ee119944a310bd53f",
+              "id": "2611d780727213f527c3-7afca43dd660a6f28e2f",
               "file": "map-accessibility.spec.ts",
-              "line": 261,
+              "line": 363,
               "column": 3
             },
             {
-              "title": "should provide text alternatives for visual indicators",
-              "ok": false,
+              "title": "should provide text alternatives for day indicators",
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -921,1204 +743,43 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 7,
+                      "workerIndex": 3,
                       "parallelIndex": 3,
-                      "status": "timedOut",
-                      "duration": 939111,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:240:8",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                          "column": 8,
-                          "line": 240
-                        },
-                        "snippet": "  238 |\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n> 240 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  241 |     await page.goto('/');\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 8,
-                            "line": 240
-                          },
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded while running \"beforeEach\" hook.\u001b[39m\n\n  238 |\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n> 240 |   test.beforeEach(async ({ page }) => {\n      |        ^\n  241 |     await page.goto('/');\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:240:8"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                            "column": 16,
-                            "line": 241
-                          },
-                          "message": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3001/\", waiting until \"load\"\u001b[22m\n\n\n  239 | test.describe('MapTab - Screen Reader Compatibility', () => {\n  240 |   test.beforeEach(async ({ page }) => {\n> 241 |     await page.goto('/');\n      |                ^\n  242 |     await page.waitForTimeout(1000);\n  243 |     await page.locator('text=Tokyo').first().click();\n  244 |     await page.waitForTimeout(1000);\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts:241:16"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 5368,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:13:09.815Z",
+                      "startTime": "2025-12-31T12:47:30.918Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---e2409-tives-for-visual-indicators-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---e2409-tives-for-visual-indicators-chromium-desktop/error-context.md"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---f6aa2-rnatives-for-day-indicators-chromium-desktop/test-finished-1.png"
                         }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-accessibility.spec.ts",
-                        "column": 8,
-                        "line": 240
-                      }
+                      ]
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
-              "id": "2611d780727213f527c3-00360fe7de680bd74415",
+              "id": "2611d780727213f527c3-0bc54161b2c160cb95b8",
               "file": "map-accessibility.spec.ts",
-              "line": 278,
-              "column": 3
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "map-tab.spec.ts",
-      "file": "map-tab.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "MapTab - Initial Load & Rendering",
-          "file": "map-tab.spec.ts",
-          "line": 27,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should load the map tab and display MapLibre map",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 20383,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:28:49.996Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Initial-L-515da-ab-and-display-MapLibre-map-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-5c91a2e7c4174dacc214",
-              "file": "map-tab.spec.ts",
-              "line": 35,
-              "column": 3
-            },
-            {
-              "title": "should display navigation controls",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 17577,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:28:50.015Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Initial-L-d5e9f-display-navigation-controls-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-95dbc5cb233eb6b52f90",
-              "file": "map-tab.spec.ts",
-              "line": 52,
-              "column": 3
-            },
-            {
-              "title": "should display scale control",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 10,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 12166,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:28:50.021Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-60fa4947351546f97380",
-              "file": "map-tab.spec.ts",
-              "line": 69,
-              "column": 3
-            },
-            {
-              "title": "should display sidebar with waypoint list",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 17915,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:28:50.210Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Initial-L-8b6a1--sidebar-with-waypoint-list-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-43d563f5cc337e2ee1c3",
-              "file": "map-tab.spec.ts",
-              "line": 79,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - Map Interactions",
-          "file": "map-tab.spec.ts",
-          "line": 101,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should zoom in with zoom control button",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 10,
-                      "parallelIndex": 1,
-                      "status": "timedOut",
-                      "duration": 962931,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:29:02.487Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Map-Inter-a8345-in-with-zoom-control-button-chromium-desktop/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-add8607e951cf66c95fd",
-              "file": "map-tab.spec.ts",
-              "line": 110,
-              "column": 3
-            },
-            {
-              "title": "should zoom out with zoom control button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 21233,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:29:07.916Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Map-Inter-d433e-ut-with-zoom-control-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-125ca487b225b542acea",
-              "file": "map-tab.spec.ts",
-              "line": 124,
-              "column": 3
-            },
-            {
-              "title": "should zoom with mouse wheel",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 14360,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:29:08.455Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Map-Inter-30e1c-hould-zoom-with-mouse-wheel-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-1a90b111bf36ad5aa0ed",
-              "file": "map-tab.spec.ts",
-              "line": 135,
-              "column": 3
-            },
-            {
-              "title": "should pan map with drag",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 958304,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                            "column": 24,
-                            "line": 160
-                          },
-                          "message": "Error: mouse.move: Test timeout of 60000ms exceeded.\n\n  158 |       await page.mouse.move(centerX, centerY);\n  159 |       await page.mouse.down();\n> 160 |       await page.mouse.move(centerX + 100, centerY + 100, { steps: 10 });\n      |                        ^\n  161 |       await page.mouse.up();\n  162 |       await page.waitForTimeout(500);\n  163 |     }\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:160:24"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:29:10.623Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Map-Interactions-should-pan-map-with-drag-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Map-Interactions-should-pan-map-with-drag-chromium-desktop/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-372295d42faeb65e4eb4",
-              "file": "map-tab.spec.ts",
-              "line": 149,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - Activity Markers",
-          "file": "map-tab.spec.ts",
-          "line": 169,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should display activity markers on map",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 942369,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:187:25",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                          "column": 25,
-                          "line": 187
-                        },
-                        "snippet": "  185 |     // At least one marker should be visible\n  186 |     const markerCount = await markers.count();\n> 187 |     expect(markerCount).toBeGreaterThan(0);\n      |                         ^\n  188 |\n  189 |     await page.screenshot({ path: 'tests/reports/map-markers.png' });\n  190 |   });"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                            "column": 25,
-                            "line": 187
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n  185 |     // At least one marker should be visible\n  186 |     const markerCount = await markers.count();\n> 187 |     expect(markerCount).toBeGreaterThan(0);\n      |                         ^\n  188 |\n  189 |     await page.screenshot({ path: 'tests/reports/map-markers.png' });\n  190 |   });\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:187:25"
-                        },
-                        {
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:29:22.876Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Activity--d76aa-lay-activity-markers-on-map-chromium-desktop/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                        "column": 25,
-                        "line": 187
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-20fc178beee20f803cad",
-              "file": "map-tab.spec.ts",
-              "line": 178,
-              "column": 3
-            },
-            {
-              "title": "should show popup when clicking marker",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 3,
-                      "status": "timedOut",
-                      "duration": 939647,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
-                        {
-                          "message": "\u001b[31mTest timeout of 60000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                            "column": 18,
-                            "line": 202
-                          },
-                          "message": "Error: page.waitForTimeout: Target page, context or browser has been closed\n\n  200 |     if (await firstWaypoint.isVisible()) {\n  201 |       await firstWaypoint.click();\n> 202 |       await page.waitForTimeout(1000);\n      |                  ^\n  203 |\n  204 |       // Check if popup appeared\n  205 |       const popup = page.locator('.maplibregl-popup');\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:202:18"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:29:29.208Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Activity--05329--popup-when-clicking-marker-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Activity--05329--popup-when-clicking-marker-chromium-desktop/error-context.md"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-506e9f021954955cc723",
-              "file": "map-tab.spec.ts",
-              "line": 192,
-              "column": 3
-            },
-            {
-              "title": "should highlight active marker",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 22403,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:10.599Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-1910ed4c50789a6fc07d",
-              "file": "map-tab.spec.ts",
-              "line": 211,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - Layer Controls",
-          "file": "map-tab.spec.ts",
-          "line": 230,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should open layer control panel",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 13,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 30258,
-                      "error": {
-                        "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[title=\"Map Layers\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button title=\"Map Layers\" class=\"w-14 h-14 rounded-2xl border transition-all shadow-xl flex items-center justify-center bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50\">…</button>\u001b[22m\n",
-                        "stack": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[title=\"Map Layers\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button title=\"Map Layers\" class=\"w-14 h-14 rounded-2xl border transition-all shadow-xl flex items-center justify-center bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50\">…</button>\u001b[22m\n\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:243:24",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                          "column": 24,
-                          "line": 243
-                        },
-                        "snippet": "  241 |     const layersButton = page.locator('button[title=\"Map Layers\"]');\n  242 |     await expect(layersButton).toBeVisible();\n> 243 |     await layersButton.click();\n      |                        ^\n  244 |     await page.waitForTimeout(500);\n  245 |\n  246 |     // Verify panel opened"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                            "column": 24,
-                            "line": 243
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[title=\"Map Layers\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button title=\"Map Layers\" class=\"w-14 h-14 rounded-2xl border transition-all shadow-xl flex items-center justify-center bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50\">…</button>\u001b[22m\n\n\n  241 |     const layersButton = page.locator('button[title=\"Map Layers\"]');\n  242 |     await expect(layersButton).toBeVisible();\n> 243 |     await layersButton.click();\n      |                        ^\n  244 |     await page.waitForTimeout(500);\n  245 |\n  246 |     // Verify panel opened\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:243:24"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:10.600Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Con-b55a7-ld-open-layer-control-panel-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Con-b55a7-ld-open-layer-control-panel-chromium-desktop/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                        "column": 24,
-                        "line": 243
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-41016b19e44fcd4ae22d",
-              "file": "map-tab.spec.ts",
-              "line": 239,
-              "column": 3
-            },
-            {
-              "title": "should switch to Satellite view",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 33856,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:10.600Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Con-ff5ff-ld-switch-to-Satellite-view-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-c4838cc1b767ca513538",
-              "file": "map-tab.spec.ts",
-              "line": 253,
-              "column": 3
-            },
-            {
-              "title": "should switch to Dark mode",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 15,
-                      "parallelIndex": 2,
-                      "status": "failed",
-                      "duration": 29096,
-                      "error": {
-                        "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[title=\"Map Layers\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button title=\"Map Layers\" class=\"w-14 h-14 rounded-2xl border transition-all shadow-xl flex items-center justify-center bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n",
-                        "stack": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[title=\"Map Layers\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button title=\"Map Layers\" class=\"w-14 h-14 rounded-2xl border transition-all shadow-xl flex items-center justify-center bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:269:24",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                          "column": 24,
-                          "line": 269
-                        },
-                        "snippet": "  267 |   test('should switch to Dark mode', async ({ page }) => {\n  268 |     const layersButton = page.locator('button[title=\"Map Layers\"]');\n> 269 |     await layersButton.click();\n      |                        ^\n  270 |     await page.waitForTimeout(500);\n  271 |\n  272 |     const darkButton = page.getByText('Dark').first();"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                            "column": 24,
-                            "line": 269
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[title=\"Map Layers\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button title=\"Map Layers\" class=\"w-14 h-14 rounded-2xl border transition-all shadow-xl flex items-center justify-center bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white hover:bg-slate-50\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\n\n  267 |   test('should switch to Dark mode', async ({ page }) => {\n  268 |     const layersButton = page.locator('button[title=\"Map Layers\"]');\n> 269 |     await layersButton.click();\n      |                        ^\n  270 |     await page.waitForTimeout(500);\n  271 |\n  272 |     const darkButton = page.getByText('Dark').first();\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:269:24"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:10.640Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Controls-should-switch-to-Dark-mode-chromium-desktop/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Controls-should-switch-to-Dark-mode-chromium-desktop/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                        "column": 24,
-                        "line": 269
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-2fb12d866a5d7f4cd54e",
-              "file": "map-tab.spec.ts",
-              "line": 267,
-              "column": 3
-            },
-            {
-              "title": "should switch to Voyager style",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 13354,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:33.363Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Con-b9d6d-uld-switch-to-Voyager-style-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-b7567bdc21e6d4646e26",
-              "file": "map-tab.spec.ts",
-              "line": 279,
-              "column": 3
-            },
-            {
-              "title": "should toggle Weather Radar overlay",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 16,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 18575,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:41.432Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Con-926d3-oggle-Weather-Radar-overlay-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-6f57d0155fca5676bfba",
-              "file": "map-tab.spec.ts",
-              "line": 291,
-              "column": 3
-            },
-            {
-              "title": "should toggle 3D Buildings",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 17,
-                      "parallelIndex": 3,
-                      "status": "failed",
-                      "duration": 49153,
-                      "error": {
-                        "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.maplibregl-ctrl-zoom-in')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" title=\"Zoom in\" aria-label=\"Zoom in\" aria-disabled=\"false\" class=\"maplibregl-ctrl-zoom-in\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n",
-                        "stack": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.maplibregl-ctrl-zoom-in')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" title=\"Zoom in\" aria-label=\"Zoom in\" aria-disabled=\"false\" class=\"maplibregl-ctrl-zoom-in\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:315:52",
-                        "location": {
-                          "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                          "column": 52,
-                          "line": 315
-                        },
-                        "snippet": "  313 |     await page.locator('.maplibregl-ctrl-zoom-in').click();\n  314 |     await page.locator('.maplibregl-ctrl-zoom-in').click();\n> 315 |     await page.locator('.maplibregl-ctrl-zoom-in').click();\n      |                                                    ^\n  316 |     await page.waitForTimeout(2000);\n  317 |\n  318 |     await page.screenshot({ path: 'tests/reports/map-3d-buildings.png' });"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                            "column": 52,
-                            "line": 315
-                          },
-                          "message": "TimeoutError: locator.click: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.maplibregl-ctrl-zoom-in')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" title=\"Zoom in\" aria-label=\"Zoom in\" aria-disabled=\"false\" class=\"maplibregl-ctrl-zoom-in\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is visible, enabled and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - performing click action\u001b[22m\n\n\n  313 |     await page.locator('.maplibregl-ctrl-zoom-in').click();\n  314 |     await page.locator('.maplibregl-ctrl-zoom-in').click();\n> 315 |     await page.locator('.maplibregl-ctrl-zoom-in').click();\n      |                                                    ^\n  316 |     await page.waitForTimeout(2000);\n  317 |\n  318 |     await page.screenshot({ path: 'tests/reports/map-3d-buildings.png' });\n    at /Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts:315:52"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:42.241Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Controls-should-toggle-3D-Buildings-chromium-desktop/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Volumes/SSD/Dev/TripFlow/tests/e2e/map-tab.spec.ts",
-                        "column": 52,
-                        "line": 315
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-0271dc96dc91c69213db",
-              "file": "map-tab.spec.ts",
-              "line": 303,
-              "column": 3
-            },
-            {
-              "title": "should close layer panel with X button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 13163,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:44.811Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Layer-Con-4dcc8-e-layer-panel-with-X-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-a5f17f9fdb9737fe552a",
-              "file": "map-tab.spec.ts",
-              "line": 321,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - Wishlist Layer",
-          "file": "map-tab.spec.ts",
-          "line": 339,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should toggle wishlist markers visibility",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 11656,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:46.752Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Wishlist--63126-wishlist-markers-visibility-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-11effc10cb589c8d6605",
-              "file": "map-tab.spec.ts",
-              "line": 348,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - Control Buttons",
-          "file": "map-tab.spec.ts",
-          "line": 365,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should have fullscreen toggle button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 9874,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:58.013Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Control-B-aaa15-ve-fullscreen-toggle-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-fe3a155a385f846583ed",
-              "file": "map-tab.spec.ts",
-              "line": 374,
-              "column": 3
-            },
-            {
-              "title": "should have locate user button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 9438,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:45:58.452Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Control-B-8f7fa-uld-have-locate-user-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-32364a92da4b81ee531f",
-              "file": "map-tab.spec.ts",
               "line": 379,
               "column": 3
-            },
-            {
-              "title": "should have recenter button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 16,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 8440,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:46:00.525Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Control-Buttons-should-have-recenter-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-91e436aeaf4ccd8fb452",
-              "file": "map-tab.spec.ts",
-              "line": 384,
-              "column": 3
-            },
-            {
-              "title": "should recenter map when clicking recenter button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 38251,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:46:07.947Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Control-B-042ce-en-clicking-recenter-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-df07fdce9eec2b5516a0",
-              "file": "map-tab.spec.ts",
-              "line": 389,
-              "column": 3
             }
           ]
         },
         {
-          "title": "MapTab - Day Filtering",
-          "file": "map-tab.spec.ts",
-          "line": 411,
+          "title": "MapTab - Additional Accessibility",
+          "file": "map-accessibility.spec.ts",
+          "line": 403,
           "column": 6,
           "specs": [
             {
-              "title": "should display day filter buttons",
+              "title": "should have no duplicate IDs on page",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2130,21 +791,21 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 14,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 9135,
+                      "duration": 5303,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:46:07.967Z",
+                      "startTime": "2025-12-31T12:47:31.357Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Day-Filte-c3e18--display-day-filter-buttons-chromium-desktop/test-finished-1.png"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---3dfd4-ve-no-duplicate-IDs-on-page-chromium-desktop/test-finished-1.png"
                         }
                       ]
                     }
@@ -2152,13 +813,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "04a287dfa1b79c0e55ee-55fa24f9531064baeeef",
-              "file": "map-tab.spec.ts",
-              "line": 420,
+              "id": "2611d780727213f527c3-b52cc8f0271075a22527",
+              "file": "map-accessibility.spec.ts",
+              "line": 404,
               "column": 3
             },
             {
-              "title": "should filter markers by day",
+              "title": "should have alt text or aria-label for icon buttons",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2170,21 +831,21 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 16,
+                      "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 26815,
+                      "duration": 5928,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:46:09.077Z",
+                      "startTime": "2025-12-31T12:47:33.084Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Day-Filtering-should-filter-markers-by-day-chromium-desktop/test-finished-1.png"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---d184f-aria-label-for-icon-buttons-chromium-desktop/test-finished-1.png"
                         }
                       ]
                     }
@@ -2192,61 +853,13 @@
                   "status": "expected"
                 }
               ],
-              "id": "04a287dfa1b79c0e55ee-175ceba76e5ff4094df9",
-              "file": "map-tab.spec.ts",
-              "line": 435,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - Activity Type Filtering",
-          "file": "map-tab.spec.ts",
-          "line": 457,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should display activity type filter buttons",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 14728,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:46:17.141Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Activity--19f78-ctivity-type-filter-buttons-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-6a976701f2cee46abdd3",
-              "file": "map-tab.spec.ts",
-              "line": 466,
+              "id": "2611d780727213f527c3-68696696c7a5a0bc0a5d",
+              "file": "map-accessibility.spec.ts",
+              "line": 418,
               "column": 3
             },
             {
-              "title": "should filter by activity type",
+              "title": "should maintain focus order when navigating",
               "ok": true,
               "tags": [],
               "tests": [
@@ -2258,21 +871,21 @@
                   "projectName": "chromium-desktop",
                   "results": [
                     {
-                      "workerIndex": 18,
+                      "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 11181,
+                      "duration": 4337,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-12-31T04:46:33.110Z",
+                      "startTime": "2025-12-31T12:47:36.422Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---Activity--64578-uld-filter-by-activity-type-chromium-desktop/test-finished-1.png"
+                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-accessibility-MapTab---bae8c-focus-order-when-navigating-chromium-desktop/test-finished-1.png"
                         }
                       ]
                     }
@@ -2280,97 +893,9 @@
                   "status": "expected"
                 }
               ],
-              "id": "04a287dfa1b79c0e55ee-97ca98effd3b195c2280",
-              "file": "map-tab.spec.ts",
-              "line": 481,
-              "column": 3
-            }
-          ]
-        },
-        {
-          "title": "MapTab - AI Scan Feature",
-          "file": "map-tab.spec.ts",
-          "line": 499,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should have AI scan button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 8761,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:46:31.894Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---AI-Scan-Feature-should-have-AI-scan-button-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-411b796786b9cc509c8e",
-              "file": "map-tab.spec.ts",
-              "line": 508,
-              "column": 3
-            },
-            {
-              "title": "should show loading state when scanning",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 60000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium-desktop",
-                  "projectName": "chromium-desktop",
-                  "results": [
-                    {
-                      "workerIndex": 16,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 11952,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-31T04:46:35.945Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Volumes/SSD/Dev/TripFlow/test-results/map-tab-MapTab---AI-Scan-F-ddcd7-loading-state-when-scanning-chromium-desktop/test-finished-1.png"
-                        }
-                      ]
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "04a287dfa1b79c0e55ee-4f796210f6d79ac5e970",
-              "file": "map-tab.spec.ts",
-              "line": 518,
+              "id": "2611d780727213f527c3-4a174e04a9f8583333d2",
+              "file": "map-accessibility.spec.ts",
+              "line": 441,
               "column": 3
             }
           ]
@@ -2380,11 +905,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-12-31T03:55:07.717Z",
-    "duration": 3100229.9899999998,
-    "expected": 30,
+    "startTime": "2025-12-31T12:47:00.875Z",
+    "duration": 40094.478,
+    "expected": 19,
     "skipped": 0,
-    "unexpected": 15,
+    "unexpected": 0,
     "flaky": 0
   }
 }

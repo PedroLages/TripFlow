@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trip, UserSettings } from '../types';
-import { 
-  Plus, MapPin, Calendar, Clock, Globe, Briefcase, Trash2, 
-  Compass, ArrowUpRight, TrendingUp, Sparkles, Loader2, 
-  CloudSun, Users, Activity, Wallet, ChevronRight 
+import {
+  Plus, MapPin, Calendar, Clock, Globe, Briefcase, Trash2,
+  Compass, ArrowUpRight, TrendingUp, Sparkles, Loader2,
+  CloudSun, Users, Activity, Wallet, ChevronRight, Edit
 } from 'lucide-react';
 import { format, differenceInDays, parseISO, isAfter } from 'date-fns';
 import { GoogleGenAI } from "@google/genai";
+import DeleteConfirmationModal from './modals/DeleteConfirmationModal';
 
 interface DashboardProps {
   trips: Trip[];
@@ -29,14 +30,25 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
   const today = new Date();
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [isLoadingTip, setIsLoadingTip] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'upcoming' | 'past'>('upcoming');
 
   const upcomingTrips = trips.filter(t => isAfter(parseISO(t.endDate), today)).sort((a, b) => parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime());
-  
+  const pastTrips = trips.filter(t => !isAfter(parseISO(t.endDate), today));
+
+  // Determine which trips to display based on active filter
+  const displayedTrips = activeFilter === 'all'
+    ? trips
+    : activeFilter === 'upcoming'
+    ? upcomingTrips
+    : pastTrips;
+
   const stats = {
     totalTrips: trips.length,
-    countriesVisited: new Set(trips.flatMap(t => t.destinations)).size,
+    // Only count destinations from PAST trips as "visited"
+    countriesVisited: new Set(pastTrips.flatMap(t => t.destinations)).size,
     totalBudget: trips.reduce((acc, t) => acc + (t.budget || 0), 0),
-    daysTraveled: trips.reduce((acc, t) => {
+    // Only count days from PAST trips as "traveled"
+    daysTraveled: pastTrips.reduce((acc, t) => {
       const start = parseISO(t.startDate);
       const end = parseISO(t.endDate);
       return acc + (differenceInDays(end, start) || 1);
@@ -173,15 +185,42 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
             Your Expeditions
           </h3>
           <div className="flex gap-2">
-             <button className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-brand-primary transition-colors">All</button>
-             <button className="px-4 py-2 text-xs font-bold text-brand-primary bg-brand-primary/5 rounded-xl">Upcoming</button>
-             <button className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-brand-primary transition-colors">Past</button>
+             <button
+               onClick={() => setActiveFilter('all')}
+               className={`px-4 py-2 text-xs font-bold transition-colors ${
+                 activeFilter === 'all'
+                   ? 'text-brand-primary bg-brand-primary/5 rounded-xl'
+                   : 'text-slate-400 hover:text-brand-primary'
+               }`}
+             >
+               All
+             </button>
+             <button
+               onClick={() => setActiveFilter('upcoming')}
+               className={`px-4 py-2 text-xs font-bold transition-colors ${
+                 activeFilter === 'upcoming'
+                   ? 'text-brand-primary bg-brand-primary/5 rounded-xl'
+                   : 'text-slate-400 hover:text-brand-primary'
+               }`}
+             >
+               Upcoming
+             </button>
+             <button
+               onClick={() => setActiveFilter('past')}
+               className={`px-4 py-2 text-xs font-bold transition-colors ${
+                 activeFilter === 'past'
+                   ? 'text-brand-primary bg-brand-primary/5 rounded-xl'
+                   : 'text-slate-400 hover:text-brand-primary'
+               }`}
+             >
+               Past
+             </button>
           </div>
         </div>
-        
-        {upcomingTrips.length > 0 ? (
+
+        {displayedTrips.length > 0 ? (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            {upcomingTrips.map(trip => (
+            {displayedTrips.map(trip => (
               <TripCard key={trip.id} trip={trip} deleteTrip={deleteTrip} />
             ))}
           </div>
@@ -190,14 +229,24 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
             <div className="mx-auto w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
               <Compass className="text-slate-300" size={48} />
             </div>
-            <h4 className="text-2xl font-bold text-slate-400">The world is waiting.</h4>
-            <p className="text-slate-500 mt-2 mb-10 max-w-sm mx-auto">Create your first itinerary to unlock smart grouping, AI suggestions, and live tracking.</p>
-            <button 
-              onClick={() => navigate('/create')}
-              className="bg-brand-primary text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-transform shadow-xl shadow-indigo-900/10"
-            >
-              Start Planning
-            </button>
+            <h4 className="text-2xl font-bold text-slate-400">
+              {activeFilter === 'all' ? 'The world is waiting.' :
+               activeFilter === 'upcoming' ? 'No upcoming expeditions.' :
+               'No past adventures yet.'}
+            </h4>
+            <p className="text-slate-500 mt-2 mb-10 max-w-sm mx-auto">
+              {activeFilter === 'all' ? 'Create your first itinerary to unlock smart grouping, AI suggestions, and live tracking.' :
+               activeFilter === 'upcoming' ? 'Plan a new trip to see it here.' :
+               'Complete some trips to see your travel history.'}
+            </p>
+            {activeFilter !== 'past' && (
+              <button
+                onClick={() => navigate('/create')}
+                className="bg-brand-primary text-white px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-transform shadow-xl shadow-indigo-900/10"
+              >
+                Start Planning
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -207,12 +256,19 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
 
 const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => void }> = ({ trip, deleteTrip }) => {
   const navigate = useNavigate();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const daysUntil = differenceInDays(parseISO(trip.startDate), new Date());
-  
+
   // Find the next activity (the one with the earliest start time on day 1 for simulation)
   const nextActivity = trip.itinerary?.[0]?.activities?.[0];
 
+  const handleDelete = () => {
+    deleteTrip(trip.id);
+    setShowDeleteModal(false);
+  };
+
   return (
+    <>
     <div 
       className="bg-white dark:bg-slate-800 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-700 border border-slate-200/60 dark:border-slate-700 group cursor-pointer flex flex-col md:flex-row h-auto min-h-[16rem]"
       onClick={() => navigate(`/trip/${trip.id}/itinerary`)}
@@ -242,12 +298,22 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => void }> = ({ 
                 <span className="text-xs font-bold truncate max-w-[200px]">{trip.destinations.join(' → ')}</span>
               </div>
             </div>
-            <button 
-              onClick={(e) => { e.stopPropagation(); if(confirm('Archive this expedition?')) deleteTrip(trip.id); }}
-              className="p-2 text-slate-200 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
-            >
-              <Trash2 size={18} />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); navigate(`/edit/${trip.id}`); }}
+                className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/5 rounded-xl transition-all"
+                aria-label="Edit trip"
+              >
+                <Edit size={18} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowDeleteModal(true); }}
+                className="p-2 text-slate-200 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                aria-label="Delete trip"
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
           </div>
 
           {/* Next Activity Preview */}
@@ -291,6 +357,17 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => void }> = ({ 
         </div>
       </div>
     </div>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        title="Archive Expedition?"
+        message={`Are you sure you want to archive "${trip.name}"? This action cannot be undone.`}
+        confirmLabel="Archive"
+        itemType="generic"
+      />
+    </>
   );
 };
 

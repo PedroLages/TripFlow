@@ -1,15 +1,18 @@
 
 import React, { useState } from 'react';
-import { Trip, WishlistPlace } from '../../types';
-import { 
-  Heart, Plus, MapPin, Trash2, Star, Sparkles, 
-  Loader2, Wand2, Search, Utensils, Camera, 
+import { useNavigate } from 'react-router-dom';
+import { Trip, WishlistPlace, Activity } from '../../types';
+import {
+  Heart, Plus, MapPin, Trash2, Star, Sparkles,
+  Loader2, Wand2, Search, Utensils, Camera,
   ShoppingBag, Eye, X, Check, Clock,
   Target, Info, Navigation, Share2, Layers,
-  ChevronRight, Activity, Zap
+  ChevronRight, Activity as ActivityIcon, Zap, CalendarPlus,
+  Calendar, Map
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleGenAI, Type } from "@google/genai";
+import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
 
 interface WishlistTabProps {
   trip: Trip;
@@ -51,12 +54,21 @@ const CATEGORY_THEMES = {
   }
 };
 
+type SortOption = 'priority' | 'name' | 'dateAdded';
+
 const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
+  const navigate = useNavigate();
   const [showAdd, setShowAdd] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [isScouting, setIsScouting] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<Partial<WishlistPlace>[]>([]);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('priority');
+  const [openDaySelector, setOpenDaySelector] = useState<string | null>(null);
+  const [addedPlaces, setAddedPlaces] = useState<Set<string>>(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [placeToDelete, setPlaceToDelete] = useState<string | null>(null);
+
   const [newPlace, setNewPlace] = useState<Partial<WishlistPlace>>({
     name: '',
     category: 'Must See',
@@ -121,12 +133,103 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
     setShowAdd(false);
   };
 
-  const deletePlace = (id: string) => {
-    const updated = trip.wishlist.filter(p => p.id !== id);
-    updateTrip({ ...trip, wishlist: updated });
+  const requestDeletePlace = (id: string) => {
+    setPlaceToDelete(id);
+    setShowDeleteModal(true);
   };
 
-  const filteredPlaces = trip.wishlist.filter(p => activeFilter === 'All' || p.category === activeFilter);
+  const confirmDeletePlace = () => {
+    if (placeToDelete) {
+      const updated = trip.wishlist.filter(p => p.id !== placeToDelete);
+      updateTrip({ ...trip, wishlist: updated });
+    }
+    setShowDeleteModal(false);
+    setPlaceToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setPlaceToDelete(null);
+  };
+
+  const addToItinerary = (place: WishlistPlace, dayId: string) => {
+    const dayIndex = trip.itinerary.findIndex(d => d.id === dayId);
+    if (dayIndex === -1) return;
+
+    // Create a new activity from the wishlist place
+    const newActivity: Activity = {
+      id: uuidv4(),
+      type: place.category === 'Restaurant' ? 'Restaurant' :
+            place.category === 'Shopping' ? 'Custom' : 'Attraction',
+      name: place.name,
+      startTime: '10:00',
+      endTime: '11:00',
+      location: place.location || '',
+      notes: place.notes,
+      cost: 0,
+    };
+
+    // Add to day's activities
+    const updatedItinerary = [...trip.itinerary];
+    updatedItinerary[dayIndex] = {
+      ...updatedItinerary[dayIndex],
+      activities: [...updatedItinerary[dayIndex].activities, newActivity],
+    };
+
+    updateTrip({ ...trip, itinerary: updatedItinerary });
+
+    // Visual feedback
+    setAddedPlaces(prev => new Set([...prev, place.id]));
+    setOpenDaySelector(null);
+
+    // Clear feedback after 2 seconds
+    setTimeout(() => {
+      setAddedPlaces(prev => {
+        const next = new Set(prev);
+        next.delete(place.id);
+        return next;
+      });
+    }, 2000);
+  };
+
+  // Advanced filtering and sorting
+  const filteredPlaces = React.useMemo(() => {
+    let places = trip.wishlist;
+
+    // Category filter
+    if (activeFilter !== 'All') {
+      places = places.filter(p => p.category === activeFilter);
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      places = places.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        p.notes.toLowerCase().includes(query) ||
+        (p.location && p.location.toLowerCase().includes(query))
+      );
+    }
+
+    // Sort
+    const sorted = [...places];
+    switch (sortBy) {
+      case 'priority':
+        sorted.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'name':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'dateAdded':
+        // Newest first (assuming order in array represents date added)
+        // In a real app, we'd have a createdAt timestamp
+        break;
+      default:
+        break;
+    }
+
+    return sorted;
+  }, [trip.wishlist, activeFilter, searchQuery, sortBy]);
 
   return (
     <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-12 pb-32 no-scrollbar">
@@ -150,7 +253,7 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
               Curate a high-value list of waypoints. Deploy reconnaissance protocols to find hidden local intelligence.
             </p>
             <div className="flex flex-wrap justify-center lg:justify-start gap-5 pt-4">
-              <button 
+              <button
                 onClick={scoutAI}
                 disabled={isScouting}
                 className="group px-10 py-5 bg-brand-primary text-white rounded-[2rem] font-black text-xs uppercase tracking-widest flex items-center gap-4 hover:bg-brand-secondary transition-all disabled:opacity-50 shadow-2xl shadow-indigo-500/20"
@@ -158,7 +261,13 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
                 {isScouting ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} />}
                 {isScouting ? 'Scouting Dest...' : 'Deploy AI Recon'}
               </button>
-              <button 
+              <button
+                onClick={() => navigate(`/trip/${trip.id}/map`, { state: { showWishlist: true } })}
+                className="px-10 py-5 bg-emerald-500/20 hover:bg-emerald-500/30 backdrop-blur-xl border border-emerald-400/30 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest flex items-center gap-4 hover:shadow-xl transition-all"
+              >
+                <Map size={20} /> View on Map
+              </button>
+              <button
                 onClick={() => setShowAdd(true)}
                 className="px-10 py-5 bg-white/5 backdrop-blur-xl border border-white/10 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest flex items-center gap-4 hover:bg-white/10 transition-all"
               >
@@ -210,6 +319,44 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
         </section>
       )}
 
+      {/* Search & Sort Controls */}
+      <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-center">
+        {/* Search Bar */}
+        <div className="flex-1 relative">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search places, notes, locations..."
+            className="w-full pl-16 pr-6 py-5 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-brand-primary rounded-[2rem] font-medium text-sm outline-none dark:text-white transition-all placeholder:text-slate-400"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-6 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
+            >
+              <X size={16} className="text-slate-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Sort Dropdown */}
+        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-[2rem] px-6 py-3">
+          <Layers size={18} className="text-slate-400" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="bg-transparent font-bold text-sm outline-none dark:text-white pr-2 cursor-pointer"
+          >
+            <option value="priority">Priority</option>
+            <option value="name">Name (A-Z)</option>
+            <option value="dateAdded">Recently Added</option>
+          </select>
+        </div>
+      </div>
+
       {/* Navigation Filter HUD */}
       <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-4 px-2">
         <button 
@@ -228,6 +375,17 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
           </button>
         ))}
       </div>
+
+      {/* Results Summary */}
+      {(searchQuery || activeFilter !== 'All') && (
+        <div className="flex items-center gap-3 px-6 py-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+          <ActivityIcon size={16} className="text-brand-primary" />
+          <span className="text-sm font-bold text-slate-600 dark:text-slate-300">
+            Showing {filteredPlaces.length} of {trip.wishlist.length} places
+            {searchQuery && <span className="text-slate-400"> · Searching for "{searchQuery}"</span>}
+          </span>
+        </div>
+      )}
 
       {/* Dossier Grid */}
       {filteredPlaces.length > 0 ? (
@@ -250,7 +408,7 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
                    {/* Priority Overlay */}
                    <div className="absolute top-6 left-6 flex items-center gap-2">
                       <div className="px-3 py-1 bg-black/30 backdrop-blur-md rounded-lg border border-white/10 flex items-center gap-2">
-                        <Activity size={10} className="text-brand-primary" />
+                        <ActivityIcon size={10} className="text-brand-primary" />
                         <span className="text-[8px] font-black uppercase tracking-widest text-white">{theme.intel}</span>
                       </div>
                    </div>
@@ -304,7 +462,7 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
                   {/* HUD Action Suite */}
                   <div className="mt-auto flex items-center justify-between pt-8 border-t border-slate-100 dark:border-white/5">
                     <div className="flex gap-3">
-                      <a 
+                      <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + trip.destinations[0])}`}
                         target="_blank" rel="noopener noreferrer"
                         className="p-3 bg-slate-50 dark:bg-slate-950 hover:bg-brand-primary hover:text-white text-slate-400 rounded-2xl transition-all border border-slate-100 dark:border-white/5 flex items-center gap-2"
@@ -312,16 +470,67 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
                         <Navigation size={16} />
                         <span className="hidden group-hover:inline text-[9px] font-black uppercase tracking-widest">Maps</span>
                       </a>
-                      <button className="p-3 bg-slate-50 dark:bg-slate-950 hover:bg-brand-primary hover:text-white text-slate-400 rounded-2xl transition-all border border-slate-100 dark:border-white/5 flex items-center gap-2">
-                        <Layers size={16} />
-                        <span className="hidden group-hover:inline text-[9px] font-black uppercase tracking-widest">Phase</span>
-                      </button>
+
+                      {/* Add to Itinerary Dropdown */}
+                      <div className="relative">
+                        {addedPlaces.has(place.id) ? (
+                          <button
+                            className="p-3 bg-emerald-500 text-white rounded-2xl transition-all border border-emerald-400 flex items-center gap-2 pointer-events-none"
+                          >
+                            <Check size={16} />
+                            <span className="text-[9px] font-black uppercase tracking-widest">Added</span>
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setOpenDaySelector(openDaySelector === place.id ? null : place.id)}
+                              className="p-3 bg-slate-50 dark:bg-slate-950 hover:bg-brand-primary hover:text-white text-slate-400 rounded-2xl transition-all border border-slate-100 dark:border-white/5 flex items-center gap-2"
+                            >
+                              <CalendarPlus size={16} />
+                              <span className="hidden group-hover:inline text-[9px] font-black uppercase tracking-widest">Add</span>
+                            </button>
+
+                            {/* Day Selector Dropdown */}
+                            {openDaySelector === place.id && (
+                              <div className="absolute bottom-full mb-2 left-0 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 min-w-[200px]">
+                                <div className="p-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Add to Day</span>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                  {trip.itinerary.length === 0 ? (
+                                    <div className="p-4 text-center text-sm text-slate-400">
+                                      No days in itinerary
+                                    </div>
+                                  ) : (
+                                    trip.itinerary.map((day, index) => (
+                                      <button
+                                        key={day.id}
+                                        onClick={() => addToItinerary(place, day.id)}
+                                        className="w-full px-4 py-3 text-left hover:bg-brand-primary hover:text-white transition-all flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 last:border-0"
+                                      >
+                                        <Calendar size={14} className="flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <div className="text-sm font-bold truncate">Day {index + 1}</div>
+                                          <div className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                                            {day.activities.length} {day.activities.length === 1 ? 'activity' : 'activities'}
+                                          </div>
+                                        </div>
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <button 
-                      onClick={() => deletePlace(place.id)}
-                      className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-2xl transition-all"
+                    <button
+                      onClick={() => requestDeletePlace(place.id)}
+                      aria-label={`Remove ${place.name} from wishlist`}
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-2xl transition-all"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={18} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -402,6 +611,17 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onConfirm={confirmDeletePlace}
+        onCancel={cancelDelete}
+        title="Remove from Wishlist?"
+        message="Are you sure you want to remove this place from your wishlist? You can always add it back later."
+        confirmLabel="Remove"
+        itemType="place"
+      />
     </div>
   );
 };

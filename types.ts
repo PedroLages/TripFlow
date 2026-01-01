@@ -11,6 +11,8 @@ export type ActivityType =
   | 'Free time'
   | 'Custom';
 
+export type TransportMode = 'walking' | 'driving' | 'cycling' | 'transit';
+
 export type SplitMethod = 'equal' | 'custom' | 'percentage' | 'shares';
 
 export interface Activity {
@@ -44,6 +46,8 @@ export interface RouteSegment {
   day: number;                   // Day number (1-indexed)
   distance: number;              // Distance in meters
   geometry: GeoJSON.LineString;  // GeoJSON for MapLibre
+  mode: TransportMode;           // Transport mode for this segment
+  duration?: number;             // Travel duration in seconds (from routing API)
 }
 
 export interface WishlistPlace {
@@ -199,7 +203,9 @@ export interface User {
 export interface UserSettings {
   name: string;
   email: string;
+  avatar?: string; // Google OAuth avatar URL
   homeLocation: string;
   currency: string;
   theme: 'light' | 'dark';
+  sidebarCollapsed?: boolean; // Sidebar collapse state (synced across devices)
 }

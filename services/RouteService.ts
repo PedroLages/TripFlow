@@ -2,12 +2,56 @@
  * Route Service for TripFlow
  *
  * Handles route calculation and visualization between activities.
- * Uses Haversine formula for straight-line distances (great-circle distance).
+ * - Primary: Uses OpenRouteService API for real road-based routes
+ * - Fallback: Uses Haversine formula for straight-line distances
  *
- * Future: Integrate OpenRouteService for actual road-based routes
+ * Features:
+ * - Automatic transport mode inference
+ * - Real road routing with turn-by-turn geometry
+ * - Route caching for performance
+ * - Graceful fallback to straight lines
  */
 
-import type { Activity, DayPlan, RouteSegment } from '../types';
+import type { Activity, DayPlan, RouteSegment, TransportMode } from '../types';
+import * as OpenRouteService from './OpenRouteService';
+
+/**
+ * Infer transport mode based on distance and activity types
+ * Simple heuristics for automatic mode detection
+ *
+ * @param distance - Distance in meters
+ * @param fromActivity - Starting activity
+ * @param toActivity - Ending activity
+ * @returns Inferred transport mode
+ */
+export function inferTransportMode(
+  distance: number,
+  fromActivity: Activity,
+  toActivity: Activity
+): TransportMode {
+  // If either activity is Transportation type, assume transit
+  if (
+    fromActivity.type === 'Transportation' ||
+    toActivity.type === 'Transportation'
+  ) {
+    return 'transit';
+  }
+
+  // Distance-based heuristics
+  if (distance < 500) {
+    // Very short distance - walking
+    return 'walking';
+  } else if (distance < 2000) {
+    // Short distance - could be walking or cycling
+    return 'walking';
+  } else if (distance < 10000) {
+    // Medium distance - likely driving or transit
+    return 'driving';
+  } else {
+    // Long distance - definitely driving or transit
+    return 'driving';
+  }
+}
 
 /**
  * Day colors matching the MapTab day filter
@@ -112,13 +156,30 @@ function createLineString(
  *
  * @param itinerary - Array of day plans
  * @param geocodedActivities - Map of activity ID to [lat, lng] coordinates
+ * @param options - Optional configuration
  * @returns Array of route segments
  */
-export function generateRouteSegments(
+export async function generateRouteSegments(
   itinerary: DayPlan[],
-  geocodedActivities: Map<string, [number, number]>
-): RouteSegment[] {
+  geocodedActivities: Map<string, [number, number]>,
+  options: {
+    useRealRoutes?: boolean; // Use OpenRouteService for real road routes
+    onProgress?: (current: number, total: number) => void; // Progress callback
+  } = {}
+): Promise<RouteSegment[]> {
+  const { useRealRoutes = true, onProgress } = options;
   const segments: RouteSegment[] = [];
+
+  // Collect all route requests first
+  const routeRequests: Array<{
+    fromActivity: Activity;
+    toActivity: Activity;
+    fromCoords: [number, number];
+    toCoords: [number, number];
+    dayNumber: number;
+    distance: number;
+    mode: TransportMode;
+  }> = [];
 
   itinerary.forEach((day, dayIndex) => {
     const dayNumber = dayIndex + 1;
@@ -138,7 +199,7 @@ export function generateRouteSegments(
         continue;
       }
 
-      // Calculate distance
+      // Calculate straight-line distance
       const distance = haversineDistance(
         fromCoords[0],
         fromCoords[1],
@@ -146,19 +207,74 @@ export function generateRouteSegments(
         toCoords[1]
       );
 
-      // Create route segment
-      segments.push({
-        id: `${fromActivity.id}-${toActivity.id}`,
+      // Infer transport mode based on distance and activity types
+      const mode = inferTransportMode(distance, fromActivity, toActivity);
+
+      routeRequests.push({
         fromActivity,
         toActivity,
         fromCoords,
         toCoords,
-        day: dayNumber,
+        dayNumber,
         distance,
-        geometry: createLineString(fromCoords, toCoords),
+        mode,
       });
     }
   });
+
+  // Process each route request
+  for (let i = 0; i < routeRequests.length; i++) {
+    const request = routeRequests[i];
+
+    // Report progress
+    if (onProgress) {
+      onProgress(i + 1, routeRequests.length);
+    }
+
+    let geometry: GeoJSON.LineString;
+    let actualDistance = request.distance;
+    let duration: number | undefined;
+
+    // Try to get real route from OpenRouteService
+    if (useRealRoutes) {
+      try {
+        const orsRoute = await OpenRouteService.getRoute(
+          request.fromCoords,
+          request.toCoords,
+          request.mode
+        );
+
+        if (orsRoute) {
+          geometry = orsRoute.geometry;
+          actualDistance = orsRoute.distance;
+          duration = orsRoute.duration;
+        } else {
+          // Fallback to straight line
+          geometry = createLineString(request.fromCoords, request.toCoords);
+        }
+      } catch (error) {
+        console.warn('RouteService: ORS failed, using straight line', error);
+        geometry = createLineString(request.fromCoords, request.toCoords);
+      }
+    } else {
+      // Use straight line
+      geometry = createLineString(request.fromCoords, request.toCoords);
+    }
+
+    // Create route segment
+    segments.push({
+      id: `${request.fromActivity.id}-${request.toActivity.id}`,
+      fromActivity: request.fromActivity,
+      toActivity: request.toActivity,
+      fromCoords: request.fromCoords,
+      toCoords: request.toCoords,
+      day: request.dayNumber,
+      distance: actualDistance,
+      geometry,
+      mode: request.mode,
+      duration,
+    });
+  }
 
   return segments;
 }
@@ -205,6 +321,7 @@ export function createRoutesGeoJSON(
         fromName: segment.fromActivity.name,
         toName: segment.toActivity.name,
         color: getDayColor(segment.day),
+        mode: segment.mode,
       },
     })),
   };

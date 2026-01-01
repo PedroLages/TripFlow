@@ -96,6 +96,30 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     updateTrip({ ...trip, itinerary: newItinerary });
   };
 
+  const addDay = () => {
+    // Calculate the next date
+    let nextDate: string;
+    if (trip.itinerary.length === 0) {
+      // If no days exist, start from trip start date
+      nextDate = trip.startDate;
+    } else {
+      // Find the latest date and add 1 day
+      const lastDay = trip.itinerary[trip.itinerary.length - 1];
+      const lastDate = parseISO(lastDay.date);
+      const nextDay = new Date(lastDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      nextDate = format(nextDay, 'yyyy-MM-dd');
+    }
+
+    const newDay = {
+      id: uuidv4(),
+      date: nextDate,
+      activities: []
+    };
+
+    updateTrip({ ...trip, itinerary: [...trip.itinerary, newDay] });
+  };
+
   return (
     <div className="p-4 md:p-10 max-w-5xl mx-auto space-y-8 md:space-y-12">
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -128,6 +152,30 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
 
       <div className="space-y-12 md:space-y-20 relative pt-4">
         <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-slate-100 dark:bg-white/5 hidden md:block" />
+
+        {/* Empty State */}
+        {trip.itinerary.length === 0 && isEditor && (
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            <div className="bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/20 rounded-[3rem] p-12 text-center max-w-md border-2 border-dashed border-slate-200 dark:border-slate-700">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-brand-primary/10 flex items-center justify-center">
+                <MapPin className="w-10 h-10 text-brand-primary" />
+              </div>
+              <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-3">
+                No Phases Defined
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm leading-relaxed">
+                Start building your tactical itinerary by adding your first phase. Each phase represents a day in your journey.
+              </p>
+              <button
+                onClick={addDay}
+                className="px-8 py-4 bg-brand-primary hover:bg-brand-secondary text-white font-bold rounded-2xl transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 mx-auto"
+              >
+                <Plus size={20} />
+                Add First Phase
+              </button>
+            </div>
+          </div>
+        )}
 
         {trip.itinerary.map((day, dayIdx) => (
           <div key={day.id} className="relative">
@@ -193,6 +241,21 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
             </div>
           </div>
         ))}
+
+        {/* Add Phase Button (after existing days) */}
+        {trip.itinerary.length > 0 && isEditor && (
+          <div className="flex justify-center pt-8">
+            <button
+              onClick={addDay}
+              className="group px-8 py-5 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-secondary hover:to-brand-primary text-white font-bold rounded-[2rem] transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 hover:scale-105 active:scale-95"
+            >
+              <div className="p-2 bg-white/20 rounded-xl group-hover:rotate-90 transition-transform duration-300">
+                <Plus size={20} />
+              </div>
+              <span className="text-sm uppercase tracking-widest">Add Next Phase</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {editingActivity && (

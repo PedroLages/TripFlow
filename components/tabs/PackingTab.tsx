@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleGenAI, Type } from "@google/genai";
+import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
 
 interface PackingTabProps {
   trip: Trip;
@@ -34,6 +35,8 @@ const CATEGORY_ICONS: Record<string, any> = {
 const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
   const [newItem, setNewItem] = useState({ name: '', category: PACKING_CATEGORIES[0] });
   const [isAiPacking, setIsAiPacking] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const toggleItem = (id: string) => {
     const newList = trip.packingList.map(item => 
@@ -103,8 +106,22 @@ const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
     }
   };
 
-  const deleteItem = (id: string) => {
-    updateTrip({ ...trip, packingList: trip.packingList.filter(i => i.id !== id) });
+  const requestDeleteItem = (id: string) => {
+    setItemToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteItem = () => {
+    if (itemToDelete) {
+      updateTrip({ ...trip, packingList: trip.packingList.filter(i => i.id !== itemToDelete) });
+    }
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
   };
 
   const totalItems = trip.packingList.length;
@@ -264,11 +281,12 @@ const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
                         {item.name}
                       </span>
                     </div>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
-                      className="opacity-0 group-hover/item:opacity-100 p-2 text-slate-300 hover:text-red-500 transition-all"
+                    <button
+                      onClick={(e) => { e.stopPropagation(); requestDeleteItem(item.id); }}
+                      aria-label={`Remove ${item.name} from packing list`}
+                      className="opacity-0 group-hover/item:opacity-100 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 hover:text-red-500 transition-all rounded-xl"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={16} aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -304,6 +322,17 @@ const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
             </div>
          </div>
       </section>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onConfirm={confirmDeleteItem}
+        onCancel={cancelDelete}
+        title="Remove Item?"
+        message="Are you sure you want to remove this item from your packing list? This action cannot be undone."
+        confirmLabel="Remove"
+        itemType="item"
+      />
     </div>
   );
 };

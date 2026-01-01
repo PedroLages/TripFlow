@@ -158,8 +158,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ trip }) => {
 
       {/* Spending Trend Chart */}
       <section className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-white/5">
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Spending Trend</h3>
-        <ResponsiveContainer width="100%" height={300}>
+        <h3 id="spending-trend-chart" className="text-xl font-bold text-slate-900 dark:text-white mb-6">Spending Trend</h3>
+        <ResponsiveContainer width="100%" height={300} role="img" aria-labelledby="spending-trend-chart" aria-label="Line chart showing daily spending and cumulative spending over time">
           <LineChart data={spendingTrend}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
@@ -183,8 +183,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ trip }) => {
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Pie Chart */}
         <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-white/5">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Spending by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 id="category-breakdown-chart" className="text-xl font-bold text-slate-900 dark:text-white mb-6">Spending by Category</h3>
+          <ResponsiveContainer width="100%" height={300} role="img" aria-labelledby="category-breakdown-chart" aria-label="Pie chart showing spending breakdown by expense category">
             <PieChart>
               <Pie
                 data={categoryBreakdown}
@@ -235,8 +235,8 @@ const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ trip }) => {
       {/* Per-Person Spending */}
       {personSpending.length > 0 && (
         <section className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-white/5">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Spending by Person</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 id="person-spending-chart" className="text-xl font-bold text-slate-900 dark:text-white mb-6">Spending by Person</h3>
+          <ResponsiveContainer width="100%" height={300} role="img" aria-labelledby="person-spending-chart" aria-label="Bar chart comparing total spending across trip participants">
             <BarChart data={personSpending}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="userName" stroke="#94a3b8" />
