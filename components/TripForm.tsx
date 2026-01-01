@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, format, differenceInDays, parseISO } from 'date-fns';
-import { useTerminology } from '../hooks/TerminologyContext';
+import { useTerminologyContext } from '../hooks/TerminologyContext';
 
 interface TripFormProps {
   trips?: Trip[];
@@ -28,7 +28,7 @@ const TRIP_TYPES: { type: TripType; icon: any; label: string }[] = [
 const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const term = useTerminology();
+  const { t: term, languageMode } = useTerminologyContext();
   const isEditing = !!id;
 
   const [formData, setFormData] = useState<Partial<Trip>>({
@@ -81,7 +81,7 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
     // Calculate itinerary with smart date shifting
     let itinerary;
 
-    if (isEditing && formData.itinerary && formData.itinerary.length > 0) {
+    if (isEditing && formData.itinerary && formData.itinerary.length > 0 && formData.itinerary[0]?.date) {
       // Editing existing trip: shift dates if start date changed
       const oldStartDate = parseISO(formData.itinerary[0].date);
       const dateDelta = differenceInDays(newStart, oldStartDate);
@@ -178,7 +178,7 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder={`e.g., ${term.type === 'military' ? 'Operation Tokyo Drift' : 'Tokyo Adventure'}`}
+                    placeholder={`e.g., ${languageMode === 'tactical' ? 'Operation Tokyo Drift' : 'Tokyo Adventure'}`}
                     className="w-full text-2xl font-display font-bold bg-transparent border-b border-slate-200 dark:border-slate-800 focus:border-brand-primary outline-none pb-3 transition-all dark:text-white placeholder:opacity-30"
                   />
                 </div>
