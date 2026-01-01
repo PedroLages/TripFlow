@@ -2,17 +2,18 @@
 import React, { useState } from 'react';
 import { Trip, PackingItem } from '../../types';
 import { PACKING_CATEGORIES } from '../../data';
-import { 
-  Package, Check, Plus, Trash2, Luggage, 
-  Sparkles, Zap, Loader2, AlertTriangle, 
-  ShieldCheck, Info, X, Thermometer, 
-  Wind, Sun, CheckCircle2, Footprints, 
+import {
+  Package, Check, Plus, Trash2, Luggage,
+  Sparkles, Zap, Loader2, AlertTriangle,
+  ShieldCheck, Info, X, Thermometer,
+  Wind, Sun, CheckCircle2, Footprints,
   CreditCard, Pill, Gem, HelpCircle,
   MoreVertical, CheckSquare, Square
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleGenAI, Type } from "@google/genai";
+import { geminiService } from '../../src/services/GeminiService';
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
+import { useTerminology } from '../../hooks/TerminologyContext';
 
 interface PackingTabProps {
   trip: Trip;
@@ -33,6 +34,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 };
 
 const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
+  const t = useTerminology();
   const [newItem, setNewItem] = useState({ name: '', category: PACKING_CATEGORIES[0] });
   const [isAiPacking, setIsAiPacking] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -68,29 +70,28 @@ const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
   const deployAiPacker = async () => {
     setIsAiPacking(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Generate a smart packing list for a ${trip.type} trip to ${trip.destinations.join(', ')} in ${trip.startDate}. 
-                   The trip is for ${trip.itinerary.length} days. 
+      const response = await geminiService.generateText({
+        prompt: `Generate a smart packing list for a ${trip.type} trip to ${trip.destinations.join(', ')} in ${trip.startDate}.
+                   The trip is for ${trip.itinerary.length} days.
                    Return a JSON array of 12 essential items. Each object: {name, category (one of: ${PACKING_CATEGORIES.join(', ')})}.`,
+        model: 'gemini-2.0-flash-exp',
         config: {
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: Type.ARRAY,
+            type: 'array',
             items: {
-              type: Type.OBJECT,
+              type: 'object',
               properties: {
-                name: { type: Type.STRING },
-                category: { type: Type.STRING }
+                name: { type: 'string' },
+                category: { type: 'string' }
               },
               required: ['name', 'category']
             }
           }
         }
       });
-      
-      const suggestions = JSON.parse(response.text);
+
+      const suggestions = JSON.parse(response);
       const newItems = suggestions.map((s: any) => ({
         id: uuidv4(),
         name: s.name,

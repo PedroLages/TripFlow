@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Trip } from '../types';
 import OfflineIndicator from './OfflineIndicator';
+import { useTerminology } from '../hooks/TerminologyContext';
 
 interface SidebarProps {
   className?: string;
@@ -23,12 +24,13 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCollapsed, onToggle, isOffline = false, hasPendingSync = false, userAvatar, userName }) => {
   const location = useLocation();
+  const t = useTerminology();
   const recentTrips = [...trips].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 3);
-  
+
   const mainLinks = [
-    { to: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { to: '/create', icon: <PlusCircle size={20} />, label: 'New Trip' },
-    { to: '/settings', icon: <SettingsIcon size={20} />, label: 'Settings' },
+    { to: '/', icon: <LayoutDashboard size={20} />, label: t.dashboard },
+    { to: '/create', icon: <PlusCircle size={20} />, label: t.newTrip },
+    { to: '/settings', icon: <SettingsIcon size={20} />, label: t.settings },
   ];
 
   return (

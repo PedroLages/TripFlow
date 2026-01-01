@@ -5,7 +5,7 @@ import {
   User, Globe, DollarSign, Moon, Sun, Shield,
   Database, Trash2, Download, Zap, ShieldAlert,
   ChevronRight, CheckCircle2, AlertCircle, Activity,
-  Lock, Key, HardDrive, RefreshCw
+  Lock, Key, HardDrive, RefreshCw, Target, MessageSquare
 } from 'lucide-react';
 import { CurrencyRateInfo } from './CurrencyRateInfo';
 
@@ -45,6 +45,13 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
 
   const toggleTheme = () => {
     setSettings({ ...settings, theme: settings.theme === 'light' ? 'dark' : 'light' });
+  };
+
+  const toggleLanguageMode = () => {
+    setSettings({
+      ...settings,
+      languageMode: settings.languageMode === 'tactical' ? 'standard' : 'tactical'
+    });
   };
 
   const handleClearCache = () => {
@@ -226,7 +233,7 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Interface Mode</label>
-                <button 
+                <button
                   onClick={toggleTheme}
                   className="w-full flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent hover:border-brand-primary/20 rounded-[1.5rem] transition-all group"
                 >
@@ -240,6 +247,29 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
                     <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${settings.theme === 'dark' ? 'left-7' : 'left-1'}`} />
                   </div>
                 </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Language Mode</label>
+                <button
+                  onClick={toggleLanguageMode}
+                  className="w-full flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent hover:border-brand-primary/20 rounded-[1.5rem] transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-xl ${settings.languageMode === 'tactical' ? 'bg-red-900/30 text-red-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                      {settings.languageMode === 'tactical' ? <Target size={20} /> : <MessageSquare size={20} />}
+                    </div>
+                    <span className="font-bold dark:text-white capitalize">{settings.languageMode === 'tactical' ? 'Tactical' : 'Standard'} Language</span>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-all relative ${settings.languageMode === 'tactical' ? 'bg-brand-primary' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all ${settings.languageMode === 'tactical' ? 'left-7' : 'left-1'}`} />
+                  </div>
+                </button>
+                <p className="text-[10px] text-slate-400 ml-1 mt-2">
+                  {settings.languageMode === 'tactical'
+                    ? '🎯 Mission-oriented language enabled'
+                    : '💬 Standard travel terminology'}
+                </p>
               </div>
             </div>
           </div>

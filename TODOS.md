@@ -40,13 +40,23 @@
   - Automatic reminders setup
   - **Files**: `utils/calendar.ts`, `components/tabs/ItineraryTab.tsx`
 
-### Smart Email Import
-- [ ] **P1** | `feature/email-import` | Auto-extract booking details from forwarded emails
-  - Gmail/Outlook API integration or email forwarding
-  - AI parsing of confirmation emails (flights, hotels, reservations)
-  - Auto-populate documents tab with extracted info
-  - Gemini API for intelligent extraction
-  - **Files**: `services/emailParser.ts`, `components/tabs/DocumentsTab.tsx`
+### Smart Email Scanner & Import 📧
+- [ ] **P1** | `feature/email-scanner` | AI-powered email scanner to auto-import bookings, tickets, and reservations
+  - **Email Sources**: Gmail/Outlook API integration or dedicated forward-to email address
+  - **AI-Powered Parsing**: Gemini API for intelligent extraction of booking details
+  - **Supported Documents**:
+    - ✈️ Flight confirmations (airlines, confirmation codes, flight numbers, times)
+    - 🏨 Hotel bookings (check-in/out dates, confirmation numbers, addresses)
+    - 🚗 Car rentals (pickup/return times, locations, confirmation codes)
+    - 🎫 Event tickets (concerts, tours, attractions with QR codes)
+    - 🍽️ Restaurant reservations (time, party size, confirmation)
+    - 🚂 Train/bus tickets (departure/arrival times, seat numbers)
+  - **Auto-Population**: Extracted data auto-fills DocumentsTab with structured info
+  - **Attachment Handling**: Extract and store PDFs, boarding passes, e-tickets
+  - **Calendar Sync**: Auto-add events to itinerary with correct dates/times
+  - **Duplicate Detection**: Smart deduplication of already imported bookings
+  - **Security**: Secure Edge Function for email processing (API keys protected)
+  - **Files**: `supabase/functions/email-scanner/`, `services/EmailScannerService.ts`, `components/tabs/DocumentsTab.tsx`
 
 ---
 

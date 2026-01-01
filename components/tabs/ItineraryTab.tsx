@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
 import { Trip, Activity, ActivityType, TravelDocument } from '../../types';
-import { 
-  Plus, MapPin, Trash2, Wand2, 
-  Palmtree, Utensils, Plane, Bed, Camera, Ticket, Coffee, 
-  ShoppingBag, Bus, Ship, TramFront, Mountain, Waves, 
-  Beer, Music, Theater, Landmark, 
-  Car, Bike, Footprints, LucideIcon, Sparkles, X, 
+import {
+  Plus, MapPin, Trash2, Wand2,
+  Palmtree, Utensils, Plane, Bed, Camera, Ticket, Coffee,
+  ShoppingBag, Bus, Ship, TramFront, Mountain, Waves,
+  Beer, Music, Theater, Landmark,
+  Car, Bike, Footprints, LucideIcon, Sparkles, X,
   CheckCircle2, Target, Heart, Edit3
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
+import { useTerminology } from '../../hooks/TerminologyContext';
 
 interface ItineraryTabProps {
   trip: Trip;
@@ -59,6 +60,7 @@ const ActivityIcon = ({ name, className }: { name?: string, className?: string }
 };
 
 const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
+  const t = useTerminology();
   const [editingActivity, setEditingActivity] = useState<{ dayId: string; activity: Activity | null } | null>(null);
   const isEditor = trip.currentUserRole === 'Editor';
 

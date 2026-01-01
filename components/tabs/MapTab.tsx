@@ -33,7 +33,7 @@ import {
   Download, CloudOff, Check, AlertCircle, Maximize2, Minimize2, LocateFixed, Crosshair,
   CloudRain, Building2, Mountain, Sun, Moon, Palette, ToggleLeft, ToggleRight
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
+import { geminiService } from '../../src/services/GeminiService';
 import { geocodeDestination, geocode, SearchSuggestion } from '../../services/GeocodingService';
 import { generateRouteSegments, createRoutesGeoJSON, getDayColor } from '../../services/RouteService';
 import PlaceSearch from '../PlaceSearch';
@@ -942,23 +942,22 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
     setIsScanning(true);
     setScannedIntel([]);
     try {
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: `Recommend 3 hidden gems near ${activities[0]?.location || trip.destinations[0]}. Return as JSON array: [{name, type}].`,
+      const response = await geminiService.generateText({
+        prompt: `Recommend 3 hidden gems near ${activities[0]?.location || trip.destinations[0]}. Return as JSON array: [{name, type}].`,
+        model: 'gemini-2.0-flash-exp',
         config: {
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: Type.ARRAY,
+            type: 'array',
             items: {
-              type: Type.OBJECT,
-              properties: { name: { type: Type.STRING }, type: { type: Type.STRING } },
+              type: 'object',
+              properties: { name: { type: 'string' }, type: { type: 'string' } },
               required: ['name', 'type']
             }
           }
         }
       });
-      setScannedIntel(JSON.parse(response.text || '[]'));
+      setScannedIntel(JSON.parse(response || '[]'));
     } catch (e) {
       console.error('Scan failed:', e);
     } finally {

@@ -8,8 +8,9 @@ import {
   CloudSun, Users, Activity, Wallet, ChevronRight, Edit
 } from 'lucide-react';
 import { format, differenceInDays, parseISO, isAfter } from 'date-fns';
-import { GoogleGenAI } from "@google/genai";
 import DeleteConfirmationModal from './modals/DeleteConfirmationModal';
+import { useTerminology } from '../hooks/TerminologyContext';
+import { geminiService } from '../src/services/GeminiService';
 
 interface DashboardProps {
   trips: Trip[];
@@ -27,6 +28,7 @@ const FALLBACK_TIPS = [
 
 const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) => {
   const navigate = useNavigate();
+  const t = useTerminology();
   const today = new Date();
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [isLoadingTip, setIsLoadingTip] = useState(false);
@@ -61,13 +63,11 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
       setIsLoadingTip(true);
       try {
         const nextDest = upcomingTrips[0].destinations[0];
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const response = await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: `Provide one short, clever travel tip or cultural etiquette for ${nextDest}. Keep it under 15 words.`,
-          config: { thinkingConfig: { thinkingBudget: 0 } }
+        const text = await geminiService.generateText({
+          prompt: `Provide one short, clever travel tip or cultural etiquette for ${nextDest}. Keep it under 15 words.`,
+          model: 'gemini-2.0-flash-exp'
         });
-        setAiTip(response.text || null);
+        setAiTip(text || null);
       } catch (e) {
         console.warn("AI Tip quota limit or error. Using fallback intel.");
         const randomTip = FALLBACK_TIPS[Math.floor(Math.random() * FALLBACK_TIPS.length)];
@@ -91,14 +91,14 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
           <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-brand-secondary dark:text-white">
             Ready to explore, <span className="text-brand-primary">{settings.name}?</span>
           </h1>
-          <p className="text-slate-500 font-medium text-lg">You have {upcomingTrips.length} upcoming adventures planned.</p>
+          <p className="text-slate-500 font-medium text-lg">You have {upcomingTrips.length} {t.upcoming.toLowerCase()} {t.trips.toLowerCase()} planned.</p>
         </div>
-        <button 
+        <button
           onClick={() => navigate('/create')}
           className="group relative bg-brand-secondary hover:bg-brand-primary text-white px-8 py-5 rounded-[2rem] font-bold transition-all duration-500 flex items-center gap-3 shadow-2xl shadow-indigo-900/10 overflow-hidden"
         >
           <Plus size={22} className="group-hover:rotate-90 transition-transform duration-500" />
-          <span>New Expedition</span>
+          <span>{t.newTrip}</span>
         </button>
       </header>
 
@@ -182,7 +182,7 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
           <h3 className="text-2xl font-display font-bold flex items-center gap-3">
             <Calendar className="text-brand-primary" />
-            Your Expeditions
+            Your {t.trips}
           </h3>
           <div className="flex gap-2">
              <button
@@ -203,7 +203,7 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
                    : 'text-slate-400 hover:text-brand-primary'
                }`}
              >
-               Upcoming
+               {t.upcoming}
              </button>
              <button
                onClick={() => setActiveFilter('past')}
@@ -213,7 +213,7 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
                    : 'text-slate-400 hover:text-brand-primary'
                }`}
              >
-               Past
+               {t.completed}
              </button>
           </div>
         </div>

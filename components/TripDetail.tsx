@@ -7,9 +7,9 @@ import {
   Settings, Users, X, Bell, Radio, CloudSun, Clock, Sparkles, Edit3, Eye,
   ChevronLeft, BarChart3, Loader2
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
 // Added missing import for format from date-fns
 import { format } from 'date-fns';
+import { geminiService } from '../src/services/GeminiService';
 import ItineraryTab from './tabs/ItineraryTab';
 import MapTab from './tabs/MapTab';
 import WishlistTab from './tabs/WishlistTab';
@@ -17,6 +17,7 @@ import BudgetTab from './tabs/BudgetTab';
 import PackingTab from './tabs/PackingTab';
 import DocumentsTab from './tabs/DocumentsTab';
 import SettlementsTab from './tabs/SettlementsTab';
+import { useTerminology } from '../hooks/TerminologyContext';
 
 // Lazy load heavy components to reduce initial bundle size
 const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab'));
@@ -31,6 +32,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const term = useTerminology();
   const containerRef = useRef<HTMLDivElement>(null);
   const trip = trips.find(t => t.id === id);
   
@@ -63,25 +65,24 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const fetchLiveInfo = async () => {
     setIsFetchingWeather(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `What is the current weather (temperature in C and condition) and current local time in ${trip.destinations[0]}?`,
+      const response = await geminiService.generateText({
+        prompt: `What is the current weather (temperature in C and condition) and current local time in ${trip.destinations[0]}?`,
+        model: 'gemini-2.0-flash-exp',
         config: {
           tools: [{ googleSearch: {} }],
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: Type.OBJECT,
+            type: 'object',
             properties: {
-              temp: { type: Type.STRING },
-              condition: { type: Type.STRING },
-              time: { type: Type.STRING }
+              temp: { type: 'string' },
+              condition: { type: 'string' },
+              time: { type: 'string' }
             },
             required: ['temp', 'condition', 'time']
           }
-        },
+        }
       });
-      setLiveWeather(JSON.parse(response.text));
+      setLiveWeather(JSON.parse(response));
     } catch (e) {
       console.warn("Weather fetch failed (Quota or API error). Falling back to operational defaults.");
       setLiveWeather({
@@ -104,14 +105,14 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   };
 
   const tabs = [
-    { name: 'Itinerary', path: 'itinerary', icon: <Calendar size={18} /> },
-    { name: 'Map', path: 'map', icon: <MapIcon size={18} /> },
-    { name: 'Places', path: 'places', icon: <Heart size={18} /> },
-    { name: 'Budget', path: 'budget', icon: <DollarSign size={18} /> },
+    { name: term.itinerary, path: 'itinerary', icon: <Calendar size={18} /> },
+    { name: term.map, path: 'map', icon: <MapIcon size={18} /> },
+    { name: term.wishlist, path: 'places', icon: <Heart size={18} /> },
+    { name: term.budget, path: 'budget', icon: <DollarSign size={18} /> },
     { name: 'Analytics', path: 'analytics', icon: <BarChart3 size={18} /> },
     { name: 'Settlements', path: 'settlements', icon: <Users size={18} /> },
-    { name: 'Packing', path: 'packing', icon: <Package size={18} /> },
-    { name: 'Documents', path: 'docs', icon: <FileText size={18} /> },
+    { name: term.packing, path: 'packing', icon: <Package size={18} /> },
+    { name: term.documents, path: 'docs', icon: <FileText size={18} /> },
   ];
 
   const packingProgress = trip.packingList.length > 0 ? (trip.packingList.filter(i => i.isPacked).length / trip.packingList.length) * 100 : 0;

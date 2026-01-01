@@ -8,7 +8,7 @@ import {
   Ticket, Navigation, Eye, Lock, ShieldCheck
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleGenAI, Type } from "@google/genai";
+import { geminiService } from '../../src/services/GeminiService';
 import { formatDistanceToNow } from 'date-fns';
 
 interface DocumentsTabProps {
@@ -70,31 +70,22 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
     const base64Image = canvasRef.current.toDataURL('image/jpeg').split(',')[1];
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: {
-          parts: [
-            { inlineData: { mimeType: "image/jpeg", data: base64Image } },
-            { text: "Extract travel details: type (Flight/Hotel/Car/Insurance/Contact), title, details, and confirmation code. Return a structured JSON object." }
-          ]
-        },
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              type: { type: Type.STRING },
-              title: { type: Type.STRING },
-              details: { type: Type.STRING },
-              confirmation: { type: Type.STRING }
-            },
-            required: ['type', 'title', 'confirmation']
-          }
+      const response = await geminiService.generateWithVision({
+        image: { mimeType: 'image/jpeg', data: base64Image },
+        prompt: 'Extract travel details: type (Flight/Hotel/Car/Insurance/Contact), title, details, and confirmation code. Return a structured JSON object.',
+        schema: {
+          type: 'object',
+          properties: {
+            type: { type: 'string' },
+            title: { type: 'string' },
+            details: { type: 'string' },
+            confirmation: { type: 'string' }
+          },
+          required: ['type', 'title', 'confirmation']
         }
       });
-      
-      const parsed = JSON.parse(response.text || '{}');
+
+      const parsed = JSON.parse(response || '{}');
       const newDoc: TravelDocument = {
         id: uuidv4(),
         type: (parsed.type && Object.keys(TYPE_CONFIG).includes(parsed.type)) ? parsed.type : 'Flight',
@@ -121,15 +112,14 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
   const refreshFlightStatus = async (docId: string) => {
     setUpdatingStatusId(docId);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       // Simulate real tracking with AI response
       await new Promise(r => setTimeout(r, 1500));
-      const newDocs = trip.documents.map(d => 
-        d.id === docId ? { 
-          ...d, 
-          status: Math.random() > 0.8 ? 'Delayed' : 'On Time', 
+      const newDocs = trip.documents.map(d =>
+        d.id === docId ? {
+          ...d,
+          status: Math.random() > 0.8 ? 'Delayed' : 'On Time',
           gate: String(Math.floor(Math.random() * 50) + 1) + (Math.random() > 0.5 ? 'A' : 'B'),
-          lastUpdated: new Date().toISOString() 
+          lastUpdated: new Date().toISOString()
         } : d
       );
       updateTrip({ ...trip, documents: newDocs });
@@ -144,25 +134,24 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
     if (!importText.trim()) return;
     setIsParsing(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Extract travel booking details from this text: "${importText}". Return a structured JSON object.`,
+      const response = await geminiService.generateText({
+        prompt: `Extract travel booking details from this text: "${importText}". Return a structured JSON object.`,
+        model: 'gemini-2.0-flash-exp',
         config: {
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: Type.OBJECT,
+            type: 'object',
             properties: {
-              type: { type: Type.STRING },
-              title: { type: Type.STRING },
-              details: { type: Type.STRING },
-              confirmation: { type: Type.STRING }
+              type: { type: 'string' },
+              title: { type: 'string' },
+              details: { type: 'string' },
+              confirmation: { type: 'string' }
             },
             required: ['type', 'title', 'confirmation']
           }
         }
       });
-      const parsed = JSON.parse(response.text || '{}');
+      const parsed = JSON.parse(response || '{}');
       const newDoc: TravelDocument = {
         id: uuidv4(),
         type: (parsed.type && Object.keys(TYPE_CONFIG).includes(parsed.type)) ? parsed.type : 'Flight',
@@ -172,7 +161,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
         status: 'Confirmed',
         lastUpdated: new Date().toISOString()
       };
-      
+
       updateTrip({
         ...trip,
         documents: [newDoc, ...trip.documents]

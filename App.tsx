@@ -23,6 +23,7 @@ import { useSupabaseAuth } from './hooks/useSupabaseAuth';
 import { useSupabaseTrips } from './hooks/useSupabaseTrips';
 import { useSupabaseSettings } from './hooks/useSupabaseSettings';
 import { isSupabaseReady } from './src/lib/supabase';
+import { TerminologyProvider } from './hooks/TerminologyContext';
 
 const AppContent: React.FC<{
   user: User | null;
@@ -136,7 +137,8 @@ const App: React.FC = () => {
       avatar: user?.avatar,
       homeLocation: 'San Francisco',
       currency: 'USD',
-      theme: 'light'
+      theme: 'light',
+      languageMode: 'standard'
     };
   }, [supabaseSettings, user?.name, user?.email, user?.avatar]);
 
@@ -427,22 +429,24 @@ const App: React.FC = () => {
       {/* PWA Update Banner */}
       {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
 
-      <Router>
-        <AppContent
-          user={user}
-          trips={trips}
-          settings={settings}
-          setSettings={setSettings}
-          isSidebarCollapsed={isSidebarCollapsed}
-          handleSidebarToggle={handleSidebarToggle}
-          isOffline={isOffline}
-          hasPendingSync={syncStatus.isSyncing}
-          handleLogout={handleLogout}
-          updateTrip={updateTrip}
-          addTrip={addTrip}
-          deleteTrip={deleteTrip}
-        />
-      </Router>
+      <TerminologyProvider languageMode={settings.languageMode}>
+        <Router>
+          <AppContent
+            user={user}
+            trips={trips}
+            settings={settings}
+            setSettings={setSettings}
+            isSidebarCollapsed={isSidebarCollapsed}
+            handleSidebarToggle={handleSidebarToggle}
+            isOffline={isOffline}
+            hasPendingSync={syncStatus.isSyncing}
+            handleLogout={handleLogout}
+            updateTrip={updateTrip}
+            addTrip={addTrip}
+            deleteTrip={deleteTrip}
+          />
+        </Router>
+      </TerminologyProvider>
 
       {/* PWA Install Prompt */}
       {isInstallable && <InstallPrompt onInstall={installPrompt} />}

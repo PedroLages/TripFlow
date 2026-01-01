@@ -11,7 +11,7 @@ import {
   Calendar, Map
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { GoogleGenAI, Type } from "@google/genai";
+import { geminiService } from '../../src/services/GeminiService';
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
 
 interface WishlistTabProps {
@@ -95,28 +95,27 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
     setIsScouting(true);
     setAiSuggestions([]);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Recommend 3 elite, high-value places to visit in ${trip.destinations[0]} for a ${trip.type} trip. 
+      const response = await geminiService.generateText({
+        prompt: `Recommend 3 elite, high-value places to visit in ${trip.destinations[0]} for a ${trip.type} trip.
                    Return as JSON array of objects with keys: name, category (Must See, Restaurant, Shopping), notes (tactical briefing).`,
+        model: 'gemini-2.0-flash-exp',
         config: {
-          responseMimeType: "application/json",
+          responseMimeType: 'application/json',
           responseSchema: {
-            type: Type.ARRAY,
+            type: 'array',
             items: {
-              type: Type.OBJECT,
+              type: 'object',
               properties: {
-                name: { type: Type.STRING },
-                category: { type: Type.STRING, enum: ['Must See', 'Restaurant', 'Shopping'] },
-                notes: { type: Type.STRING }
+                name: { type: 'string' },
+                category: { type: 'string', enum: ['Must See', 'Restaurant', 'Shopping'] },
+                notes: { type: 'string' }
               },
               required: ['name', 'category', 'notes']
             }
           }
         }
       });
-      const data = JSON.parse(response.text);
+      const data = JSON.parse(response);
       setAiSuggestions(data);
     } catch (e) {
       console.error("AI Scouting failed", e);

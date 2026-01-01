@@ -10,7 +10,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
 import { format, parseISO, differenceInDays } from 'date-fns';
-import { GoogleGenAI, Type } from "@google/genai";
+import { geminiService } from '../../src/services/GeminiService';
 import { calculateUserBalances } from '../../utils/expenseSplitCalculations';
 import { SUPPORTED_CURRENCIES, getCurrencySymbol } from '../../utils/currencyHelpers';
 import SplitIndicator from '../expense/SplitIndicator';
@@ -20,6 +20,7 @@ import ExportModal from '../modals/ExportModal';
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
 import { ConvertedAmount } from '../ConvertedAmount';
 import { useBatchCurrencyConversion } from '../../hooks/useCurrencyConversion';
+import { useTerminology } from '../../hooks/TerminologyContext';
 
 interface BudgetTabProps {
   trip: Trip;
@@ -39,6 +40,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 type ExpenseFilter = 'all' | 'split' | 'personal';
 
 const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
+  const t = useTerminology();
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -196,34 +198,25 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     const base64Image = canvasRef.current.toDataURL('image/jpeg').split(',')[1];
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: {
-          parts: [
-            { inlineData: { mimeType: "image/jpeg", data: base64Image } },
-            { text: "Extract total amount (number), category (Flights/Accommodation/Food/Activities/Transport/Shopping/Other), and a short note (vendor name) from this receipt. Return as JSON." }
-          ]
-        },
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              amount: { type: Type.NUMBER },
-              category: { type: Type.STRING },
-              notes: { type: Type.STRING }
-            },
-            required: ['amount', 'category', 'notes']
-          }
+      const response = await geminiService.generateWithVision({
+        image: { mimeType: 'image/jpeg', data: base64Image },
+        prompt: 'Extract total amount (number), category (Flights/Accommodation/Food/Activities/Transport/Shopping/Other), and a short note (vendor name) from this receipt. Return as JSON.',
+        schema: {
+          type: 'object',
+          properties: {
+            amount: { type: 'number' },
+            category: { type: 'string' },
+            notes: { type: 'string' }
+          },
+          required: ['amount', 'category', 'notes']
         }
       });
-      const data = JSON.parse(response.text || '{}');
-      setNewExpense({ 
+      const data = JSON.parse(response || '{}');
+      setNewExpense({
         amount: data.amount || 0,
         category: (data.category && Object.keys(CATEGORY_COLORS).includes(data.category)) ? data.category : 'Other',
         notes: data.notes || 'Scanned Receipt',
-        date: format(new Date(), 'yyyy-MM-dd') 
+        date: format(new Date(), 'yyyy-MM-dd')
       });
       stopScanner();
       setShowAddExpense(true);

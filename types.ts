@@ -207,5 +207,6 @@ export interface UserSettings {
   homeLocation: string;
   currency: string;
   theme: 'light' | 'dark';
+  languageMode?: 'tactical' | 'standard'; // UI terminology preference
   sidebarCollapsed?: boolean; // Sidebar collapse state (synced across devices)
 }
