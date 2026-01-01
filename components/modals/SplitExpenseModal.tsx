@@ -225,9 +225,9 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="p-8 md:p-12 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50">
+        <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 flex-shrink-0">
           <div>
             <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-white">
               Split Expense
@@ -249,7 +249,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
         </div>
 
         {/* Progress Indicator */}
-        <div className="px-8 md:px-12 py-6 bg-slate-50 dark:bg-slate-950/30 flex justify-between items-center">
+        <div className="px-6 md:px-10 py-4 md:py-6 bg-slate-50 dark:bg-slate-950/30 flex justify-between items-center flex-shrink-0">
           {['amount', 'method', 'participants', 'configure', 'preview'].map((s, i) => (
             <div
               key={s}
@@ -263,7 +263,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-8 md:p-12 space-y-8 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto flex-1">
           {/* Step 1: Amount & Payer */}
           {step === 'amount' && (
             <>
@@ -647,7 +647,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-8 md:p-12 border-t border-slate-100 dark:border-white/5 flex gap-4">
+        <div className="p-6 md:p-10 border-t border-slate-100 dark:border-white/5 flex gap-4 flex-shrink-0">
           {step !== 'amount' && (
             <button
               onClick={handleBack}
