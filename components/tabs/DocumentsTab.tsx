@@ -366,30 +366,30 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
       {/* Smart Import Modal */}
       {showSmartImport && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-12 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white flex-shrink-0">
               <div>
-                <h3 className="text-4xl font-display font-bold mb-2">Email Parser</h3>
-                <p className="text-slate-400 font-medium">Extract intel from booking confirmations.</p>
+                <h3 className="text-xl md:text-2xl font-display font-bold mb-1">Email Parser</h3>
+                <p className="text-slate-400 font-medium text-sm">Extract intel from booking confirmations.</p>
               </div>
-              <button onClick={() => setShowSmartImport(false)} className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"><X size={32} /></button>
+              <button onClick={() => setShowSmartImport(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"><X size={20} /></button>
             </div>
-            <div className="p-12 space-y-10">
-              <div className="space-y-3">
+            <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
+              <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Confirmation Content</label>
-                <textarea 
-                  value={importText} 
+                <textarea
+                  value={importText}
                   onChange={(e) => setImportText(e.target.value)}
-                  placeholder="Paste your booking email text here..." 
-                  className="w-full p-8 bg-slate-50 dark:bg-slate-950 rounded-[3rem] font-medium outline-none h-48 border-2 border-transparent focus:border-brand-primary transition-all dark:text-white" 
+                  placeholder="Paste your booking email text here..."
+                  className="w-full p-4 md:p-6 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-medium outline-none h-36 md:h-48 border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
                 />
               </div>
-              <button 
-                onClick={handleSmartImport} 
+              <button
+                onClick={handleSmartImport}
                 disabled={isParsing || !importText.trim()}
-                className="w-full py-7 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-[2rem] shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-4"
+                className="w-full py-4 md:py-5 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
               >
-                {isParsing ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                {isParsing ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
                 {isParsing ? 'Decrypting Intel...' : 'Infiltrate Document'}
               </button>
             </div>
