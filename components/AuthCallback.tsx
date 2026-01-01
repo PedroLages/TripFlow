@@ -24,11 +24,39 @@ export function AuthCallback() {
       }
 
       try {
-        // Get the auth code from URL
-        const { error } = await supabase.auth.getSession();
+        // PKCE flow: Check for auth code in URL query params
+        // The code is exchanged for a session automatically by detectSessionInUrl
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const errorParam = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        // Handle OAuth errors from provider
+        if (errorParam) {
+          throw new Error(errorDescription || errorParam);
+        }
+
+        // If we have a code, exchange it for a session (PKCE flow)
+        if (code) {
+          setMessage('Exchanging authentication code...');
+
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) {
+            throw exchangeError;
+          }
+        }
+
+        // Verify we have a valid session
+        const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
           throw error;
+        }
+
+        if (!session) {
+          // No session and no code - might be a stale callback
+          throw new Error('No authentication session found. Please try signing in again.');
         }
 
         setStatus('success');

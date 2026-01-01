@@ -28,6 +28,10 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
+        // Use PKCE flow instead of implicit flow
+        // This avoids hash fragment conflicts with HashRouter
+        // PKCE uses ?code=XXX query params instead of #access_token=XXX
+        flowType: 'pkce',
         // Storage key for session persistence
         storageKey: 'tripflow-auth',
       },
