@@ -90,10 +90,12 @@ export function useSupabaseAuth(): UseSupabaseAuthReturn {
     setLoading(true);
     setError(null);
 
+    // Use real path (not hash route) for OAuth redirect
+    // The /auth/callback/index.html will handle the redirect to the app
     const { error: signInError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/#/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -117,10 +119,13 @@ export function useSupabaseAuth(): UseSupabaseAuthReturn {
 
     setError(null);
 
+    // Use real path (not hash route) for OAuth redirect
+    // The /auth/callback/index.html will handle the redirect to the app
+    // This is required because PKCE uses query params (?code=) which must come before the hash
     const { error: signInError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/#/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
