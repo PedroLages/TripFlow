@@ -341,8 +341,9 @@ const App: React.FC = () => {
 
   // Check if we're on the auth callback route (before Router is mounted)
   // This handles OAuth redirects when user is not yet authenticated
-  const isAuthCallback = window.location.hash.includes('/auth/callback') ||
-                         window.location.pathname.includes('/auth/callback');
+  // Use exact matching to prevent false positives on unrelated routes
+  const isAuthCallback = window.location.hash.startsWith('#/auth/callback') ||
+                         window.location.pathname === '/auth/callback';
 
   // If on auth callback, render the callback handler directly
   // This allows OAuth flow to complete before the user check blocks it
