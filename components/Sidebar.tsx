@@ -17,9 +17,11 @@ interface SidebarProps {
   onToggle?: () => void;
   isOffline?: boolean;
   hasPendingSync?: boolean;
+  userAvatar?: string; // Google avatar from settings
+  userName?: string; // User name from settings
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCollapsed, onToggle, isOffline = false, hasPendingSync = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCollapsed, onToggle, isOffline = false, hasPendingSync = false, userAvatar, userName }) => {
   const location = useLocation();
   const recentTrips = [...trips].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 3);
   
@@ -147,12 +149,16 @@ const Sidebar: React.FC<SidebarProps> = ({ className, onLogout, trips = [], isCo
         <div className={`p-2 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center transition-all duration-500 ${isCollapsed ? 'flex-col gap-2' : 'justify-between px-4'}`}>
            <div className={`flex items-center gap-4 ${isCollapsed ? 'flex-col' : ''}`}>
               <div className="relative flex-shrink-0">
-                <img src="https://i.pravatar.cc/150?u=demo" className="w-10 h-10 rounded-2xl border-2 border-white dark:border-slate-800 shadow-md" alt="Pilot" />
+                <img
+                  src={userAvatar || "https://i.pravatar.cc/150?u=demo"}
+                  className="w-10 h-10 rounded-2xl border-2 border-white dark:border-slate-800 shadow-md object-cover"
+                  alt={userName || "User"}
+                />
                 <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-brand-success rounded-full border-2 border-white dark:border-slate-900" />
               </div>
               {!isCollapsed && (
                 <div className="min-w-0 animate-in fade-in duration-500">
-                  <p className="text-xs font-black tracking-tight text-slate-800 dark:text-white truncate">Demo Pilot</p>
+                  <p className="text-xs font-black tracking-tight text-slate-800 dark:text-white truncate">{userName || "Pilot"}</p>
                 </div>
               )}
            </div>

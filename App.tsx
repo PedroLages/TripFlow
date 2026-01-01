@@ -52,6 +52,8 @@ const AppContent: React.FC<{
         onToggle={handleSidebarToggle}
         isOffline={isOffline}
         hasPendingSync={hasPendingSync}
+        userAvatar={settings.avatar}
+        userName={settings.name}
       />
       <main className="flex-1 flex flex-col relative h-screen overflow-hidden">
         <Routes>
