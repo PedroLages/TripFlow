@@ -6,12 +6,10 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
 
 export function AuthCallback() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Completing sign in...');
 
@@ -24,12 +22,70 @@ export function AuthCallback() {
       }
 
       try {
-        // PKCE flow: Check for auth code in URL query params
-        // The code is exchanged for a session automatically by detectSessionInUrl
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const errorParam = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+        // With HashRouter, URL params can be in multiple places:
+        // 1. Regular query params: window.location.search (e.g., ?code=XXX before the hash)
+        // 2. Inside the hash: window.location.hash (e.g., /#/auth/callback?code=XXX)
+        // 3. Hash fragment tokens: #access_token=XXX (implicit flow)
+
+        const hash = window.location.hash;
+        const search = window.location.search;
+
+        // First try regular query params (from standalone callback page redirect)
+        let urlParams = new URLSearchParams(search);
+        let code = urlParams.get('code');
+        let errorParam = urlParams.get('error');
+        let errorDescription = urlParams.get('error_description');
+
+        // If not found, check inside the hash (HashRouter with query params)
+        if (!code && !errorParam) {
+          // Parse hash like: #/auth/callback?code=XXX or #/auth/callback#access_token=XXX
+          const hashQueryIndex = hash.indexOf('?');
+          const hashFragmentIndex = hash.indexOf('#', 1); // Find second # if any
+
+          // Extract query params from hash
+          if (hashQueryIndex !== -1) {
+            const hashQuery = hash.substring(hashQueryIndex);
+            urlParams = new URLSearchParams(hashQuery);
+            code = urlParams.get('code');
+            errorParam = urlParams.get('error');
+            errorDescription = urlParams.get('error_description');
+          }
+
+          // Handle implicit flow tokens in hash (e.g., #/auth/callback#access_token=XXX)
+          if (!code && hashFragmentIndex !== -1) {
+            const tokenFragment = hash.substring(hashFragmentIndex + 1);
+            const tokenParams = new URLSearchParams(tokenFragment);
+            const accessToken = tokenParams.get('access_token');
+            const refreshToken = tokenParams.get('refresh_token');
+
+            if (accessToken) {
+              setMessage('Processing authentication tokens...');
+
+              // Set session from implicit flow tokens
+              const { error: sessionError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken || '',
+              });
+
+              if (sessionError) {
+                throw sessionError;
+              }
+
+              // Session is set, proceed to verify
+              const { data: { session }, error } = await supabase.auth.getSession();
+              if (error) throw error;
+
+              if (session) {
+                setStatus('success');
+                setMessage('Sign in successful! Redirecting...');
+                setTimeout(() => {
+                  window.location.replace('/#/');
+                }, 1500);
+                return;
+              }
+            }
+          }
+        }
 
         // Handle OAuth errors from provider
         if (errorParam) {
@@ -75,7 +131,7 @@ export function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">

@@ -339,6 +339,17 @@ const App: React.FC = () => {
     );
   }
 
+  // Check if we're on the auth callback route (before Router is mounted)
+  // This handles OAuth redirects when user is not yet authenticated
+  const isAuthCallback = window.location.hash.includes('/auth/callback') ||
+                         window.location.pathname.includes('/auth/callback');
+
+  // If on auth callback, render the callback handler directly
+  // This allows OAuth flow to complete before the user check blocks it
+  if (isAuthCallback && isSupabaseConfigured) {
+    return <AuthCallback />;
+  }
+
   // Show auth modal if Supabase is configured but no user
   if (isSupabaseConfigured && !user) {
     return (
