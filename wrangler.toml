@@ -1,0 +1,13 @@
+name = "tripflow"
+compatibility_date = "2024-12-30"
+
+pages_build_output_dir = "./dist"
+
+[env.production]
+vars = { }
+
+# Note: Vite build-time env vars (VITE_*) must be set in Cloudflare Pages dashboard
+# Go to: Pages project → Settings → Environment variables → Production
+# Add:
+#   VITE_SUPABASE_URL = https://xnmbvjlhwrukliuzhhvf.supabase.co
+#   VITE_SUPABASE_ANON_KEY = [your key]
