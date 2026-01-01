@@ -392,10 +392,11 @@ const App: React.FC = () => {
           <button
             onClick={() => {
               // Create demo user for offline mode
+              // Email must match the ownerEmail in INITIAL_TRIPS (data.ts)
               const demoUser: User = {
-                email: 'offline@tripflow.local',
-                name: 'Offline User',
-                avatar: 'https://i.pravatar.cc/150?u=offline'
+                email: 'demo@tripflow.ai',
+                name: 'Demo User',
+                avatar: 'https://i.pravatar.cc/150?u=demo'
               };
               localStorage.setItem('tripflow_user', JSON.stringify(demoUser));
               window.location.reload();

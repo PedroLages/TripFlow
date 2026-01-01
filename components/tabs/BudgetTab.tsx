@@ -611,28 +611,28 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
       {/* Manual Expense Modal */}
       {showAddExpense && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-12 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+            <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 flex-shrink-0">
               <div>
-                <h3 id="expense-modal-title" className="text-3xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
-                <p className="text-slate-400 font-medium">Capture capital deployment data.</p>
+                <h3 id="expense-modal-title" className="text-xl md:text-2xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
+                <p className="text-slate-400 font-medium text-sm">Capture capital deployment data.</p>
               </div>
-              <button onClick={() => setShowAddExpense(false)} aria-label="Close expense modal" className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"><X size={24} aria-hidden="true" /></button>
+              <button onClick={() => setShowAddExpense(false)} aria-label="Close expense modal" className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"><X size={20} aria-hidden="true" /></button>
             </div>
-            
-            <div className="p-12 space-y-8">
+
+            <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Total Amount</label>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-3 md:gap-4">
                   <div className="col-span-2 relative">
-                     <div className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-2xl">
+                     <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-xl md:text-2xl">
                        {getCurrencySymbol(newExpense.currency || 'USD')}
                      </div>
                      <input
                       type="number"
                       value={newExpense.amount}
                       onChange={(e) => setNewExpense({ ...newExpense, amount: Number(e.target.value) })}
-                      className="w-full p-6 pl-12 bg-slate-50 dark:bg-slate-950 rounded-3xl font-display font-bold text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
+                      className="w-full p-4 md:p-5 pl-10 md:pl-12 bg-slate-50 dark:bg-slate-950 rounded-2xl md:rounded-3xl font-display font-bold text-xl md:text-2xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
                       placeholder="0.00"
                     />
                   </div>
@@ -640,7 +640,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                     <select
                       value={newExpense.currency}
                       onChange={(e) => setNewExpense({ ...newExpense, currency: e.target.value })}
-                      className="w-full h-full p-5 bg-slate-50 dark:bg-slate-950 rounded-3xl font-bold text-sm outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                      className="w-full h-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl md:rounded-3xl font-bold text-sm outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                     >
                       {SUPPORTED_CURRENCIES.map(curr => (
                         <option key={curr.code} value={curr.code}>
@@ -652,13 +652,13 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Sector</label>
                   <select
                     value={newExpense.category}
                     onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as any })}
-                    className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
                   >
                     {Object.keys(CATEGORY_COLORS).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
@@ -669,24 +669,24 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
                     type="date"
                     value={newExpense.date}
                     onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                    className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Intelligence Note</label>
-                <input 
+                <input
                   value={newExpense.notes}
                   onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
-                  className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
                   placeholder="e.g., Starbucks Shinjuku"
                 />
               </div>
 
-              <button 
+              <button
                 onClick={handleAddExpense}
-                className="w-full py-6 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-[2rem] shadow-2xl shadow-indigo-500/30 hover:bg-brand-secondary transition-all active:scale-95"
+                className="w-full py-4 md:py-5 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/30 hover:bg-brand-secondary transition-all active:scale-95"
               >
                 Seal Ledger Entry
               </button>
