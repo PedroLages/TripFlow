@@ -94,7 +94,7 @@ export default function ReceiptViewerModal({
       tabIndex={0}
     >
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/50 to-transparent z-10">
+      <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/50 to-transparent z-10">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="text-white">
             <h3 className="text-lg font-bold">{getReceiptFilename(currentImage)}</h3>
@@ -176,7 +176,7 @@ export default function ReceiptViewerModal({
 
       {/* Image */}
       <div
-        className="max-w-7xl max-h-[80vh] overflow-auto p-8"
+        className="max-w-7xl max-h-[85vh] md:max-h-[80vh] overflow-auto p-4 md:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <img
@@ -200,10 +200,10 @@ export default function ReceiptViewerModal({
               handlePrevious();
             }}
             disabled={currentIndex === 0}
-            className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 p-2 md:p-4 bg-white/10 hover:bg-white/20 rounded-xl md:rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Previous image"
           >
-            <ChevronLeft size={32} className="text-white" />
+            <ChevronLeft size={24} className="text-white md:w-8 md:h-8" />
           </button>
 
           {/* Next Button */}
@@ -213,10 +213,10 @@ export default function ReceiptViewerModal({
               handleNext();
             }}
             disabled={currentIndex === images.length - 1}
-            className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 p-2 md:p-4 bg-white/10 hover:bg-white/20 rounded-xl md:rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Next image"
           >
-            <ChevronRight size={32} className="text-white" />
+            <ChevronRight size={24} className="text-white md:w-8 md:h-8" />
           </button>
 
           {/* Image Counter */}
@@ -237,11 +237,11 @@ export default function ReceiptViewerModal({
           className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md mx-4 shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl p-6 md:p-8 max-w-md mx-4 shadow-2xl">
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-3">
               Delete Receipt Image?
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-4 md:mb-6">
               This action cannot be undone. The receipt image will be permanently deleted.
             </p>
             <div className="flex gap-3">
