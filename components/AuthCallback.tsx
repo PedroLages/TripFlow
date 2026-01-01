@@ -79,8 +79,14 @@ export function AuthCallback() {
                 setStatus('success');
                 setMessage('Sign in successful! Redirecting...');
                 setTimeout(() => {
-                  window.location.replace('/#/');
-                }, 1500);
+                  // Force a full page reload to ensure App.tsx re-mounts with authenticated state
+                  try {
+                    window.location.href = window.location.origin + '/#/';
+                  } catch (e) {
+                    window.location.hash = '#/';
+                    window.location.reload();
+                  }
+                }, 1000);
                 return;
               }
             }
@@ -119,10 +125,18 @@ export function AuthCallback() {
         setMessage('Sign in successful! Redirecting...');
 
         // Redirect to dashboard after a short delay
-        // Use window.location to completely replace URL (including removing /auth/callback)
+        // Force a full page reload to ensure App.tsx re-mounts with authenticated state
         setTimeout(() => {
-          window.location.replace('/#/');
-        }, 1500);
+          // Try multiple redirect strategies for maximum compatibility
+          try {
+            // Strategy 1: Full URL replacement (works with hash routing)
+            window.location.href = window.location.origin + '/#/';
+          } catch (e) {
+            // Strategy 2: Fallback to hash only
+            window.location.hash = '#/';
+            window.location.reload();
+          }
+        }, 1000);
       } catch (err) {
         console.error('Auth callback error:', err);
         setStatus('error');
