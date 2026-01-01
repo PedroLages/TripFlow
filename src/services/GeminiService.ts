@@ -14,6 +14,7 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { aiCache } from '../utils/aiCache';
 
 export interface GeminiRequest {
   prompt?: string;
@@ -46,9 +47,24 @@ class GeminiService {
   /**
    * Generate text using Gemini AI
    * Calls the secure Edge Function proxy instead of Gemini directly
+   * Includes caching and rate limiting
    */
   async generateText(request: GeminiRequest): Promise<string> {
     try {
+      // Check rate limit
+      if (aiCache.isRateLimited()) {
+        const resetTime = aiCache.getResetTime();
+        throw new Error(`Rate limit exceeded. Please wait ${resetTime} seconds before trying again.`);
+      }
+
+      // Check cache first (only for prompts without images)
+      if (request.prompt && !request.image) {
+        const cached = aiCache.get(request.prompt, request.model, request.config);
+        if (cached) {
+          return cached;
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke<GeminiResponse>('gemini-proxy', {
         body: request,
       });
@@ -63,7 +79,14 @@ class GeminiService {
         throw new Error(data.error);
       }
 
-      return data?.text || '';
+      const response = data?.text || '';
+
+      // Cache the response (only for prompts without images)
+      if (request.prompt && !request.image && response) {
+        aiCache.set(request.prompt, response, request.model, request.config);
+      }
+
+      return response;
     } catch (error) {
       console.error('[GeminiService] Request failed:', error);
       throw error;

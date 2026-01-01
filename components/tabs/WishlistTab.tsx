@@ -95,9 +95,35 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
     setIsScouting(true);
     setAiSuggestions([]);
     try {
+      // Extract trip context
+      const startDate = new Date(trip.startDate);
+      const month = startDate.toLocaleString('en-US', { month: 'long' });
+
+      // Extract existing activities for context
+      const plannedActivities = trip.itinerary
+        .flatMap(day => day.activities)
+        .map(act => act.name)
+        .slice(0, 5);
+
+      const activityContext = plannedActivities.length > 0
+        ? `Already planning: ${plannedActivities.join(', ')}.`
+        : '';
+
       const response = await geminiService.generateText({
-        prompt: `Recommend 3 elite, high-value places to visit in ${trip.destinations[0]} for a ${trip.type} trip.
-                   Return as JSON array of objects with keys: name, category (Must See, Restaurant, Shopping), notes (tactical briefing).`,
+        prompt: `You're a local insider in ${trip.destinations[0]}. Recommend 5 exceptional places for a ${trip.type.toLowerCase()} trip in ${month}.
+
+**Context:**
+${activityContext}
+Trip type: ${trip.type}
+${trip.notes ? `Notes: ${trip.notes}` : ''}
+
+**Requirements:**
+1. Mix categories: 2 Must See attractions, 2 Restaurants, 1 Shopping/local market
+2. Avoid tourist traps - focus on authentic, highly-rated experiences
+3. Consider ${trip.type.toLowerCase()} preferences (e.g., romantic for couples, kid-friendly for families)
+4. For each place, provide tactical notes: what makes it special, best time to visit, insider tip
+
+Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2-3 sentences with insider tip)}.`,
         model: 'gemini-2.0-flash-exp',
         config: {
           responseMimeType: 'application/json',

@@ -70,10 +70,60 @@ const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
   const deployAiPacker = async () => {
     setIsAiPacking(true);
     try {
+      // Extract trip context
+      const tripDuration = trip.itinerary.length;
+      const startDate = new Date(trip.startDate);
+      const month = startDate.toLocaleString('en-US', { month: 'long' });
+      const season = getSeasonFromDate(startDate);
+
+      // Extract planned activities from itinerary
+      const activities = trip.itinerary
+        .flatMap(day => day.activities)
+        .map(act => `${act.type}: ${act.name}`)
+        .slice(0, 10); // Limit to first 10 for brevity
+
+      const activityContext = activities.length > 0
+        ? `Planned activities include: ${activities.join('; ')}.`
+        : '';
+
+      // Get weather forecast with Google Search
+      let weatherContext = '';
+      try {
+        const weatherInfo = await geminiService.generateWithSearch({
+          prompt: `What is the typical weather and temperature in ${trip.destinations[0]} in ${month}? Include temperature range and conditions.`,
+          model: 'gemini-2.0-flash-exp'
+        });
+        weatherContext = `Weather: ${weatherInfo}.`;
+      } catch (err) {
+        console.log('Weather fetch failed, continuing without it:', err);
+      }
+
+      // Build comprehensive prompt
+      const prompt = `Generate a smart, personalized packing list for this trip:
+
+**Trip Details:**
+- Type: ${trip.type} trip
+- Destination: ${trip.destinations.join(', ')}
+- Duration: ${tripDuration} days (${month} ${startDate.getDate()}, ${startDate.getFullYear()})
+- Season: ${season}
+${weatherContext}
+
+**Activities & Context:**
+${activityContext}
+${trip.notes ? `Additional notes: ${trip.notes}` : ''}
+
+**Requirements:**
+1. Provide 15-20 essential items tailored to the trip type, weather, and activities
+2. Consider ${trip.type} travel needs (e.g., business attire, family items, etc.)
+3. Include season-appropriate clothing
+4. Add activity-specific gear based on planned activities
+5. Don't forget essentials like documents, medications, electronics
+6. Each item should have a category from: ${PACKING_CATEGORIES.join(', ')}
+
+Return a JSON array of objects with {name, category}.`;
+
       const response = await geminiService.generateText({
-        prompt: `Generate a smart packing list for a ${trip.type} trip to ${trip.destinations.join(', ')} in ${trip.startDate}.
-                   The trip is for ${trip.itinerary.length} days.
-                   Return a JSON array of 12 essential items. Each object: {name, category (one of: ${PACKING_CATEGORIES.join(', ')})}.`,
+        prompt,
         model: 'gemini-2.0-flash-exp',
         config: {
           responseMimeType: 'application/json',
@@ -105,6 +155,15 @@ const PackingTab: React.FC<PackingTabProps> = ({ trip, updateTrip }) => {
     } finally {
       setIsAiPacking(false);
     }
+  };
+
+  // Helper function to determine season from date
+  const getSeasonFromDate = (date: Date): string => {
+    const month = date.getMonth();
+    if (month >= 2 && month <= 4) return 'Spring';
+    if (month >= 5 && month <= 7) return 'Summer';
+    if (month >= 8 && month <= 10) return 'Fall';
+    return 'Winter';
   };
 
   const requestDeleteItem = (id: string) => {

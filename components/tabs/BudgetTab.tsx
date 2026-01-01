@@ -5,7 +5,8 @@ import {
   DollarSign, PieChart as ChartIcon, Plus, Trash2,
   Calendar, TrendingUp, RefreshCw, ArrowRightLeft,
   Camera, Zap, Loader2, X, Check, AlertCircle,
-  TrendingDown, Info, Receipt, Wallet, Users, Filter, Globe, Download
+  TrendingDown, Info, Receipt, Wallet, Users, Filter, Globe, Download,
+  Brain, Sparkles
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { v4 as uuidv4 } from 'uuid';
@@ -66,6 +67,10 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
     notes: '',
     currency: 'USD'
   });
+
+  // AI Budget Insights
+  const [aiInsights, setAiInsights] = useState<string | null>(null);
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
   // Filter expenses based on selection
   const filteredExpenses = useMemo(() => {
@@ -231,6 +236,42 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
 
   const convertedValue = (Number(convAmount) * (rates[toCurr] / rates[fromCurr])).toFixed(2);
 
+  // Generate AI-powered budget insights
+  const generateBudgetInsights = async () => {
+    if (trip.expenses.length === 0) {
+      setAiInsights("No expenses yet. Start tracking your spending to get AI-powered insights!");
+      return;
+    }
+
+    setIsGeneratingInsights(true);
+    try {
+      const categoryBreakdown = expensesByCategory.map(c =>
+        `${c.name}: $${c.value.toFixed(2)} (${((c.value/totalSpent)*100).toFixed(1)}%)`
+      ).join(', ');
+
+      const prompt = `Analyze this trip budget and provide 3 concise, actionable insights:
+- Budget: $${trip.budget}
+- Spent: $${totalSpent.toFixed(2)} (${spentPercent}%)
+- Daily avg: $${currentDailyAvg.toFixed(2)} (allocated: $${dailyAllocated.toFixed(2)})
+- Categories: ${categoryBreakdown}
+- Trip: ${trip.type} to ${trip.destinations.join(', ')} (${tripDuration} days)
+
+Focus on: spending patterns, overspending categories, and smart recommendations. Keep it under 100 words, use bullet points.`;
+
+      const insights = await geminiService.generateText({
+        prompt,
+        model: 'gemini-2.0-flash-exp'
+      });
+
+      setAiInsights(insights);
+    } catch (error) {
+      console.error('Failed to generate insights:', error);
+      setAiInsights("Unable to generate insights. Please try again later.");
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-10 max-w-7xl mx-auto space-y-12 pb-32 no-scrollbar">
       {/* Financial Command Center */}
@@ -297,6 +338,59 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
              </div>
           </div>
         </div>
+      </section>
+
+      {/* AI Budget Intelligence */}
+      <section className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-indigo-950 rounded-[4rem] p-10 border border-indigo-200 dark:border-indigo-500/20 shadow-xl">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-brand-primary rounded-2xl shadow-lg shadow-indigo-500/30">
+              <Brain size={24} className="text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white">AI Strategic Analysis</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Advanced insights from your spending patterns</p>
+            </div>
+          </div>
+          <button
+            onClick={generateBudgetInsights}
+            disabled={isGeneratingInsights || trip.expenses.length === 0}
+            className="bg-brand-primary text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-brand-secondary transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGeneratingInsights ? (
+              <>
+                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} aria-hidden="true" />
+                Generate Insights
+              </>
+            )}
+          </button>
+        </div>
+
+        {aiInsights && (
+          <div className="bg-white dark:bg-slate-950 rounded-[2.5rem] p-8 border border-indigo-100 dark:border-white/10 shadow-lg">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <div className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed font-medium">
+                {aiInsights}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!aiInsights && !isGeneratingInsights && (
+          <div className="bg-white/50 dark:bg-slate-950/50 rounded-[2.5rem] p-8 border border-dashed border-indigo-300 dark:border-indigo-700/30 text-center">
+            <Sparkles size={32} className="mx-auto mb-4 text-indigo-400" />
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              {trip.expenses.length === 0
+                ? "Add expenses to unlock AI-powered budget analysis"
+                : "Click 'Generate Insights' to analyze your spending patterns and get smart recommendations"}
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Analytics Grid */}

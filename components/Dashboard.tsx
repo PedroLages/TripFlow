@@ -62,9 +62,13 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
       if (upcomingTrips.length === 0) return;
       setIsLoadingTip(true);
       try {
-        const nextDest = upcomingTrips[0].destinations[0];
+        const nextTrip = upcomingTrips[0];
+        const nextDest = nextTrip.destinations[0];
+        const startDate = new Date(nextTrip.startDate);
+        const month = startDate.toLocaleString('en-US', { month: 'long' });
+
         const text = await geminiService.generateText({
-          prompt: `Provide one short, clever travel tip or cultural etiquette for ${nextDest}. Keep it under 15 words.`,
+          prompt: `You're a witty travel expert. Provide ONE insider tip for visiting ${nextDest} in ${month} for a ${nextTrip.type.toLowerCase()} trip. Focus on: local customs, money-saving tricks, hidden experiences, or cultural dos/don'ts. Make it actionable and engaging. Max 20 words.`,
           model: 'gemini-2.0-flash-exp'
         });
         setAiTip(text || null);

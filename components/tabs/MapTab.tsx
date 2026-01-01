@@ -942,8 +942,34 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
     setIsScanning(true);
     setScannedIntel([]);
     try {
+      const targetLocation = activities[0]?.location || trip.destinations[0];
+
+      // Get context from current activities
+      const nearbyActivities = activities
+        .filter(act => act.location)
+        .map(act => `${act.type}: ${act.name}`)
+        .slice(0, 3);
+
+      const activityContext = nearbyActivities.length > 0
+        ? `You're planning: ${nearbyActivities.join('; ')}.`
+        : '';
+
       const response = await geminiService.generateText({
-        prompt: `Recommend 3 hidden gems near ${activities[0]?.location || trip.destinations[0]}. Return as JSON array: [{name, type}].`,
+        prompt: `You're a local expert in ${targetLocation}. Find 4 authentic hidden gems that locals love - NOT touristy spots.
+
+**Context:**
+${activityContext}
+Trip type: ${trip.type}
+Location: ${targetLocation}
+
+**Requirements:**
+1. Only recommend places locals actually visit - no tourist traps
+2. Mix types: cafes, viewpoints, shops, parks, street food, galleries
+3. Within walking distance or short ride from ${targetLocation}
+4. Each recommendation should include type (Cafe/Viewpoint/Shop/Park/Food/Gallery/Bar)
+5. Focus on unique character, not chains or franchises
+
+Return JSON array: [{name, type}] with 4 authentic local spots.`,
         model: 'gemini-2.0-flash-exp',
         config: {
           responseMimeType: 'application/json',
