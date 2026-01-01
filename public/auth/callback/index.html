@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripFlow - Completing Sign In...</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 400px;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.875rem;
+    }
+    .error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .error p {
+      color: #fca5a5;
+    }
+    .button {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: white;
+      color: #4338ca;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .button:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loading">
+      <div class="spinner"></div>
+      <h1>Completing Sign In</h1>
+      <p>Please wait while we verify your authentication...</p>
+    </div>
+    <div id="error" style="display: none;">
+      <h1>Sign In Issue</h1>
+      <div class="error">
+        <p id="error-message">Something went wrong during authentication.</p>
+      </div>
+      <a href="/" class="button">Return Home</a>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * OAuth Callback Handler for TripFlow
+     *
+     * This standalone page handles OAuth redirects from Supabase.
+     * It extracts auth tokens from either:
+     * - Query parameters (PKCE flow: ?code=XXX)
+     * - Hash fragments (Implicit flow: #access_token=XXX)
+     *
+     * Then redirects to the main app at /#/ with tokens preserved.
+     */
+    (function() {
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error');
+      const errorMessageEl = document.getElementById('error-message');
+
+      function showError(message) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display = 'block';
+        errorMessageEl.textContent = message;
+      }
+
+      try {
+        const url = new URL(window.location.href);
+        const hash = window.location.hash;
+        const search = window.location.search;
+
+        // Check for errors first
+        const errorParam = url.searchParams.get('error');
+        const errorDescription = url.searchParams.get('error_description');
+
+        if (errorParam) {
+          showError(errorDescription || errorParam);
+          return;
+        }
+
+        // PKCE flow: code in query params
+        const code = url.searchParams.get('code');
+
+        // Implicit flow: access_token in hash
+        // Parse hash fragment (e.g., #access_token=XXX&token_type=bearer)
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const expiresIn = hashParams.get('expires_in');
+        const tokenType = hashParams.get('token_type');
+        const providerToken = hashParams.get('provider_token');
+        const providerRefreshToken = hashParams.get('provider_refresh_token');
+
+        if (code) {
+          // PKCE flow - redirect to app with code in query params
+          // The app's AuthCallback component will exchange the code
+          console.log('[Auth Callback] PKCE flow detected, redirecting with code');
+          window.location.replace('/#/auth/callback' + search);
+          return;
+        }
+
+        if (accessToken) {
+          // Implicit flow - we need to manually store the session
+          // and redirect to the app
+          console.log('[Auth Callback] Implicit flow detected, storing session');
+
+          // Build the session data that Supabase expects
+          // The app will pick this up via detectSessionInUrl or we pass it in hash
+          // Since we can't easily inject into Supabase's storage from here,
+          // redirect with the hash params so the app can handle it
+          const redirectHash = hash.startsWith('#') ? hash : '#' + hash;
+          window.location.replace('/#/auth/callback' + redirectHash);
+          return;
+        }
+
+        // No auth data found - might be a stale callback or direct navigation
+        console.log('[Auth Callback] No auth data found in URL');
+
+        // Check if there might be auth data in a combined hash
+        // e.g., /#/auth/callback#access_token=XXX (already handled by app)
+        if (hash.includes('access_token') || hash.includes('code=')) {
+          // Already has auth data in hash, redirect to app
+          window.location.replace('/' + hash);
+          return;
+        }
+
+        // No auth data at all
+        showError('No authentication data received. Please try signing in again.');
+
+      } catch (err) {
+        console.error('[Auth Callback] Error:', err);
+        showError('An unexpected error occurred. Please try again.');
+      }
+    })();
+  </script>
+</body>
+</html>
