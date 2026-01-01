@@ -671,12 +671,20 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
       // Handle expenses updates if provided
       if (updates.expenses !== undefined) {
         // Delete existing expenses
-        await supabase.from('expenses').delete().eq('trip_id', id);
+        const { error: deleteExpensesError } = await supabase
+          .from('expenses')
+          .delete()
+          .eq('trip_id', id);
+
+        if (deleteExpensesError) {
+          console.error('Error deleting expenses:', deleteExpensesError);
+          return { success: false, error: `Failed to delete expenses: ${deleteExpensesError.message}` };
+        }
 
         // Insert new expenses
         if (updates.expenses.length > 0) {
           const { data: { user } } = await supabase.auth.getUser();
-          await supabase.from('expenses').insert(
+          const { error: insertExpensesError } = await supabase.from('expenses').insert(
             updates.expenses.map(e => ({
               id: e.id,
               trip_id: id,
@@ -691,17 +699,30 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               created_by: user?.id || null,
             }))
           );
+
+          if (insertExpensesError) {
+            console.error('Error inserting expenses:', insertExpensesError);
+            return { success: false, error: `Failed to insert expenses: ${insertExpensesError.message}` };
+          }
         }
       }
 
       // Handle packing list updates if provided
       if (updates.packingList !== undefined) {
         // Delete existing packing items
-        await supabase.from('packing_items').delete().eq('trip_id', id);
+        const { error: deletePackingError } = await supabase
+          .from('packing_items')
+          .delete()
+          .eq('trip_id', id);
+
+        if (deletePackingError) {
+          console.error('Error deleting packing items:', deletePackingError);
+          return { success: false, error: `Failed to delete packing items: ${deletePackingError.message}` };
+        }
 
         // Insert new packing items
         if (updates.packingList.length > 0) {
-          await supabase.from('packing_items').insert(
+          const { error: insertPackingError } = await supabase.from('packing_items').insert(
             updates.packingList.map(p => ({
               id: p.id,
               trip_id: id,
@@ -710,17 +731,30 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               is_packed: p.isPacked,
             }))
           );
+
+          if (insertPackingError) {
+            console.error('Error inserting packing items:', insertPackingError);
+            return { success: false, error: `Failed to insert packing items: ${insertPackingError.message}` };
+          }
         }
       }
 
       // Handle wishlist updates if provided
       if (updates.wishlist !== undefined) {
         // Delete existing wishlist items
-        await supabase.from('wishlist_places').delete().eq('trip_id', id);
+        const { error: deleteWishlistError } = await supabase
+          .from('wishlist_places')
+          .delete()
+          .eq('trip_id', id);
+
+        if (deleteWishlistError) {
+          console.error('Error deleting wishlist items:', deleteWishlistError);
+          return { success: false, error: `Failed to delete wishlist items: ${deleteWishlistError.message}` };
+        }
 
         // Insert new wishlist items
         if (updates.wishlist.length > 0) {
-          await supabase.from('wishlist_places').insert(
+          const { error: insertWishlistError } = await supabase.from('wishlist_places').insert(
             updates.wishlist.map(w => ({
               id: w.id,
               trip_id: id,
@@ -730,17 +764,30 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               rating: w.rating,
             }))
           );
+
+          if (insertWishlistError) {
+            console.error('Error inserting wishlist items:', insertWishlistError);
+            return { success: false, error: `Failed to insert wishlist items: ${insertWishlistError.message}` };
+          }
         }
       }
 
       // Handle documents updates if provided
       if (updates.documents !== undefined) {
         // Delete existing documents
-        await supabase.from('travel_documents').delete().eq('trip_id', id);
+        const { error: deleteDocumentsError } = await supabase
+          .from('travel_documents')
+          .delete()
+          .eq('trip_id', id);
+
+        if (deleteDocumentsError) {
+          console.error('Error deleting documents:', deleteDocumentsError);
+          return { success: false, error: `Failed to delete documents: ${deleteDocumentsError.message}` };
+        }
 
         // Insert new documents
         if (updates.documents.length > 0) {
-          await supabase.from('travel_documents').insert(
+          const { error: insertDocumentsError } = await supabase.from('travel_documents').insert(
             updates.documents.map(d => ({
               id: d.id,
               trip_id: id,
@@ -755,17 +802,30 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               last_updated: d.lastUpdated || null,
             }))
           );
+
+          if (insertDocumentsError) {
+            console.error('Error inserting documents:', insertDocumentsError);
+            return { success: false, error: `Failed to insert documents: ${insertDocumentsError.message}` };
+          }
         }
       }
 
       // Handle alerts updates if provided
       if (updates.alerts !== undefined) {
         // Delete existing alerts
-        await supabase.from('travel_alerts').delete().eq('trip_id', id);
+        const { error: deleteAlertsError } = await supabase
+          .from('travel_alerts')
+          .delete()
+          .eq('trip_id', id);
+
+        if (deleteAlertsError) {
+          console.error('Error deleting alerts:', deleteAlertsError);
+          return { success: false, error: `Failed to delete alerts: ${deleteAlertsError.message}` };
+        }
 
         // Insert new alerts
         if (updates.alerts.length > 0) {
-          await supabase.from('travel_alerts').insert(
+          const { error: insertAlertsError } = await supabase.from('travel_alerts').insert(
             updates.alerts.map(a => ({
               id: a.id,
               trip_id: id,
@@ -776,6 +836,11 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               date: a.date || null,
             }))
           );
+
+          if (insertAlertsError) {
+            console.error('Error inserting alerts:', insertAlertsError);
+            return { success: false, error: `Failed to insert alerts: ${insertAlertsError.message}` };
+          }
         }
       }
 
