@@ -668,6 +668,117 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         }
       }
 
+      // Handle expenses updates if provided
+      if (updates.expenses !== undefined) {
+        // Delete existing expenses
+        await supabase.from('expenses').delete().eq('trip_id', id);
+
+        // Insert new expenses
+        if (updates.expenses.length > 0) {
+          const { data: { user } } = await supabase.auth.getUser();
+          await supabase.from('expenses').insert(
+            updates.expenses.map(e => ({
+              id: e.id,
+              trip_id: id,
+              amount: e.amount,
+              category: e.category,
+              date: e.date,
+              notes: e.notes,
+              currency: e.currency || 'USD',
+              is_split: e.isSplit || false,
+              paid_by: e.paidBy || null,
+              split_method: e.splitMethod || null,
+              created_by: user?.id || null,
+            }))
+          );
+        }
+      }
+
+      // Handle packing list updates if provided
+      if (updates.packingList !== undefined) {
+        // Delete existing packing items
+        await supabase.from('packing_items').delete().eq('trip_id', id);
+
+        // Insert new packing items
+        if (updates.packingList.length > 0) {
+          await supabase.from('packing_items').insert(
+            updates.packingList.map(p => ({
+              id: p.id,
+              trip_id: id,
+              name: p.name,
+              category: p.category,
+              is_packed: p.isPacked,
+            }))
+          );
+        }
+      }
+
+      // Handle wishlist updates if provided
+      if (updates.wishlist !== undefined) {
+        // Delete existing wishlist items
+        await supabase.from('wishlist_places').delete().eq('trip_id', id);
+
+        // Insert new wishlist items
+        if (updates.wishlist.length > 0) {
+          await supabase.from('wishlist_places').insert(
+            updates.wishlist.map(w => ({
+              id: w.id,
+              trip_id: id,
+              name: w.name,
+              category: w.category,
+              notes: w.notes,
+              rating: w.rating,
+            }))
+          );
+        }
+      }
+
+      // Handle documents updates if provided
+      if (updates.documents !== undefined) {
+        // Delete existing documents
+        await supabase.from('travel_documents').delete().eq('trip_id', id);
+
+        // Insert new documents
+        if (updates.documents.length > 0) {
+          await supabase.from('travel_documents').insert(
+            updates.documents.map(d => ({
+              id: d.id,
+              trip_id: id,
+              doc_type: d.type,
+              title: d.title,
+              details: d.details || null,
+              confirmation: d.confirmation || null,
+              price: d.price || null,
+              date: d.date || null,
+              status: d.status || null,
+              gate: d.gate || null,
+              last_updated: d.lastUpdated || null,
+            }))
+          );
+        }
+      }
+
+      // Handle alerts updates if provided
+      if (updates.alerts !== undefined) {
+        // Delete existing alerts
+        await supabase.from('travel_alerts').delete().eq('trip_id', id);
+
+        // Insert new alerts
+        if (updates.alerts.length > 0) {
+          await supabase.from('travel_alerts').insert(
+            updates.alerts.map(a => ({
+              id: a.id,
+              trip_id: id,
+              alert_type: a.type,
+              title: a.title,
+              description: a.description || null,
+              severity: a.severity,
+              date: a.date || null,
+            }))
+          );
+        }
+      }
+
       return { success: true };
     } catch (err) {
       console.error('Error updating trip:', err);

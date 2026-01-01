@@ -2,14 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Trip, TripType } from '../types';
-import { 
-  ChevronLeft, Save, Image as ImageIcon, Plus, X, 
+import {
+  ChevronLeft, Save, Image as ImageIcon, Plus, X,
   Target, Calendar, Wallet, Compass, Info,
   CheckCircle2, Globe, MapPin, Users, User,
   Briefcase, Heart, Sparkles, Send
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { addDays, format, differenceInDays, parseISO } from 'date-fns';
+import { useTerminology } from '../hooks/TerminologyContext';
 
 interface TripFormProps {
   trips?: Trip[];
@@ -27,6 +28,7 @@ const TRIP_TYPES: { type: TripType; icon: any; label: string }[] = [
 const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const term = useTerminology();
   const isEditing = !!id;
 
   const [formData, setFormData] = useState<Partial<Trip>>({
@@ -72,15 +74,70 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const start = parseISO(formData.startDate!);
-    const end = parseISO(formData.endDate!);
-    const daysCount = Math.max(1, differenceInDays(end, start) + 1);
-    
-    const itinerary = Array.from({ length: daysCount }, (_, i) => {
-      const date = format(addDays(start, i), 'yyyy-MM-dd');
-      const existingDay = formData.itinerary?.find(d => d.date === date);
-      return existingDay || { id: uuidv4(), date, activities: [] };
-    });
+    const newStart = parseISO(formData.startDate!);
+    const newEnd = parseISO(formData.endDate!);
+    const daysCount = Math.max(1, differenceInDays(newEnd, newStart) + 1);
+
+    // Calculate itinerary with smart date shifting
+    let itinerary;
+
+    if (isEditing && formData.itinerary && formData.itinerary.length > 0) {
+      // Editing existing trip: shift dates if start date changed
+      const oldStartDate = parseISO(formData.itinerary[0].date);
+      const dateDelta = differenceInDays(newStart, oldStartDate);
+
+      if (dateDelta !== 0) {
+        // Shift all existing days by the date delta
+        const shiftedItinerary = formData.itinerary.map(day => ({
+          ...day,
+          date: format(addDays(parseISO(day.date), dateDelta), 'yyyy-MM-dd')
+        }));
+
+        // Adjust for length changes (add/remove days)
+        if (shiftedItinerary.length < daysCount) {
+          // Add new days
+          const newDays = Array.from(
+            { length: daysCount - shiftedItinerary.length },
+            (_, i) => ({
+              id: uuidv4(),
+              date: format(addDays(newStart, shiftedItinerary.length + i), 'yyyy-MM-dd'),
+              activities: []
+            })
+          );
+          itinerary = [...shiftedItinerary, ...newDays];
+        } else if (shiftedItinerary.length > daysCount) {
+          // Remove excess days from the end
+          itinerary = shiftedItinerary.slice(0, daysCount);
+        } else {
+          itinerary = shiftedItinerary;
+        }
+      } else {
+        // Start date didn't change, just adjust length
+        if (formData.itinerary.length < daysCount) {
+          const lastDate = parseISO(formData.itinerary[formData.itinerary.length - 1].date);
+          const newDays = Array.from(
+            { length: daysCount - formData.itinerary.length },
+            (_, i) => ({
+              id: uuidv4(),
+              date: format(addDays(lastDate, i + 1), 'yyyy-MM-dd'),
+              activities: []
+            })
+          );
+          itinerary = [...formData.itinerary, ...newDays];
+        } else if (formData.itinerary.length > daysCount) {
+          itinerary = formData.itinerary.slice(0, daysCount);
+        } else {
+          itinerary = formData.itinerary;
+        }
+      }
+    } else {
+      // Creating new trip: generate fresh itinerary
+      itinerary = Array.from({ length: daysCount }, (_, i) => ({
+        id: uuidv4(),
+        date: format(addDays(newStart, i), 'yyyy-MM-dd'),
+        activities: []
+      }));
+    }
 
     const completeTrip = { ...formData, itinerary } as Trip;
     onSubmit(completeTrip);
@@ -90,7 +147,7 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
   return (
     <div className="h-full bg-white dark:bg-slate-950 flex flex-col relative overflow-hidden">
       {/* Scrollable Form Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-40 md:pb-8">
         <div className="max-w-6xl mx-auto w-full p-6 md:p-12 space-y-12">
           
           <header className="flex items-center gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -101,9 +158,9 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
               <ChevronLeft size={24} />
             </button>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary mb-1">Briefing Hub</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary mb-1">{term.trip} Manager</p>
               <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white">
-                {isEditing ? 'Modify Mission' : 'New Expedition'}
+                {isEditing ? term.editTrip : term.createTrip}
               </h2>
             </div>
           </header>
@@ -114,21 +171,21 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
               <section className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[3rem] border border-slate-100 dark:border-white/5 space-y-8">
                 <div className="space-y-4">
                   <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    <Target size={14} className="text-brand-primary" /> Mission Designation
+                    <Target size={14} className="text-brand-primary" /> {term.trip} Name
                   </label>
-                  <input 
+                  <input
                     required
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="e.g., Operation Tokyo Drift"
+                    placeholder={`e.g., ${term.type === 'military' ? 'Operation Tokyo Drift' : 'Tokyo Adventure'}`}
                     className="w-full text-2xl font-display font-bold bg-transparent border-b border-slate-200 dark:border-slate-800 focus:border-brand-primary outline-none pb-3 transition-all dark:text-white placeholder:opacity-30"
                   />
                 </div>
 
                 <div className="space-y-6">
                   <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    <Users size={14} className="text-brand-primary" /> Operational Mode
+                    <Users size={14} className="text-brand-primary" /> {term.trip} Type
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     {TRIP_TYPES.map(item => {
@@ -269,13 +326,13 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
 
       {/* Persistent Mobile-First Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl border-t border-slate-100 dark:border-white/5 z-[100] md:relative md:bg-transparent md:border-none md:p-12 md:flex md:justify-end">
-        <button 
+        <button
           form="trip-mission-form"
           type="submit"
           className="w-full md:w-auto bg-brand-primary hover:bg-brand-primary/90 text-white font-black text-xs uppercase tracking-[0.3em] py-6 px-12 rounded-[2rem] shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-4"
         >
           <Send size={18} />
-          {isEditing ? 'Sync Mission' : 'Execute Plan'}
+          {isEditing ? term.saveTrip : term.createTrip}
         </button>
       </div>
     </div>
