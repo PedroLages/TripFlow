@@ -80,12 +80,9 @@ export function AuthCallback() {
                 setMessage('Sign in successful! Redirecting...');
                 setTimeout(() => {
                   // Force a full page reload to ensure App.tsx re-mounts with authenticated state
-                  try {
-                    window.location.href = window.location.origin + '/#/';
-                  } catch (e) {
-                    window.location.hash = '#/';
-                    window.location.reload();
-                  }
+                  // Setting hash first, then reloading ensures the app loads at the correct route
+                  window.location.hash = '#/';
+                  window.location.reload();
                 }, 1000);
                 return;
               }
@@ -127,15 +124,9 @@ export function AuthCallback() {
         // Redirect to dashboard after a short delay
         // Force a full page reload to ensure App.tsx re-mounts with authenticated state
         setTimeout(() => {
-          // Try multiple redirect strategies for maximum compatibility
-          try {
-            // Strategy 1: Full URL replacement (works with hash routing)
-            window.location.href = window.location.origin + '/#/';
-          } catch (e) {
-            // Strategy 2: Fallback to hash only
-            window.location.hash = '#/';
-            window.location.reload();
-          }
+          // Setting hash first, then reloading ensures the app loads at the correct route
+          window.location.hash = '#/';
+          window.location.reload();
         }, 1000);
       } catch (err) {
         console.error('Auth callback error:', err);
