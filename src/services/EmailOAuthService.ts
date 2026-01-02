@@ -165,13 +165,10 @@ class EmailOAuthService {
         return { success: false, error: 'Could not get email address from Google' };
       }
 
-      // Calculate token expiration (Google tokens expire in 1 hour)
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 1);
-
       // Store connection in database
-      // SECURITY: Tokens stored in plain text with mitigations (see migration schema comments)
-      // Protected by: RLS policies, encrypted-at-rest database, secure transmission (headers not URLs)
+      // SECURITY FIX: Do NOT store OAuth tokens in our database
+      // Tokens are already securely stored by Supabase in auth.sessions table
+      // We retrieve them from the active session when needed via getProviderToken()
       const { error: dbError } = await supabase
         .from('email_connections')
         .upsert({
@@ -179,9 +176,8 @@ class EmailOAuthService {
           email_address: emailAddress,
           provider: 'gmail',
           connection_status: 'active',
-          access_token: providerToken,
-          refresh_token: providerRefreshToken,
-          token_expires_at: expiresAt.toISOString(),
+          // Removed: access_token, refresh_token, token_expires_at
+          // These are retrieved from auth.sessions when needed
           sync_enabled: true,
           last_sync_at: null,
         }, {
@@ -307,35 +303,58 @@ class EmailOAuthService {
   }
 
   /**
+   * Get OAuth provider token from current Supabase session
+   * SECURITY: Retrieves token from Supabase's secure auth.sessions table instead of our database
+   */
+  async getProviderToken(): Promise<{ token: string | null; error?: string }> {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        return { token: null, error: 'No active session' };
+      }
+
+      const providerToken = session.provider_token;
+
+      if (!providerToken) {
+        return { token: null, error: 'No provider token in session. User may need to re-authenticate.' };
+      }
+
+      return { token: providerToken };
+    } catch (error) {
+      console.error('[EmailOAuthService] Get provider token error:', error);
+      return {
+        token: null,
+        error: error instanceof Error ? error.message : 'Failed to get provider token'
+      };
+    }
+  }
+
+  /**
    * Disconnect (revoke) a Gmail connection
    */
   async disconnectGmail(connectionId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Get the connection to revoke the token
-      const { data: connection, error: fetchError } = await supabase
-        .from('email_connections')
-        .select('access_token')
-        .eq('id', connectionId)
-        .single();
+      // Get the provider token from the current session instead of database
+      const { token: providerToken, error: tokenError } = await this.getProviderToken();
 
-      if (fetchError || !connection) {
-        return { success: false, error: 'Connection not found' };
-      }
-
-      // Revoke the Google OAuth token - using body to avoid token in URL
-      if (connection.access_token) {
+      // Revoke the Google OAuth token if we have one - using body to avoid token in URL
+      if (providerToken) {
         try {
           await fetch('https://oauth2.googleapis.com/revoke', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `token=${encodeURIComponent(connection.access_token)}`,
+            body: `token=${encodeURIComponent(providerToken)}`,
           });
         } catch (revokeError) {
           console.warn('[EmailOAuthService] Token revocation failed:', revokeError);
           // Continue anyway - we'll delete from our database
         }
+      } else {
+        console.warn('[EmailOAuthService] No provider token to revoke:', tokenError);
+        // Continue anyway - we'll delete the connection record
       }
 
       // Delete the connection from database

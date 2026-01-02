@@ -14,6 +14,7 @@
 
 import { supabase, getSupabase } from '../lib/supabase';
 import { documentMatchingService } from './DocumentMatchingService';
+import { emailOAuthService } from './EmailOAuthService';
 
 export interface EmailScanResult {
   total_scanned: number;
@@ -62,7 +63,7 @@ class EmailScannerService {
     try {
       const { maxResults = 50, query = '', daysBack = 30 } = options;
 
-      // Get connection with OAuth tokens
+      // Get connection metadata (without tokens - tokens retrieved from session)
       const { data: connection, error: connError } = await supabase
         .from('email_connections')
         .select('*')
@@ -77,6 +78,16 @@ class EmailScannerService {
         return { success: false, error: 'Email connection is not active. Please reconnect.' };
       }
 
+      // SECURITY FIX: Get OAuth token from Supabase session instead of database
+      const { token: accessToken, error: tokenError } = await emailOAuthService.getProviderToken();
+
+      if (!accessToken) {
+        return {
+          success: false,
+          error: tokenError || 'Failed to get access token. Please reconnect your Gmail account.'
+        };
+      }
+
       // Build Gmail API query
       const afterDate = new Date();
       afterDate.setDate(afterDate.getDate() - daysBack);
@@ -85,9 +96,9 @@ class EmailScannerService {
       // Search for common booking confirmation keywords
       const searchQuery = query || `after:${afterDateStr} (confirmation OR booking OR reservation OR ticket OR itinerary OR receipt)`;
 
-      // Fetch emails from Gmail API
+      // Fetch emails from Gmail API using token from session
       const gmailResponse = await this.fetchGmailMessages(
-        connection.access_token,
+        accessToken,
         searchQuery,
         maxResults
       );
