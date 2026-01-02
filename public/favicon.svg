@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#3B82F6"/>
+
+  <!-- Suitcase body -->
+  <rect x="8" y="14" width="16" height="11" rx="1.5" fill="#ffffff"/>
+
+  <!-- Suitcase handle -->
+  <path d="M 12 14 L 12 11 Q 12 9 16 9 Q 20 9 20 11 L 20 14"
+        stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Handle grip -->
+  <rect x="14" y="19" width="4" height="1.5" rx="0.75" fill="#3B82F6"/>
+
+  <!-- Lock -->
+  <circle cx="16" cy="22" r="1.2" fill="#3B82F6"/>
+</svg>
