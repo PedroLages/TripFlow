@@ -38,9 +38,10 @@ const AppContent: React.FC<{
   hasPendingSync: boolean;
   handleLogout: () => void;
   updateTrip: (t: Trip) => void;
+  setTripStateOnly: (t: Trip) => void;
   addTrip: (t: Trip) => void;
   deleteTrip: (id: string) => void;
-}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, handleSidebarToggle, isOffline, hasPendingSync, handleLogout, updateTrip, addTrip, deleteTrip }) => {
+}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, handleSidebarToggle, isOffline, hasPendingSync, handleLogout, updateTrip, setTripStateOnly, addTrip, deleteTrip }) => {
   const location = useLocation();
   const isTripView = location.pathname.startsWith('/trip/');
   const currentTripId = isTripView ? location.pathname.split('/')[2] : null;
@@ -467,6 +468,7 @@ const App: React.FC = () => {
             hasPendingSync={syncStatus.isSyncing}
             handleLogout={handleLogout}
             updateTrip={updateTrip}
+            setTripStateOnly={setTripStateOnly}
             addTrip={addTrip}
             deleteTrip={deleteTrip}
           />
