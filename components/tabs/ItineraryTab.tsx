@@ -13,6 +13,13 @@ import { format, parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTerminology } from '../../hooks/TerminologyContext';
 import { ConfirmDialog } from '../ConfirmDialog';
+import {
+  useAddPhaseMutation,
+  useDeletePhaseMutation,
+  useAddActivityMutation,
+  useDeleteActivityMutation,
+  useUpdateActivityMutation,
+} from '../../src/hooks/useItineraryMutations';
 
 interface ItineraryTabProps {
   trip: Trip;
@@ -66,6 +73,13 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ dayId: string; activityId: string } | null>(null);
   const isEditor = trip.currentUserRole === 'Editor';
 
+  // TanStack Query mutations for optimistic updates
+  const addPhaseMutation = useAddPhaseMutation();
+  const deletePhaseMutation = useDeletePhaseMutation();
+  const addActivityMutation = useAddActivityMutation();
+  const deleteActivityMutation = useDeleteActivityMutation();
+  const updateActivityMutation = useUpdateActivityMutation();
+
   const findMatchingDoc = (activityName: string, docs: TravelDocument[]) => {
     const search = activityName.toLowerCase();
     return docs.find(d => 
@@ -75,17 +89,27 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   };
 
   const saveActivity = (dayId: string, activity: Activity) => {
-    const newItinerary = trip.itinerary.map(day => {
-      if (day.id === dayId) {
-        const idx = day.activities.findIndex(a => a.id === activity.id);
-        const acts = [...day.activities];
-        if (idx > -1) acts[idx] = activity; else acts.push(activity);
-        acts.sort((a, b) => a.startTime.localeCompare(b.startTime));
-        return { ...day, activities: acts };
-      }
-      return day;
-    });
-    updateTrip({ ...trip, itinerary: newItinerary });
+    // Check if this is an update or a new activity
+    const isUpdate = trip.itinerary
+      .find(day => day.id === dayId)
+      ?.activities.some(a => a.id === activity.id);
+
+    if (isUpdate) {
+      // Update existing activity
+      updateActivityMutation.mutate({
+        tripId: trip.id,
+        dayId,
+        activity,
+      });
+    } else {
+      // Add new activity
+      addActivityMutation.mutate({
+        tripId: trip.id,
+        dayId,
+        activity,
+      });
+    }
+
     setEditingActivity(null);
   };
 
@@ -96,14 +120,12 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const confirmDeleteActivity = () => {
     if (!deleteConfirm) return;
 
-    const newItinerary = trip.itinerary.map(day => {
-      if (day.id === deleteConfirm.dayId) {
-        return { ...day, activities: day.activities.filter(a => a.id !== deleteConfirm.activityId) };
-      }
-      return day;
+    deleteActivityMutation.mutate({
+      tripId: trip.id,
+      dayId: deleteConfirm.dayId,
+      activityId: deleteConfirm.activityId,
     });
 
-    updateTrip({ ...trip, itinerary: newItinerary });
     setDeleteConfirm(null);
   };
 
@@ -132,7 +154,11 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       activities: []
     };
 
-    updateTrip({ ...trip, itinerary: [...trip.itinerary, newDay] });
+    // Use mutation for optimistic update
+    addPhaseMutation.mutate({
+      tripId: trip.id,
+      dayPlan: newDay,
+    });
   };
 
   return (

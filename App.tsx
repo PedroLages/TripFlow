@@ -24,6 +24,8 @@ import { useSupabaseTrips } from './hooks/useSupabaseTrips';
 import { useSupabaseSettings } from './hooks/useSupabaseSettings';
 import { isSupabaseReady } from './src/lib/supabase';
 import { TerminologyProvider } from './hooks/TerminologyContext';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './src/lib/queryClient';
 
 const AppContent: React.FC<{
   user: User | null;
@@ -437,7 +439,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       {/* PWA Update Banner */}
       {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
 
@@ -462,7 +464,7 @@ const App: React.FC = () => {
 
       {/* PWA Install Prompt */}
       {isInstallable && <InstallPrompt onInstall={installPrompt} />}
-    </>
+    </QueryClientProvider>
   );
 };
 
