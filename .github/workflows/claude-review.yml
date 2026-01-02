@@ -1,4 +1,4 @@
-name: Claude Code Review
+name: Claude Review
 
 on:
   pull_request:
@@ -11,7 +11,8 @@ permissions:
   id-token: write
 
 jobs:
-  review:
+  code-review:
+    name: Code Review
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,3 +92,76 @@ jobs:
             - Use bash with gh pr diff to see the diff
             - Use bash with gh search to find relevant code context
             - Use bash with gh pr comment to leave top-level PR comments
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: code-review
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Security Scan
+        uses: anthropics/claude-code-action@main
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          track_progress: true
+          prompt: |
+            You are conducting a HIGH-CONFIDENCE security review for TripFlow. Only report vulnerabilities with >80% confidence.
+
+            ## Application Context
+            TripFlow is a React-based trip planning app handling:
+            - User trip data (destinations, dates, budgets, personal notes)
+            - Document uploads and management
+            - Budget and expense tracking
+            - Google Gemini API integration
+
+            ## Critical Security Areas (Priority Order)
+
+            ### 1. Input Validation & Injection Attacks
+            - **XSS**: Check for dangerouslySetInnerHTML without DOMPurify sanitization
+            - **Injection**: Verify user inputs (trip names, descriptions, amounts) are validated
+            - **Type Safety**: Ensure TypeScript types prevent injection attacks
+
+            ### 2. API Key & Secret Exposure
+            - **Client-Side Keys**: Flag any hardcoded API keys (should use env vars + backend proxy)
+            - **Gemini API**: Verify API key is not exposed in client bundle
+            - **GitHub Secrets**: Check no secrets committed in code
+
+            ### 3. Data Handling Security
+            - **File Uploads**: Validate file type/size restrictions for document uploads
+            - **Local Storage**: Check if sensitive data (API keys, PII) stored in localStorage/sessionStorage
+            - **Budget Data**: Verify amount validation prevents NaN, Infinity, negative values
+
+            ### 4. Code Execution Risks
+            - **Dangerous Functions**: Flag eval(), Function(), vm.runInContext()
+            - **Dynamic Imports**: Check unsafe dynamic imports or require() usage
+
+            ## What NOT to Report (Avoid False Positives)
+            - Theoretical race conditions without proof of exploit
+            - Client-side permission checks (expected in SPAs)
+            - Outdated dependencies without known CVEs
+            - Missing rate limiting (backend concern)
+            - DoS vulnerabilities
+            - CSS injection or clickjacking
+            - Secrets in git history (use git-secrets instead)
+
+            ## Output Format
+            For each HIGH or MEDIUM severity finding (confidence ≥ 8/10):
+
+            **File**: path/to/file.ts:line
+            **Severity**: HIGH/MEDIUM
+            **Vulnerability**: [Type]
+            **Description**: [What's wrong]
+            **Exploit Scenario**: [How attacker could exploit this]
+            **Remediation**: [Concrete fix with code example]
+            **Confidence**: X/10
+
+            Reference the CLAUDE.md file for TripFlow security guidelines.
+
+            Use only the following tools:
+            - Use gh comment functions to leave inline comments
+            - Use bash with gh pr diff to see changes
+            - Use bash with gh pr comment for summary
