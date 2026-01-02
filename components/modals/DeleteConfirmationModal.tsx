@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface DeleteConfirmationModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   itemType?: 'expense' | 'place' | 'item' | 'activity' | 'document' | 'generic';
+  isLoading?: boolean;
 }
 
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
@@ -20,7 +21,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   message,
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
-  itemType = 'generic'
+  itemType = 'generic',
+  isLoading = false
 }) => {
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -31,10 +33,10 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
     }
   }, [isOpen]);
 
-  // Handle ESC key to cancel
+  // Handle ESC key to cancel (disabled while loading)
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !isLoading) {
         onCancel();
       }
     };
@@ -49,7 +51,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onCancel]);
+  }, [isOpen, onCancel, isLoading]);
 
   if (!isOpen) return null;
 
@@ -60,7 +62,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn"
-      onClick={onCancel}
+      onClick={!isLoading ? onCancel : undefined}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -87,8 +89,9 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
             </div>
             <button
               onClick={onCancel}
+              disabled={isLoading}
               aria-label="Close dialog"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl transition-all"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <X size={20} aria-hidden="true" />
             </button>
@@ -113,8 +116,10 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
           <button
             ref={confirmButtonRef}
             onClick={handleConfirm}
-            className="flex-1 min-h-[44px] px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/30"
+            disabled={isLoading}
+            className="flex-1 min-h-[44px] px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            {isLoading && <Loader2 className="animate-spin" size={16} />}
             {confirmLabel}
           </button>
         </div>

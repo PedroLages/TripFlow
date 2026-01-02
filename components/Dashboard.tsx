@@ -11,6 +11,7 @@ import { format, differenceInDays, parseISO, isAfter } from 'date-fns';
 import DeleteConfirmationModal from './modals/DeleteConfirmationModal';
 import { useTerminology } from '../hooks/TerminologyContext';
 import { geminiService } from '../src/services/GeminiService';
+import { useToast } from '../contexts/ToastContext';
 
 interface DashboardProps {
   trips: Trip[];
@@ -258,17 +259,28 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
   );
 };
 
-const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => void }> = ({ trip, deleteTrip }) => {
+const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => Promise<void> }> = ({ trip, deleteTrip }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const daysUntil = differenceInDays(parseISO(trip.startDate), new Date());
 
   // Find the next activity (the one with the earliest start time on day 1 for simulation)
   const nextActivity = trip.itinerary?.[0]?.activities?.[0];
 
-  const handleDelete = () => {
-    deleteTrip(trip.id);
-    setShowDeleteModal(false);
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteTrip(trip.id);
+      showToast(`Trip "${trip.name}" archived successfully`, 'success');
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Delete trip error:', error);
+      showToast('Failed to archive trip. Please try again.', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -365,11 +377,12 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => void }> = ({ 
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onConfirm={handleDelete}
-        onCancel={() => setShowDeleteModal(false)}
+        onCancel={() => !isDeleting && setShowDeleteModal(false)}
         title="Archive Expedition?"
         message={`Are you sure you want to archive "${trip.name}"? This action cannot be undone.`}
-        confirmLabel="Archive"
+        confirmLabel={isDeleting ? "Archiving..." : "Archive"}
         itemType="generic"
+        isLoading={isDeleting}
       />
     </>
   );

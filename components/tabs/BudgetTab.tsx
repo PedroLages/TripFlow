@@ -22,6 +22,7 @@ import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
 import { ConvertedAmount } from '../ConvertedAmount';
 import { useBatchCurrencyConversion } from '../../hooks/useCurrencyConversion';
 import { useTerminology } from '../../hooks/TerminologyContext';
+import { useToast } from '../../contexts/ToastContext';
 
 interface BudgetTabProps {
   trip: Trip;
@@ -42,6 +43,7 @@ type ExpenseFilter = 'all' | 'split' | 'personal';
 
 const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const t = useTerminology();
+  const { showToast } = useToast();
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -181,7 +183,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) {
       console.error("Camera access denied", err);
-      alert("Please enable camera permissions to scan receipts.");
+      showToast("Please enable camera permissions to scan receipts.", 'error');
       setShowScanner(false);
     }
   };
@@ -227,7 +229,7 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
       setShowAddExpense(true);
     } catch (e) {
       console.error("Scan failed", e);
-      alert("AI Intelligence failed to read receipt. Manual entry required.");
+      showToast("AI Intelligence failed to read receipt. Manual entry required.", 'error');
       stopScanner();
     } finally {
       setIsScanning(false);
