@@ -82,8 +82,14 @@ export default defineConfig(({ mode }) => {
           },
 
           devOptions: {
-            enabled: true, // Enable PWA in dev mode for testing
+            enabled: false, // Disable PWA in dev to prevent stale code caching
             type: 'module'
+          },
+
+          workbox: {
+            cleanupOutdatedCaches: true,
+            skipWaiting: true,
+            clientsClaim: true,
           }
         })
       ],

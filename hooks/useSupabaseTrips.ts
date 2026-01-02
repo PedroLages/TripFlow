@@ -636,6 +636,25 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
       if (updates.itinerary !== undefined) {
         // Batch upsert all day plans at once (more efficient, avoids race conditions)
         if (updates.itinerary.length > 0) {
+          // DEBUG: Verify no duplicate UUIDs
+          const uuidSet = new Set(updates.itinerary.map(day => day.id));
+          if (uuidSet.size !== updates.itinerary.length) {
+            console.error('[UUID COLLISION DETECTED]', updates.itinerary);
+            return {
+              success: false,
+              error: 'Duplicate UUIDs detected in itinerary. Please refresh the page.'
+            };
+          }
+
+          // DEBUG: Log upsert details to verify code version
+          console.log('[DAY_PLANS_UPSERT]', {
+            codeVersion: 'v3_service_worker_fix',
+            timestamp: new Date().toISOString(),
+            onConflict: 'id',
+            dayCount: updates.itinerary.length,
+            dayIds: updates.itinerary.map(d => ({ id: d.id, date: d.date }))
+          });
+
           const { error: upsertError } = await supabase
             .from('day_plans')
             .upsert(
@@ -653,9 +672,17 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
             );
 
           if (upsertError) {
-            console.error('[useSupabaseTrips] Upsert error:', upsertError);
+            console.error('[DAY_PLANS_UPSERT_ERROR]', {
+              error: upsertError,
+              code: upsertError.code,
+              message: upsertError.message,
+              details: upsertError.details,
+              hint: upsertError.hint,
+            });
             return { success: false, error: upsertError.message };
           }
+
+          console.log('[DAY_PLANS_UPSERT_SUCCESS]', { dayCount: updates.itinerary.length });
         }
 
         // Get current day plan IDs from database to clean up removed ones
