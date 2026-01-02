@@ -25,6 +25,8 @@ export interface UseSupabaseTripsReturn {
   createTrip: (trip: Omit<Trip, 'id'>) => Promise<{ success: boolean; id?: string; error?: string }>;
   updateTrip: (id: string, updates: Partial<Trip>) => Promise<{ success: boolean; error?: string }>;
   deleteTrip: (id: string) => Promise<{ success: boolean; error?: string }>;
+  // State-only update (for optimistic updates without database sync)
+  setTripState: (updater: (prevTrips: Trip[]) => Trip[]) => void;
   // Real-time status
   isRealtime: boolean;
   // Refresh
@@ -1034,6 +1036,7 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
     createTrip,
     updateTrip,
     deleteTrip,
+    setTripState: setTrips, // Direct state update without database sync
     isRealtime,
     refresh: fetchTrips,
   };

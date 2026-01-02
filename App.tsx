@@ -24,6 +24,8 @@ import { useSupabaseTrips } from './hooks/useSupabaseTrips';
 import { useSupabaseSettings } from './hooks/useSupabaseSettings';
 import { isSupabaseReady } from './src/lib/supabase';
 import { TerminologyProvider } from './hooks/TerminologyContext';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './src/lib/queryClient';
 
 const AppContent: React.FC<{
   user: User | null;
@@ -36,9 +38,10 @@ const AppContent: React.FC<{
   hasPendingSync: boolean;
   handleLogout: () => void;
   updateTrip: (t: Trip) => void;
+  setTripStateOnly: (t: Trip) => void;
   addTrip: (t: Trip) => void;
   deleteTrip: (id: string) => void;
-}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, handleSidebarToggle, isOffline, hasPendingSync, handleLogout, updateTrip, addTrip, deleteTrip }) => {
+}> = ({ user, trips, settings, setSettings, isSidebarCollapsed, handleSidebarToggle, isOffline, hasPendingSync, handleLogout, updateTrip, setTripStateOnly, addTrip, deleteTrip }) => {
   const location = useLocation();
   const isTripView = location.pathname.startsWith('/trip/');
   const currentTripId = isTripView ? location.pathname.split('/')[2] : null;
@@ -61,7 +64,7 @@ const AppContent: React.FC<{
           <Route path="/" element={<Dashboard trips={trips.filter(t => t.ownerEmail === user!.email || t.collaborators.some(c => c.email === user!.email))} settings={settings} deleteTrip={deleteTrip} />} />
           <Route path="/create" element={<TripForm onSubmit={addTrip} />} />
           <Route path="/edit/:id" element={<TripForm trips={trips} onSubmit={updateTrip} />} />
-          <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={updateTrip} currentUser={user!} />} />
+          <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={setTripStateOnly} currentUser={user!} />} />
           <Route path="/settings" element={<Settings settings={settings} setSettings={setSettings} onLogout={handleLogout} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -95,6 +98,7 @@ const App: React.FC = () => {
     createTrip: supabaseCreateTrip,
     updateTrip: supabaseUpdateTrip,
     deleteTrip: supabaseDeleteTrip,
+    setTripState: setSupabaseTripState,
     isRealtime
   } = useSupabaseTrips();
 
@@ -319,6 +323,16 @@ const App: React.FC = () => {
     }
   };
 
+  // State-only update for optimistic updates (no database sync)
+  // Used by mutation hooks to update UI immediately
+  const setTripStateOnly = (updatedTrip: Trip) => {
+    if (isSupabaseConfigured) {
+      setSupabaseTripState(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    } else {
+      setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    }
+  };
+
   const deleteTrip = async (id: string) => {
     if (isSupabaseConfigured) {
       // Hook handles optimistic updates internally
@@ -437,7 +451,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       {/* PWA Update Banner */}
       {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
 
@@ -454,6 +468,7 @@ const App: React.FC = () => {
             hasPendingSync={syncStatus.isSyncing}
             handleLogout={handleLogout}
             updateTrip={updateTrip}
+            setTripStateOnly={setTripStateOnly}
             addTrip={addTrip}
             deleteTrip={deleteTrip}
           />
@@ -462,7 +477,7 @@ const App: React.FC = () => {
 
       {/* PWA Install Prompt */}
       {isInstallable && <InstallPrompt onInstall={installPrompt} />}
-    </>
+    </QueryClientProvider>
   );
 };
 
