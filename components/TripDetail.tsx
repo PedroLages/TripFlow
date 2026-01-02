@@ -69,7 +69,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         prompt: `What is the current weather (temperature in C and condition) and current local time in ${trip.destinations[0]}?`,
         model: 'gemini-2.0-flash-exp',
         config: {
-          tools: [{ googleSearch: {} }],
+          tools: [{ google_search: {} }],  // Fixed: snake_case per official Gemini API docs
           responseMimeType: 'application/json',
           responseSchema: {
             type: 'object',
