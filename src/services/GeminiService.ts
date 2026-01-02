@@ -65,8 +65,14 @@ class GeminiService {
         }
       }
 
+      // Get current session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+
       const { data, error } = await supabase.functions.invoke<GeminiResponse>('gemini-proxy', {
         body: request,
+        headers: session ? {
+          Authorization: `Bearer ${session.access_token}`,
+        } : undefined,
       });
 
       if (error) {

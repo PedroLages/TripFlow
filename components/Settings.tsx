@@ -8,6 +8,8 @@ import {
   Lock, Key, HardDrive, RefreshCw, Target, MessageSquare
 } from 'lucide-react';
 import { CurrencyRateInfo } from './CurrencyRateInfo';
+import { useToast } from '../contexts/ToastContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 interface SettingsProps {
   settings: UserSettings;
@@ -16,6 +18,8 @@ interface SettingsProps {
 }
 
 const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) => {
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const [cacheSize, setCacheSize] = useState<string>('Calculating...');
 
   // Calculate cache size on mount
@@ -54,21 +58,37 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
     });
   };
 
-  const handleClearCache = () => {
-    if (confirm('CRITICAL: This will wipe all local mission data and resets. Proceed?')) {
+  const handleClearCache = async () => {
+    const confirmed = await confirm({
+      title: 'Clear Local Storage',
+      message: 'This will clear all local data and settings. The app will reload. Are you sure?',
+      type: 'danger',
+      confirmText: 'Clear & Reload',
+      cancelText: 'Cancel'
+    });
+
+    if (confirmed) {
       localStorage.clear();
       window.location.reload();
     }
   };
 
   const handleClearPWACache = async () => {
-    if (confirm('Clear service worker cache? This will free up space but the app may be slower on next load.')) {
+    const confirmed = await confirm({
+      title: 'Clear Service Worker Cache',
+      message: 'This will free up storage space, but the app may be slower on the next load as assets are re-cached.',
+      type: 'warning',
+      confirmText: 'Clear Cache',
+      cancelText: 'Cancel'
+    });
+
+    if (confirmed) {
       try {
         // Clear all caches
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
 
-        alert('Cache cleared successfully!');
+        showToast('Cache cleared successfully!', 'success');
 
         // Recalculate cache size
         const estimate = await navigator.storage.estimate();
@@ -77,17 +97,21 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
         setCacheSize(`${usedMB} MB / ${quotaMB} MB`);
       } catch (error) {
         console.error('[Settings] Error clearing cache:', error);
-        alert('Failed to clear cache. Please try again.');
+        showToast('Failed to clear cache. Please try again.', 'error');
       }
     }
   };
 
   const handleClearAllData = async () => {
-    if (
-      confirm(
-        'DANGER: This will delete ALL app data including trips, settings, and cache. This cannot be undone. Are you sure?'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete All Data',
+      message: 'This will permanently delete ALL app data including trips, settings, and cache. This action cannot be undone. Are you absolutely sure?',
+      type: 'danger',
+      confirmText: 'Delete Everything',
+      cancelText: 'Cancel'
+    });
+
+    if (confirmed) {
       try {
         // Clear IndexedDB
         const dbs = await indexedDB.databases();
@@ -109,11 +133,11 @@ const Settings: React.FC<SettingsProps> = ({ settings, setSettings, onLogout }) 
         const cacheNames = await caches.keys();
         await Promise.all(cacheNames.map((name) => caches.delete(name)));
 
-        alert('All data cleared. The app will now reload.');
-        window.location.reload();
+        showToast('All data cleared. The app will now reload.', 'success');
+        setTimeout(() => window.location.reload(), 1500);
       } catch (error) {
         console.error('[Settings] Error clearing all data:', error);
-        alert('Failed to clear all data. Please try again or clear your browser data manually.');
+        showToast('Failed to clear all data. Please try again or clear your browser data manually.', 'error');
       }
     }
   };

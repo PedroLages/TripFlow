@@ -11,6 +11,7 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Satellite, Map as MapIcon } from 'lucide-react';
 import AppleMapView from './AppleMapView';
+import { useToast } from '../contexts/ToastContext';
 
 // Sample San Francisco activities
 const sampleMarkers = [
@@ -76,12 +77,13 @@ const sampleRoutes = [
 ];
 
 const AppleMapDemo: React.FC = () => {
+  const { showToast } = useToast();
   const [mapType, setMapType] = useState<'standard' | 'satellite' | 'hybrid'>('standard');
   const [showMarkers, setShowMarkers] = useState(true);
   const [showRoutes, setShowRoutes] = useState(true);
 
   const handleMarkerClick = (marker: any) => {
-    alert(`Clicked: ${marker.title}\n${marker.subtitle}`);
+    showToast(`${marker.title} - ${marker.subtitle}`, 'info');
   };
 
   return (

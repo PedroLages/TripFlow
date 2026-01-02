@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug OAuth - TripFlow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        h1 {
+            color: #3B82F6;
+            margin-bottom: 10px;
+        }
+        #output {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .danger {
+            background: #ef4444;
+        }
+        .danger:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug OAuth Login Loop</h1>
+    <p>Use these tools to diagnose and fix the login loop issue.</p>
+
+    <div>
+        <button onclick="checkServiceWorkers()">1. Check Service Workers</button>
+        <button onclick="checkStorage()">2. Check Storage</button>
+        <button onclick="checkSupabaseAuth()">3. Check Supabase Auth</button>
+        <button onclick="clearEverything()" class="danger">4. Clear Everything & Reset</button>
+    </div>
+
+    <div id="output">Click a button above to start debugging...</div>
+
+    <script type="module">
+        window.log = function(message) {
+            const output = document.getElementById('output');
+            const line = document.createElement('div');
+            line.textContent = message;
+            output.appendChild(line);
+        };
+
+        window.clearOutput = function() {
+            const output = document.getElementById('output');
+            while (output.firstChild) {
+                output.removeChild(output.firstChild);
+            }
+        };
+
+        window.checkServiceWorkers = async function() {
+            clearOutput();
+            log('=== SERVICE WORKERS ===\n');
+
+            if (!('serviceWorker' in navigator)) {
+                log('❌ Service Worker API not available');
+                return;
+            }
+
+            const registrations = await navigator.serviceWorker.getRegistrations();
+
+            if (registrations.length === 0) {
+                log('✅ No service workers registered (good!)');
+            } else {
+                log(`⚠️ Found ${registrations.length} service worker(s):`);
+                for (const reg of registrations) {
+                    log(`  - Scope: ${reg.scope}`);
+                    log(`  - Active: ${reg.active ? 'Yes' : 'No'}`);
+                    log(`  - Waiting: ${reg.waiting ? 'Yes' : 'No'}`);
+                    log('');
+                }
+                log('👉 ISSUE: Old service worker is serving stale code!');
+                log('👉 FIX: Click "Clear Everything & Reset" button');
+            }
+        };
+
+        window.checkStorage = async function() {
+            clearOutput();
+            log('=== LOCAL STORAGE ===\n');
+
+            if (localStorage.length === 0) {
+                log('✅ localStorage is empty (good!)');
+            } else {
+                log(`⚠️ Found ${localStorage.length} items in localStorage:`);
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    const preview = value.length > 100 ? value.substring(0, 100) + '...' : value;
+                    log(`  ${key}: ${preview}`);
+                }
+                log('');
+            }
+
+            log('=== SESSION STORAGE ===\n');
+
+            if (sessionStorage.length === 0) {
+                log('✅ sessionStorage is empty (good!)');
+            } else {
+                log(`⚠️ Found ${sessionStorage.length} items in sessionStorage:`);
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    const preview = value.length > 100 ? value.substring(0, 100) + '...' : value;
+                    log(`  ${key}: ${preview}`);
+                }
+            }
+
+            log('\n=== CACHE STORAGE ===\n');
+
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                if (cacheNames.length === 0) {
+                    log('✅ No caches found (good!)');
+                } else {
+                    log(`⚠️ Found ${cacheNames.length} cache(s):`);
+                    for (const name of cacheNames) {
+                        log(`  - ${name}`);
+                    }
+                    log('');
+                    log('👉 ISSUE: Old cached code is being served!');
+                    log('👉 FIX: Click "Clear Everything & Reset" button');
+                }
+            }
+        };
+
+        window.checkSupabaseAuth = async function() {
+            clearOutput();
+            log('=== SUPABASE AUTH STATE ===\n');
+
+            try {
+                const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+
+                const supabaseUrl = 'https://xukevbzqbklywhxgqriq.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1a2V2YnpxYmtseXdoeGdxcmlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU0MTAwMjUsImV4cCI6MjA1MDk4NjAyNX0.zvjkJcSn3lP8-RbaMlbh0FvC5dImx6BqRXRhWuSqbvQ';
+
+                const supabase = createClient(supabaseUrl, supabaseKey);
+
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    log(`❌ Error getting session: ${error.message}`);
+                    return;
+                }
+
+                if (session) {
+                    log('✅ Active session found:');
+                    log(`  User ID: ${session.user.id}`);
+                    log(`  Email: ${session.user.email}`);
+                    log(`  Provider: ${session.user.app_metadata.provider || 'unknown'}`);
+                    log(`  Expires: ${new Date(session.expires_at * 1000).toLocaleString()}`);
+                } else {
+                    log('ℹ️ No active session (user is logged out)');
+                }
+            } catch (err) {
+                log(`❌ Error: ${err.message}`);
+            }
+        };
+
+        window.clearEverything = async function() {
+            clearOutput();
+            log('=== CLEARING EVERYTHING ===\n');
+
+            let count = 0;
+
+            try {
+                // Unregister service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const reg of registrations) {
+                        await reg.unregister();
+                        count++;
+                        log(`✓ Unregistered service worker: ${reg.scope}`);
+                    }
+                }
+
+                // Clear caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const name of cacheNames) {
+                        await caches.delete(name);
+                        count++;
+                        log(`✓ Deleted cache: ${name}`);
+                    }
+                }
+
+                // Clear storage
+                const localCount = localStorage.length;
+                const sessionCount = sessionStorage.length;
+                localStorage.clear();
+                sessionStorage.clear();
+                count += localCount + sessionCount;
+                log(`✓ Cleared ${localCount} localStorage items`);
+                log(`✓ Cleared ${sessionCount} sessionStorage items`);
+
+                log(`\n✅ DONE! Cleared ${count} items total.\n`);
+                log('📝 NEXT STEPS:');
+                log('  1. Close ALL TripFlow tabs');
+                log('  2. Open a new tab');
+                log('  3. Go to: http://localhost:3001');
+                log('  4. Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)');
+                log('  5. Try logging in with Google again');
+
+            } catch (err) {
+                log(`\n❌ Error: ${err.message}`);
+            }
+        };
+    </script>
+</body>
+</html>
