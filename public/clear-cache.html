@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Service Worker Cache - TripFlow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        h1 {
+            color: #3B82F6;
+            margin-bottom: 10px;
+        }
+        #status {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #3B82F6; }
+        button {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear TripFlow Cache</h1>
+    <p>This will clear all cached data and unregister service workers.</p>
+
+    <button id="clearBtn">Clear All Caches</button>
+
+    <div id="status"></div>
+
+    <script>
+        function addMessage(text, className) {
+            const status = document.getElementById('status');
+            const p = document.createElement('p');
+            if (className) p.className = className;
+            p.textContent = text;
+            status.appendChild(p);
+        }
+
+        function clearStatus() {
+            const status = document.getElementById('status');
+            while (status.firstChild) {
+                status.removeChild(status.firstChild);
+            }
+        }
+
+        async function clearEverything() {
+            const btn = document.getElementById('clearBtn');
+            clearStatus();
+            addMessage('⏳ Working...', 'info');
+            btn.disabled = true;
+
+            try {
+                // Unregister all service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        addMessage('✓ Service worker unregistered', 'success');
+                    }
+
+                    if (registrations.length === 0) {
+                        addMessage('ℹ No service workers found', 'info');
+                    }
+                }
+
+                // Clear all caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (const cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        addMessage(`✓ Cache deleted: ${cacheName}`, 'success');
+                    }
+
+                    if (cacheNames.length === 0) {
+                        addMessage('ℹ No caches found', 'info');
+                    }
+                }
+
+                // Clear localStorage
+                const localStorageCount = localStorage.length;
+                localStorage.clear();
+                addMessage(`✓ localStorage cleared (${localStorageCount} items)`, 'success');
+
+                // Clear sessionStorage
+                const sessionStorageCount = sessionStorage.length;
+                sessionStorage.clear();
+                addMessage(`✓ sessionStorage cleared (${sessionStorageCount} items)`, 'success');
+
+                addMessage('✅ All caches cleared successfully!', 'success');
+                addMessage('Next steps:', 'info');
+                addMessage('1. Close all TripFlow tabs/windows', 'info');
+                addMessage('2. Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)', 'info');
+                addMessage('3. Navigate to http://localhost:3001', 'info');
+
+            } catch (error) {
+                addMessage(`❌ Error: ${error.message}`, 'error');
+                btn.disabled = false;
+            }
+        }
+
+        // Setup event listener
+        document.getElementById('clearBtn').addEventListener('click', clearEverything);
+
+        // Show initial message
+        addMessage('Click the button above to clear all caches.', 'info');
+    </script>
+</body>
+</html>
