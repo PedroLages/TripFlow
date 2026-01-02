@@ -286,38 +286,59 @@ const App: React.FC = () => {
 
   // CRUD operations - use Supabase if configured, otherwise local storage
   const addTrip = async (newTrip: Trip) => {
+    const tripWithOwner = { ...newTrip, ownerEmail: user?.email || '' };
+
+    // Optimistic update: Add to UI immediately for instant feedback
+    setLocalTrips(prev => [...prev, tripWithOwner]);
+
+    // Persist to backend
     if (isSupabaseConfigured && supabaseUser) {
-      const result = await supabaseCreateTrip(newTrip);
+      const result = await supabaseCreateTrip(tripWithOwner);
       if (!result.success) {
         console.error('Failed to create trip:', result.error);
         alert(`Failed to create trip: ${result.error}`);
+        // Rollback on error
+        setLocalTrips(prev => prev.filter(t => t.id !== tripWithOwner.id));
       }
-      // Real-time subscription will update trips automatically
     } else {
-      const tripWithOwner = { ...newTrip, ownerEmail: user?.email || '' };
-      setLocalTrips(prev => [...prev, tripWithOwner]);
       await storage.saveTrip(tripWithOwner);
     }
   };
 
   const updateTrip = async (updatedTrip: Trip) => {
+    // Optimistic update: Update UI immediately for instant feedback
+    setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+
+    // Persist to backend
     if (isSupabaseConfigured && updatedTrip.id) {
-      await supabaseUpdateTrip(updatedTrip.id, updatedTrip);
+      const result = await supabaseUpdateTrip(updatedTrip.id, updatedTrip);
+      if (result && !result.success) {
+        console.error('Failed to update trip:', result.error);
+        alert(`Failed to update trip: ${result.error}`);
+        // Note: Could rollback here by refetching or storing previous state
+      }
     } else {
-      setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
       await storage.saveTrip(updatedTrip);
     }
   };
 
   const deleteTrip = async (id: string) => {
+    // Store previous state for potential rollback
+    const previousTrips = isSupabaseConfigured ? trips : localTrips;
+
+    // Optimistic update: Remove from UI immediately
+    setLocalTrips(prev => prev.filter(t => t.id !== id));
+
+    // Persist to backend
     if (isSupabaseConfigured) {
       const result = await supabaseDeleteTrip(id);
       if (!result.success) {
         console.error('Failed to delete trip:', result.error);
         alert(`Failed to delete trip: ${result.error}`);
+        // Rollback on error
+        setLocalTrips(previousTrips);
       }
     } else {
-      setLocalTrips(prev => prev.filter(t => t.id !== id));
       await storage.deleteTrip(id);
     }
   };
