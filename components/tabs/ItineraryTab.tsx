@@ -97,16 +97,18 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     if (isUpdate) {
       // Update existing activity
       updateActivityMutation.mutate({
-        tripId: trip.id,
+        trip,
         dayId,
         activity,
+        updateTrip,
       });
     } else {
       // Add new activity
       addActivityMutation.mutate({
-        tripId: trip.id,
+        trip,
         dayId,
         activity,
+        updateTrip,
       });
     }
 
@@ -121,9 +123,10 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     if (!deleteConfirm) return;
 
     deleteActivityMutation.mutate({
-      tripId: trip.id,
+      trip,
       dayId: deleteConfirm.dayId,
       activityId: deleteConfirm.activityId,
+      updateTrip,
     });
 
     setDeleteConfirm(null);
@@ -156,8 +159,9 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
 
     // Use mutation for optimistic update
     addPhaseMutation.mutate({
-      tripId: trip.id,
+      trip,
       dayPlan: newDay,
+      updateTrip,
     });
   };
 

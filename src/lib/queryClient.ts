@@ -35,3 +35,20 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// ============================================================================
+// TanStack Query DevTools Integration
+// ============================================================================
+
+// TypeScript declaration for browser extension
+declare global {
+  interface Window {
+    __TANSTACK_QUERY_CLIENT__: import('@tanstack/query-core').QueryClient;
+  }
+}
+
+// Expose queryClient for TanStack Query DevTools browser extension
+// This allows real-time inspection of queries, mutations, and cache state
+if (typeof window !== 'undefined') {
+  window.__TANSTACK_QUERY_CLIENT__ = queryClient;
+}

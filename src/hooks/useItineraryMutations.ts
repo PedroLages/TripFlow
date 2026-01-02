@@ -9,35 +9,43 @@
  * - Automatic cache invalidation
  * - Error handling with rollback
  * - Background refetching to ensure sync
+ *
+ * Note: These hooks work alongside the existing useSupabaseTrips hook
+ * by calling updateTrip directly for immediate UI updates.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { Trip, DayPlan, Activity } from '../../types';
 
+// Context for passing updateTrip function
+interface MutationContext {
+  trip: Trip;
+  updateTrip: (trip: Trip) => void;
+}
+
 // ============================================================================
 // MUTATION: Add Phase (Day Plan)
 // ============================================================================
 
 interface AddPhaseVariables {
-  tripId: string;
+  trip: Trip;
   dayPlan: DayPlan;
+  updateTrip: (trip: Trip) => void;
 }
 
 export function useAddPhaseMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ tripId, dayPlan }: AddPhaseVariables) => {
+    mutationFn: async ({ trip, dayPlan }: AddPhaseVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
 
-      // Insert day plan
+      // Insert day plan to database
       const { error } = await supabase
         .from('day_plans')
         .upsert(
           {
             id: dayPlan.id,
-            trip_id: tripId,
+            trip_id: trip.id,
             date: dayPlan.date,
           },
           {
@@ -48,48 +56,31 @@ export function useAddPhaseMutation() {
 
       if (error) throw error;
 
-      return { tripId, dayPlan };
+      return { dayPlan };
     },
 
-    // Optimistic update: Add phase to UI immediately
-    onMutate: async ({ tripId, dayPlan }) => {
-      // Cancel outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ['trips'] });
+    // Optimistic update: Update local state immediately
+    onMutate: async ({ trip, dayPlan, updateTrip }) => {
+      // Update trip state immediately for instant UI feedback
+      const updatedTrip = {
+        ...trip,
+        itinerary: [...trip.itinerary, dayPlan].sort((a, b) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        ),
+      };
 
-      // Snapshot previous value for rollback
-      const previousTrips = queryClient.getQueryData<Trip[]>(['trips']);
+      updateTrip(updatedTrip);
 
-      // Optimistically update the UI
-      queryClient.setQueryData<Trip[]>(['trips'], (old) => {
-        if (!old) return old;
-
-        return old.map((trip) =>
-          trip.id === tripId
-            ? {
-                ...trip,
-                itinerary: [...trip.itinerary, dayPlan].sort((a, b) =>
-                  new Date(a.date).getTime() - new Date(b.date).getTime()
-                ),
-              }
-            : trip
-        );
-      });
-
-      // Return context with snapshot for rollback
-      return { previousTrips };
+      // Return previous trip for potential rollback
+      return { previousTrip: trip, updateTrip };
     },
 
     // Rollback on error
     onError: (err, variables, context) => {
       console.error('Error adding phase:', err);
-      if (context?.previousTrips) {
-        queryClient.setQueryData(['trips'], context.previousTrips);
+      if (context) {
+        context.updateTrip(context.previousTrip);
       }
-    },
-
-    // Refetch to ensure sync after mutation completes
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
     },
   });
 }
@@ -99,13 +90,12 @@ export function useAddPhaseMutation() {
 // ============================================================================
 
 interface DeletePhaseVariables {
-  tripId: string;
+  trip: Trip;
   phaseId: string;
+  updateTrip: (trip: Trip) => void;
 }
 
 export function useDeletePhaseMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ phaseId }: DeletePhaseVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
@@ -120,37 +110,25 @@ export function useDeletePhaseMutation() {
       return { phaseId };
     },
 
-    // Optimistic update: Remove phase from UI immediately
-    onMutate: async ({ tripId, phaseId }) => {
-      await queryClient.cancelQueries({ queryKey: ['trips'] });
+    // Optimistic update: Update local state immediately
+    onMutate: async ({ trip, phaseId, updateTrip }) => {
+      // Update trip state immediately for instant UI feedback
+      const updatedTrip = {
+        ...trip,
+        itinerary: trip.itinerary.filter((day) => day.id !== phaseId),
+      };
 
-      const previousTrips = queryClient.getQueryData<Trip[]>(['trips']);
+      updateTrip(updatedTrip);
 
-      queryClient.setQueryData<Trip[]>(['trips'], (old) => {
-        if (!old) return old;
-
-        return old.map((trip) =>
-          trip.id === tripId
-            ? {
-                ...trip,
-                itinerary: trip.itinerary.filter((day) => day.id !== phaseId),
-              }
-            : trip
-        );
-      });
-
-      return { previousTrips };
+      // Return previous trip for potential rollback
+      return { previousTrip: trip, updateTrip };
     },
 
     onError: (err, variables, context) => {
       console.error('Error deleting phase:', err);
-      if (context?.previousTrips) {
-        queryClient.setQueryData(['trips'], context.previousTrips);
+      if (context) {
+        context.updateTrip(context.previousTrip);
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
     },
   });
 }
@@ -160,14 +138,13 @@ export function useDeletePhaseMutation() {
 // ============================================================================
 
 interface AddActivityVariables {
-  tripId: string;
+  trip: Trip;
   dayId: string;
   activity: Activity;
+  updateTrip: (trip: Trip) => void;
 }
 
 export function useAddActivityMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ dayId, activity }: AddActivityVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
@@ -198,40 +175,33 @@ export function useAddActivityMutation() {
       return { dayId, activity };
     },
 
-    onMutate: async ({ tripId, dayId, activity }) => {
-      await queryClient.cancelQueries({ queryKey: ['trips'] });
-
-      const previousTrips = queryClient.getQueryData<Trip[]>(['trips']);
-
-      queryClient.setQueryData<Trip[]>(['trips'], (old) => {
-        if (!old) return old;
-
-        return old.map((trip) =>
-          trip.id === tripId
+    onMutate: async ({ trip, dayId, activity, updateTrip }) => {
+      // Update trip state immediately for instant UI feedback
+      const updatedTrip = {
+        ...trip,
+        itinerary: trip.itinerary.map((day) =>
+          day.id === dayId
             ? {
-                ...trip,
-                itinerary: trip.itinerary.map((day) =>
-                  day.id === dayId
-                    ? { ...day, activities: [...day.activities, activity] }
-                    : day
-                ),
+                ...day,
+                activities: [...day.activities, activity].sort((a, b) =>
+                  a.startTime.localeCompare(b.startTime)
+                )
               }
-            : trip
-        );
-      });
+            : day
+        ),
+      };
 
-      return { previousTrips };
+      updateTrip(updatedTrip);
+
+      // Return previous trip for potential rollback
+      return { previousTrip: trip, updateTrip };
     },
 
     onError: (err, variables, context) => {
       console.error('Error adding activity:', err);
-      if (context?.previousTrips) {
-        queryClient.setQueryData(['trips'], context.previousTrips);
+      if (context) {
+        context.updateTrip(context.previousTrip);
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
     },
   });
 }
@@ -241,14 +211,13 @@ export function useAddActivityMutation() {
 // ============================================================================
 
 interface DeleteActivityVariables {
-  tripId: string;
+  trip: Trip;
   dayId: string;
   activityId: string;
+  updateTrip: (trip: Trip) => void;
 }
 
 export function useDeleteActivityMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ activityId }: DeleteActivityVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
@@ -263,45 +232,33 @@ export function useDeleteActivityMutation() {
       return { activityId };
     },
 
-    onMutate: async ({ tripId, dayId, activityId }) => {
-      await queryClient.cancelQueries({ queryKey: ['trips'] });
-
-      const previousTrips = queryClient.getQueryData<Trip[]>(['trips']);
-
-      queryClient.setQueryData<Trip[]>(['trips'], (old) => {
-        if (!old) return old;
-
-        return old.map((trip) =>
-          trip.id === tripId
+    onMutate: async ({ trip, dayId, activityId, updateTrip }) => {
+      // Update trip state immediately for instant UI feedback
+      const updatedTrip = {
+        ...trip,
+        itinerary: trip.itinerary.map((day) =>
+          day.id === dayId
             ? {
-                ...trip,
-                itinerary: trip.itinerary.map((day) =>
-                  day.id === dayId
-                    ? {
-                        ...day,
-                        activities: day.activities.filter(
-                          (a) => a.id !== activityId
-                        ),
-                      }
-                    : day
+                ...day,
+                activities: day.activities.filter(
+                  (a) => a.id !== activityId
                 ),
               }
-            : trip
-        );
-      });
+            : day
+        ),
+      };
 
-      return { previousTrips };
+      updateTrip(updatedTrip);
+
+      // Return previous trip for potential rollback
+      return { previousTrip: trip, updateTrip };
     },
 
     onError: (err, variables, context) => {
       console.error('Error deleting activity:', err);
-      if (context?.previousTrips) {
-        queryClient.setQueryData(['trips'], context.previousTrips);
+      if (context) {
+        context.updateTrip(context.previousTrip);
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
     },
   });
 }
@@ -311,14 +268,13 @@ export function useDeleteActivityMutation() {
 // ============================================================================
 
 interface UpdateActivityVariables {
-  tripId: string;
+  trip: Trip;
   dayId: string;
   activity: Activity;
+  updateTrip: (trip: Trip) => void;
 }
 
 export function useUpdateActivityMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ dayId, activity }: UpdateActivityVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
@@ -342,45 +298,33 @@ export function useUpdateActivityMutation() {
       return { dayId, activity };
     },
 
-    onMutate: async ({ tripId, dayId, activity }) => {
-      await queryClient.cancelQueries({ queryKey: ['trips'] });
-
-      const previousTrips = queryClient.getQueryData<Trip[]>(['trips']);
-
-      queryClient.setQueryData<Trip[]>(['trips'], (old) => {
-        if (!old) return old;
-
-        return old.map((trip) =>
-          trip.id === tripId
+    onMutate: async ({ trip, dayId, activity, updateTrip }) => {
+      // Update trip state immediately for instant UI feedback
+      const updatedTrip = {
+        ...trip,
+        itinerary: trip.itinerary.map((day) =>
+          day.id === dayId
             ? {
-                ...trip,
-                itinerary: trip.itinerary.map((day) =>
-                  day.id === dayId
-                    ? {
-                        ...day,
-                        activities: day.activities.map((a) =>
-                          a.id === activity.id ? activity : a
-                        ),
-                      }
-                    : day
-                ),
+                ...day,
+                activities: day.activities
+                  .map((a) => (a.id === activity.id ? activity : a))
+                  .sort((a, b) => a.startTime.localeCompare(b.startTime)),
               }
-            : trip
-        );
-      });
+            : day
+        ),
+      };
 
-      return { previousTrips };
+      updateTrip(updatedTrip);
+
+      // Return previous trip for potential rollback
+      return { previousTrip: trip, updateTrip };
     },
 
     onError: (err, variables, context) => {
       console.error('Error updating activity:', err);
-      if (context?.previousTrips) {
-        queryClient.setQueryData(['trips'], context.previousTrips);
+      if (context) {
+        context.updateTrip(context.previousTrip);
       }
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
     },
   });
 }
