@@ -52,14 +52,13 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const currentRole: UserRole = isOwner ? 'Editor' : (collaborator?.role || 'Viewer');
   const isEditor = currentRole === 'Editor';
 
-  const logAction = (action: string) => {
-    const newLog: ActivityLog = {
+  const createActivityLog = (action: string): ActivityLog => {
+    return {
       id: Math.random().toString(36).substr(2, 9),
       userEmail: currentUser.email,
       action,
       timestamp: new Date().toISOString(),
     };
-    updateTrip({ ...trip, activityLogs: [newLog, ...(trip.activityLogs || [])] });
   };
 
   const fetchLiveInfo = async () => {
@@ -247,10 +246,19 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       {/* 4. Tab Content Container */}
       <div className="relative z-10 min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32">
         <Routes>
-          <Route path="itinerary" element={<ItineraryTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Updated itinerary"); }} />} />
+          <Route path="itinerary" element={<ItineraryTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {
+            const log = createActivityLog("Updated itinerary");
+            updateTrip({ ...t, activityLogs: [log, ...(t.activityLogs || [])] });
+          }} />} />
           <Route path="map" element={<MapTab trip={trip} />} />
-          <Route path="places" element={<WishlistTab trip={trip} updateTrip={(t) => { updateTrip(t); logAction("Updated wishlist"); }} />} />
-          <Route path="budget" element={<BudgetTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Modified expenses"); }} />} />
+          <Route path="places" element={<WishlistTab trip={trip} updateTrip={(t) => {
+            const log = createActivityLog("Updated wishlist");
+            updateTrip({ ...t, activityLogs: [log, ...(t.activityLogs || [])] });
+          }} />} />
+          <Route path="budget" element={<BudgetTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {
+            const log = createActivityLog("Modified expenses");
+            updateTrip({ ...t, activityLogs: [log, ...(t.activityLogs || [])] });
+          }} />} />
           <Route path="analytics" element={
             <Suspense fallback={
               <div className="flex items-center justify-center h-96">
@@ -260,9 +268,18 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
               <AnalyticsTab trip={trip} />
             </Suspense>
           } />
-          <Route path="settlements" element={<SettlementsTab trip={trip} updateTrip={(t) => { updateTrip(t); logAction("Managed settlements"); }} currentUserEmail={currentUser.email} />} />
-          <Route path="packing" element={<PackingTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Updated packing list"); }} />} />
-          <Route path="docs" element={<DocumentsTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => { updateTrip(t); logAction("Modified documents"); }} />} />
+          <Route path="settlements" element={<SettlementsTab trip={trip} updateTrip={(t) => {
+            const log = createActivityLog("Managed settlements");
+            updateTrip({ ...t, activityLogs: [log, ...(t.activityLogs || [])] });
+          }} currentUserEmail={currentUser.email} />} />
+          <Route path="packing" element={<PackingTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {
+            const log = createActivityLog("Updated packing list");
+            updateTrip({ ...t, activityLogs: [log, ...(t.activityLogs || [])] });
+          }} />} />
+          <Route path="docs" element={<DocumentsTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {
+            const log = createActivityLog("Modified documents");
+            updateTrip({ ...t, activityLogs: [log, ...(t.activityLogs || [])] });
+          }} />} />
           <Route path="*" element={<div className="p-20 text-center text-slate-400 font-bold uppercase tracking-widest italic opacity-50">Mapping your coordinates...</div>} />
         </Routes>
       </div>

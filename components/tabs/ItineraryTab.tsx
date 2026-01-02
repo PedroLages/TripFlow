@@ -12,6 +12,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTerminology } from '../../hooks/TerminologyContext';
+import { ConfirmDialog } from '../ConfirmDialog';
 
 interface ItineraryTabProps {
   trip: Trip;
@@ -62,6 +63,7 @@ const ActivityIcon = ({ name, className }: { name?: string, className?: string }
 const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const t = useTerminology();
   const [editingActivity, setEditingActivity] = useState<{ dayId: string; activity: Activity | null } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ dayId: string; activityId: string } | null>(null);
   const isEditor = trip.currentUserRole === 'Editor';
 
   const findMatchingDoc = (activityName: string, docs: TravelDocument[]) => {
@@ -87,15 +89,26 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     setEditingActivity(null);
   };
 
-  const deleteActivity = (dayId: string, activityId: string) => {
-    if (!confirm('Abort this activity?')) return;
+  const requestDeleteActivity = (dayId: string, activityId: string) => {
+    setDeleteConfirm({ dayId, activityId });
+  };
+
+  const confirmDeleteActivity = () => {
+    if (!deleteConfirm) return;
+
     const newItinerary = trip.itinerary.map(day => {
-      if (day.id === dayId) {
-        return { ...day, activities: day.activities.filter(a => a.id !== activityId) };
+      if (day.id === deleteConfirm.dayId) {
+        return { ...day, activities: day.activities.filter(a => a.id !== deleteConfirm.activityId) };
       }
       return day;
     });
+
     updateTrip({ ...trip, itinerary: newItinerary });
+    setDeleteConfirm(null);
+  };
+
+  const cancelDeleteActivity = () => {
+    setDeleteConfirm(null);
   };
 
   const addDay = () => {
@@ -229,7 +242,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                               {isEditor && (
                                 <div className="flex gap-1">
                                   <button onClick={() => setEditingActivity({ dayId: day.id, activity: act })} className="p-1.5 text-slate-300 hover:text-brand-primary transition-colors"><Edit3 size={14} /></button>
-                                  <button onClick={() => deleteActivity(day.id, act.id)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                  <button onClick={() => requestDeleteActivity(day.id, act.id)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                                 </div>
                               )}
                             </div>
@@ -268,8 +281,8 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">Refining Objective Parameters</p>
               </div>
-              <button 
-                onClick={() => setEditingActivity(null)} 
+              <button
+                onClick={() => setEditingActivity(null)}
                 className="w-10 h-10 sm:w-12 sm:h-12 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl flex items-center justify-center transition-all text-slate-400"
               >
                 <X size={20} />
@@ -283,7 +296,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                     const Icon = item.icon;
                     const isSelected = editingActivity.activity?.iconName === item.name;
                     return (
-                      <button 
+                      <button
                         key={item.name}
                         onClick={() => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, iconName: item.name } }) : null)}
                         className={`aspect-square rounded-xl flex items-center justify-center transition-all active:scale-90 ${isSelected ? 'bg-brand-primary text-white shadow-md scale-105 z-10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
@@ -296,8 +309,8 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Designation</label>
-                <input 
-                  value={editingActivity.activity?.name} 
+                <input
+                  value={editingActivity.activity?.name}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, name: e.target.value } }) : null)}
                   className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
                   placeholder="e.g., Shibuya Sky"
@@ -306,51 +319,51 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Arrival</label>
-                  <input 
-                    type="time" 
-                    value={editingActivity.activity?.startTime} 
-                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)} 
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm" 
+                  <input
+                    type="time"
+                    value={editingActivity.activity?.startTime}
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)}
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Departure</label>
-                  <input 
-                    type="time" 
-                    value={editingActivity.activity?.endTime} 
-                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)} 
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm" 
+                  <input
+                    type="time"
+                    value={editingActivity.activity?.endTime}
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)}
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm"
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Geographic Sector</label>
-                <input 
-                  value={editingActivity.activity?.location} 
-                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)} 
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none dark:text-white text-sm shadow-sm" 
-                  placeholder="City or Coordinates" 
+                <input
+                  value={editingActivity.activity?.location}
+                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none dark:text-white text-sm shadow-sm"
+                  placeholder="City or Coordinates"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Briefing Notes</label>
-                <textarea 
-                  value={editingActivity.activity?.notes} 
+                <textarea
+                  value={editingActivity.activity?.notes}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, notes: e.target.value } }) : null)}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm" 
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm"
                   placeholder="Key sub-objectives or arrival details..."
                 />
               </div>
             </div>
             <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-white/5 flex flex-row items-center justify-between gap-4 flex-shrink-0">
-              <button 
-                onClick={() => setEditingActivity(null)} 
+              <button
+                onClick={() => setEditingActivity(null)}
                 className="flex-1 py-4 font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"
               >
                 Abort
               </button>
-              <button 
-                onClick={() => saveActivity(editingActivity.dayId, editingActivity.activity!)} 
+              <button
+                onClick={() => saveActivity(editingActivity.dayId, editingActivity.activity!)}
                 className="flex-[2] py-4 font-bold bg-brand-primary text-white rounded-[1.5rem] shadow-xl hover:shadow-indigo-500/30 active:scale-95 transition-all text-sm uppercase tracking-widest"
               >
                 Lock Objective
@@ -359,6 +372,17 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirm !== null}
+        title="Abort Mission Objective?"
+        message="This activity will be permanently removed from your itinerary. This action cannot be undone."
+        confirmText="Abort"
+        cancelText="Keep It"
+        onConfirm={confirmDeleteActivity}
+        onCancel={cancelDeleteActivity}
+        variant="danger"
+      />
     </div>
   );
 };
