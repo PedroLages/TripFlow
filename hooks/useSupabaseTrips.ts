@@ -616,7 +616,24 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
 
       // Handle itinerary updates if provided
       if (updates.itinerary !== undefined) {
-        // Get current day plan IDs from database
+        // Batch upsert all day plans at once (more efficient, avoids race conditions)
+        if (updates.itinerary.length > 0) {
+          const { error: upsertError } = await supabase
+            .from('day_plans')
+            .upsert(
+              updates.itinerary.map(day => ({
+                id: day.id,
+                trip_id: id,
+                date: day.date,
+              }))
+            );
+
+          if (upsertError) {
+            return { success: false, error: upsertError.message };
+          }
+        }
+
+        // Get current day plan IDs from database to clean up removed ones
         const { data: existingDayPlans } = await supabase
           .from('day_plans')
           .select('id')
@@ -638,23 +655,8 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
           }
         }
 
-        // Upsert day plans (insert new ones, update existing ones)
+        // Handle activities for each day
         for (const day of updates.itinerary) {
-          const { error: dayError } = await supabase
-            .from('day_plans')
-            .upsert({
-              id: day.id,
-              trip_id: id,
-              date: day.date,
-            }, {
-              onConflict: 'id',
-            })
-            .select()
-            .single();
-
-          if (dayError) {
-            return { success: false, error: dayError.message };
-          }
 
           // Handle activities for this day
           // Get existing activities for this day
@@ -695,10 +697,7 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
                   notes: a.notes,
                   cost: a.cost || 0,
                   icon_name: a.iconName || null,
-                })),
-                {
-                  onConflict: 'id',
-                }
+                }))
               );
 
             if (activitiesError) {
