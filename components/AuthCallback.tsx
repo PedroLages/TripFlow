@@ -10,6 +10,28 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
 import { emailOAuthService } from '../src/services/EmailOAuthService';
 
+/**
+ * Validates a return path to prevent XSS and open redirect vulnerabilities
+ * Only allows relative paths starting with '/' and without dangerous protocols
+ */
+function isValidReturnPath(path: string): boolean {
+  if (!path || typeof path !== 'string') return false;
+
+  // Must start with '/' (relative path)
+  if (!path.startsWith('/')) return false;
+
+  // Reject dangerous protocols (javascript:, data:, vbscript:, etc.)
+  const dangerousProtocols = /^(javascript|data|vbscript|file|about):/i;
+  if (dangerousProtocols.test(path)) return false;
+
+  // Reject protocol-relative URLs (//)
+  if (path.startsWith('//')) return false;
+
+  // Only allow paths that match our app routes
+  const validPathPattern = /^\/($|trip|dashboard|settings)/;
+  return validPathPattern.test(path);
+}
+
 export function AuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Completing sign in...');
@@ -84,7 +106,9 @@ export function AuthCallback() {
                   const returnPath = localStorage.getItem('gmail_oauth_return_path');
                   if (returnPath) {
                     localStorage.removeItem('gmail_oauth_return_path');
-                    window.location.replace(`/#${returnPath}`);
+                    // SECURITY: Validate return path before redirect to prevent XSS/open redirect
+                    const safePath = isValidReturnPath(returnPath) ? returnPath : '/';
+                    window.location.replace(`/#${safePath}`);
                   } else {
                     window.location.replace('/#/');
                   }

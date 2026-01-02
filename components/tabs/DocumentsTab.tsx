@@ -519,9 +519,10 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Gate</p>
                           <p className="text-xl font-display font-bold text-slate-900 dark:text-white">{doc.gate || 'TBD'}</p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => refreshFlightStatus(doc.id)}
                           disabled={updatingStatusId === doc.id}
+                          aria-label="Refresh flight status"
                           className="p-3 bg-brand-primary text-white rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-lg"
                         >
                           {updatingStatusId === doc.id ? <RefreshCw className="animate-spin" size={16} /> : <RefreshCw size={16} />}
@@ -537,8 +538,9 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                       <p className="font-mono font-bold text-slate-900 dark:text-white tracking-widest uppercase">{doc.confirmation}</p>
                     </div>
                     {isEditor && (
-                      <button 
+                      <button
                         onClick={() => deleteDoc(doc.id)}
+                        aria-label="Delete document"
                         className="w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
                       >
                         <Trash2 size={18} />
@@ -591,8 +593,20 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
               </div>
 
               <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-8">
-                <button onClick={stopCamera} className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white"><X /></button>
-                <button onClick={captureAndScan} className="w-24 h-24 rounded-[2.5rem] bg-white border-8 border-brand-primary shadow-3xl flex items-center justify-center text-brand-primary hover:scale-105 active:scale-95 transition-all"><CameraIcon size={36}/></button>
+                <button
+                  onClick={stopCamera}
+                  aria-label="Close camera"
+                  className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white"
+                >
+                  <X />
+                </button>
+                <button
+                  onClick={captureAndScan}
+                  aria-label="Capture and scan document"
+                  className="w-24 h-24 rounded-[2.5rem] bg-white border-8 border-brand-primary shadow-3xl flex items-center justify-center text-brand-primary hover:scale-105 active:scale-95 transition-all"
+                >
+                  <CameraIcon size={36}/>
+                </button>
               </div>
            </div>
         </div>
@@ -607,7 +621,13 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                 <h3 className="text-xl md:text-2xl font-display font-bold mb-1">Email Parser</h3>
                 <p className="text-slate-400 font-medium text-sm">Extract intel from booking confirmations.</p>
               </div>
-              <button onClick={() => setShowSmartImport(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"><X size={20} /></button>
+              <button
+                onClick={() => setShowSmartImport(false)}
+                aria-label="Close"
+                className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"
+              >
+                <X size={20} />
+              </button>
             </div>
             <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
               <div className="space-y-2">
@@ -641,7 +661,13 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                 <h3 className="text-xl md:text-2xl font-display font-bold mb-1">Manual Import</h3>
                 <p className="text-slate-400 font-medium text-sm">Add travel documents directly.</p>
               </div>
-              <button onClick={() => setShowManualImport(false)} className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"><X size={20} /></button>
+              <button
+                onClick={() => setShowManualImport(false)}
+                aria-label="Close"
+                className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"
+              >
+                <X size={20} />
+              </button>
             </div>
             <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
               {/* Document Type Selector */}

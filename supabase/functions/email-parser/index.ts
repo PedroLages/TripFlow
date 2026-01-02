@@ -918,8 +918,33 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // SECURITY: Validate input sizes to prevent DoS attacks via memory exhaustion
+    const MAX_SUBJECT_LENGTH = 500;
+    const MAX_BODY_LENGTH = 50000; // 50KB - sufficient for most booking emails
+
+    if (emailData.subject && emailData.subject.length > MAX_SUBJECT_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Subject too long (max ${MAX_SUBJECT_LENGTH} characters)` }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const htmlContent = emailData.body_html || '';
     const textContent = emailData.body_text || '';
+
+    if (htmlContent.length > MAX_BODY_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `HTML body too long (max ${MAX_BODY_LENGTH} characters)` }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (textContent.length > MAX_BODY_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Text body too long (max ${MAX_BODY_LENGTH} characters)` }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // P2 DEBUG: Log email content characteristics
     console.log(`[Email ${emailData.email_id}] Subject: "${emailData.subject?.substring(0, 50)}..."`);
@@ -983,7 +1008,8 @@ If the email is not a travel booking, set confidence to 0.0 and detected_type to
 
       // P1 FIX: Use stable model (gemini-2.0-flash) for +50% rate limit (15 RPM vs 10 RPM)
       // P0 FIX: Wrap Gemini API call with exponential backoff retry
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+      // SECURITY FIX: Use x-goog-api-key header instead of URL query parameter
+      const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
       const geminiBody = {
         contents: [{
@@ -1003,7 +1029,10 @@ If the email is not a travel booking, set confidence to 0.0 and detected_type to
       const geminiData = await retry(async () => {
         const geminiResponse = await fetch(geminiUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY
+          },
           body: JSON.stringify(geminiBody),
         });
 

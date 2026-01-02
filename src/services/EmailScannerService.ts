@@ -664,8 +664,14 @@ class EmailScannerService {
     error?: string;
   }> {
     try {
-      // Call Google's tokeninfo endpoint to verify token and get scopes
-      const response = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
+      // Call Google's tokeninfo endpoint to verify token and get scopes - using POST with body to avoid token in URL
+      const response = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `access_token=${encodeURIComponent(accessToken)}`,
+      });
 
       if (!response.ok) {
         return {

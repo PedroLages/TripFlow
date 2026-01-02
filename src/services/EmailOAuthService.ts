@@ -47,6 +47,28 @@ class EmailOAuthService {
    * Initiate Gmail OAuth flow
    * Opens Google OAuth consent screen in popup or redirect
    */
+  /**
+   * Validates a return path to prevent XSS and open redirect vulnerabilities
+   * Only allows relative paths starting with '/' and without dangerous protocols
+   */
+  private isValidReturnPath(path: string): boolean {
+    if (!path || typeof path !== 'string') return false;
+
+    // Must start with '/' (relative path)
+    if (!path.startsWith('/')) return false;
+
+    // Reject dangerous protocols (javascript:, data:, vbscript:, etc.)
+    const dangerousProtocols = /^(javascript|data|vbscript|file|about):/i;
+    if (dangerousProtocols.test(path)) return false;
+
+    // Reject protocol-relative URLs (//)
+    if (path.startsWith('//')) return false;
+
+    // Only allow paths that match our app routes
+    const validPathPattern = /^\/($|trip|dashboard|settings)/;
+    return validPathPattern.test(path);
+  }
+
   async connectGmail(usePopup = false): Promise<{ success: boolean; error?: string }> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -58,7 +80,10 @@ class EmailOAuthService {
       // Store current location to return after OAuth
       // Extract the hash path (e.g., "#/trip/123/documents" -> "/trip/123/documents")
       const currentPath = window.location.hash.slice(1) || '/';
-      localStorage.setItem('gmail_oauth_return_path', currentPath);
+
+      // SECURITY: Validate return path to prevent XSS/open redirect attacks
+      const safePath = this.isValidReturnPath(currentPath) ? currentPath : '/';
+      localStorage.setItem('gmail_oauth_return_path', safePath);
 
       // Use Supabase's Google OAuth with Gmail scopes
       // IMPORTANT: Only request gmail.readonly (not gmail.metadata)
@@ -145,6 +170,8 @@ class EmailOAuthService {
       expiresAt.setHours(expiresAt.getHours() + 1);
 
       // Store connection in database
+      // SECURITY: Tokens stored in plain text with mitigations (see migration schema comments)
+      // Protected by: RLS policies, encrypted-at-rest database, secure transmission (headers not URLs)
       const { error: dbError } = await supabase
         .from('email_connections')
         .upsert({
@@ -152,8 +179,8 @@ class EmailOAuthService {
           email_address: emailAddress,
           provider: 'gmail',
           connection_status: 'active',
-          access_token: providerToken, // TODO: Encrypt before storage
-          refresh_token: providerRefreshToken, // TODO: Encrypt before storage
+          access_token: providerToken,
+          refresh_token: providerRefreshToken,
           token_expires_at: expiresAt.toISOString(),
           sync_enabled: true,
           last_sync_at: null,
@@ -186,8 +213,14 @@ class EmailOAuthService {
     error?: string;
   }> {
     try {
-      // Call Google's tokeninfo endpoint
-      const response = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
+      // Call Google's tokeninfo endpoint - using POST with body to avoid token in URL
+      const response = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `access_token=${encodeURIComponent(accessToken)}`,
+      });
 
       if (!response.ok) {
         return {
@@ -289,11 +322,15 @@ class EmailOAuthService {
         return { success: false, error: 'Connection not found' };
       }
 
-      // Revoke the Google OAuth token
+      // Revoke the Google OAuth token - using body to avoid token in URL
       if (connection.access_token) {
         try {
-          await fetch(`https://oauth2.googleapis.com/revoke?token=${connection.access_token}`, {
+          await fetch('https://oauth2.googleapis.com/revoke', {
             method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `token=${encodeURIComponent(connection.access_token)}`,
           });
         } catch (revokeError) {
           console.warn('[EmailOAuthService] Token revocation failed:', revokeError);

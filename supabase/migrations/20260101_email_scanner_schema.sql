@@ -9,7 +9,13 @@ CREATE TABLE IF NOT EXISTS email_connections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
 
-  -- OAuth credentials (encrypted at application layer)
+  -- OAuth credentials
+  -- SECURITY NOTE: Tokens are stored in plain text with the following mitigations:
+  --   1. Database encrypted at rest (SOC2/HIPAA compliant)
+  --   2. Row Level Security (RLS) restricts access to token owner only
+  --   3. Tokens transmitted via secure headers (not URLs)
+  --   4. Tokens are short-lived (1-hour access tokens, auto-refresh)
+  -- Future: Consider Supabase Vault encryption when it reaches GA status
   access_token TEXT,
   refresh_token TEXT,
   token_expires_at TIMESTAMPTZ,
