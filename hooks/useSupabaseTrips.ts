@@ -616,24 +616,38 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
 
       // Handle itinerary updates if provided
       if (updates.itinerary !== undefined) {
-        // Delete existing day plans and activities (cascade will handle activities)
-        const { error: deleteError } = await supabase
+        // Get current day plan IDs from database
+        const { data: existingDayPlans } = await supabase
           .from('day_plans')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deleteError) {
-          return { success: false, error: deleteError.message };
+        const existingIds = new Set(existingDayPlans?.map(dp => dp.id) || []);
+        const newIds = new Set(updates.itinerary.map(day => day.id));
+
+        // Delete day plans that are no longer in the itinerary
+        const idsToDelete = Array.from(existingIds).filter(id => !newIds.has(id));
+        if (idsToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('day_plans')
+            .delete()
+            .in('id', idsToDelete);
+
+          if (deleteError) {
+            console.error('Error deleting removed day plans:', deleteError);
+          }
         }
 
-        // Insert new day plans and their activities
+        // Upsert day plans (insert new ones, update existing ones)
         for (const day of updates.itinerary) {
-          const { data: dayData, error: dayError } = await supabase
+          const { error: dayError } = await supabase
             .from('day_plans')
-            .insert({
+            .upsert({
               id: day.id,
               trip_id: id,
               date: day.date,
+            }, {
+              onConflict: 'id',
             })
             .select()
             .single();
@@ -642,11 +656,34 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
             return { success: false, error: dayError.message };
           }
 
-          // Insert activities for this day
+          // Handle activities for this day
+          // Get existing activities for this day
+          const { data: existingActivities } = await supabase
+            .from('activities')
+            .select('id')
+            .eq('day_plan_id', day.id);
+
+          const existingActivityIds = new Set(existingActivities?.map(a => a.id) || []);
+          const newActivityIds = new Set((day.activities || []).map(a => a.id));
+
+          // Delete activities that are no longer in this day
+          const activityIdsToDelete = Array.from(existingActivityIds).filter(id => !newActivityIds.has(id));
+          if (activityIdsToDelete.length > 0) {
+            const { error: deleteActivitiesError } = await supabase
+              .from('activities')
+              .delete()
+              .in('id', activityIdsToDelete);
+
+            if (deleteActivitiesError) {
+              console.error('Error deleting removed activities:', deleteActivitiesError);
+            }
+          }
+
+          // Upsert activities for this day
           if (day.activities && day.activities.length > 0) {
             const { error: activitiesError } = await supabase
               .from('activities')
-              .insert(
+              .upsert(
                 day.activities.map(a => ({
                   id: a.id,
                   day_plan_id: day.id,
@@ -658,7 +695,10 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
                   notes: a.notes,
                   cost: a.cost || 0,
                   icon_name: a.iconName || null,
-                }))
+                })),
+                {
+                  onConflict: 'id',
+                }
               );
 
             if (activitiesError) {
