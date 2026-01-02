@@ -24,6 +24,8 @@ import { useSupabaseTrips } from './hooks/useSupabaseTrips';
 import { useSupabaseSettings } from './hooks/useSupabaseSettings';
 import { isSupabaseReady } from './src/lib/supabase';
 import { TerminologyProvider } from './hooks/TerminologyContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
+import { ConfirmProvider } from './contexts/ConfirmContext';
 
 const AppContent: React.FC<{
   user: User | null;
@@ -290,7 +292,7 @@ const App: React.FC = () => {
       const result = await supabaseCreateTrip(newTrip);
       if (!result.success) {
         console.error('Failed to create trip:', result.error);
-        alert(`Failed to create trip: ${result.error}`);
+        // Error is logged - real-time subscription handles success
       }
       // Real-time subscription will update trips automatically
     } else {
@@ -301,10 +303,18 @@ const App: React.FC = () => {
   };
 
   const updateTrip = async (updatedTrip: Trip) => {
+    // Optimistic update: Update local state immediately for instant UI feedback
+    setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+
     if (isSupabaseConfigured && updatedTrip.id) {
-      await supabaseUpdateTrip(updatedTrip.id, updatedTrip);
+      // Sync to Supabase in background (real-time subscription will reconcile any conflicts)
+      const result = await supabaseUpdateTrip(updatedTrip.id, updatedTrip);
+      if (!result.success) {
+        console.error('Failed to sync trip to Supabase:', result.error);
+        // Note: Local state is already updated, so UI remains responsive
+        // Real-time subscription will handle eventual consistency
+      }
     } else {
-      setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
       await storage.saveTrip(updatedTrip);
     }
   };
@@ -314,7 +324,7 @@ const App: React.FC = () => {
       const result = await supabaseDeleteTrip(id);
       if (!result.success) {
         console.error('Failed to delete trip:', result.error);
-        alert(`Failed to delete trip: ${result.error}`);
+        // Error is logged - real-time subscription handles success
       }
     } else {
       setLocalTrips(prev => prev.filter(t => t.id !== id));
@@ -425,32 +435,34 @@ const App: React.FC = () => {
   }
 
   return (
-    <>
-      {/* PWA Update Banner */}
-      {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
+    <ConfirmProvider>
+      <ToastProvider>
+        {/* PWA Update Banner */}
+        {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
 
-      <TerminologyProvider languageMode={settings.languageMode}>
-        <Router>
-          <AppContent
-            user={user}
-            trips={trips}
-            settings={settings}
-            setSettings={setSettings}
-            isSidebarCollapsed={isSidebarCollapsed}
-            handleSidebarToggle={handleSidebarToggle}
-            isOffline={isOffline}
-            hasPendingSync={syncStatus.isSyncing}
-            handleLogout={handleLogout}
-            updateTrip={updateTrip}
-            addTrip={addTrip}
-            deleteTrip={deleteTrip}
-          />
-        </Router>
-      </TerminologyProvider>
+        <TerminologyProvider languageMode={settings.languageMode}>
+          <Router>
+            <AppContent
+              user={user}
+              trips={trips}
+              settings={settings}
+              setSettings={setSettings}
+              isSidebarCollapsed={isSidebarCollapsed}
+              handleSidebarToggle={handleSidebarToggle}
+              isOffline={isOffline}
+              hasPendingSync={syncStatus.isSyncing}
+              handleLogout={handleLogout}
+              updateTrip={updateTrip}
+              addTrip={addTrip}
+              deleteTrip={deleteTrip}
+            />
+          </Router>
+        </TerminologyProvider>
 
-      {/* PWA Install Prompt */}
-      {isInstallable && <InstallPrompt onInstall={installPrompt} />}
-    </>
+        {/* PWA Install Prompt */}
+        {isInstallable && <InstallPrompt onInstall={installPrompt} />}
+      </ToastProvider>
+    </ConfirmProvider>
   );
 };
 

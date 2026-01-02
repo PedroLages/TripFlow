@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Theme customization */
+@theme {
+  --color-brand-primary: #8B5CF6;
+  --color-brand-secondary: #0F172A;
+  --color-brand-accent: #F59E0B;
+  --color-brand-success: #10B981;
+
+  --font-family-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-family-display: 'Space Grotesk', sans-serif;
+
+  --border-radius-3xl: 1.5rem;
+  --border-radius-4xl: 2rem;
+  --border-radius-5xl: 3rem;
+}
+
+/* Global styles */
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+}
+
+.boarding-pass-notch {
+  mask-image: radial-gradient(circle at 0 50%, transparent 12px, black 12px),
+    radial-gradient(circle at 100% 50%, transparent 12px, black 12px);
+}
+
+.leaflet-container {
+  background: #0F172A !important;
+}
+
+.tripflow-map-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.dark .tripflow-map-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(40%) contrast(120%) saturate(50%);
+}
+
+.leaflet-vignette {
+  box-shadow: inset 0 0 150px rgba(0,0,0,0.5);
+  pointer-events: none;
+}

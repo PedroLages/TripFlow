@@ -372,6 +372,28 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
           fetchTrips();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'day_plans',
+        },
+        () => {
+          fetchTrips();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activities',
+        },
+        () => {
+          fetchTrips();
+        }
+      )
       .subscribe((status) => {
         setIsRealtime(status === 'SUBSCRIBED');
       });
@@ -616,37 +638,73 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
 
       // Handle itinerary updates if provided
       if (updates.itinerary !== undefined) {
-        // Delete existing day plans and activities (cascade will handle activities)
-        const { error: deleteError } = await supabase
+        // Get existing day_plan IDs for this trip
+        const { data: existingDays } = await supabase
           .from('day_plans')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deleteError) {
-          return { success: false, error: deleteError.message };
+        const existingDayIds = new Set(existingDays?.map(d => d.id) || []);
+        const newDayIds = new Set(updates.itinerary.map(d => d.id));
+
+        // Delete day plans that are no longer in the itinerary (cascade handles activities)
+        const idsToDelete = [...existingDayIds].filter(id => !newDayIds.has(id));
+        if (idsToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from('day_plans')
+            .delete()
+            .in('id', idsToDelete);
+
+          if (deleteError) {
+            console.error('Error deleting removed day plans:', deleteError);
+          }
         }
 
-        // Insert new day plans and their activities
+        // Upsert day plans and their activities
         for (const day of updates.itinerary) {
-          const { data: dayData, error: dayError } = await supabase
+          // Upsert day plan (update if exists, insert if new)
+          const { error: dayError } = await supabase
             .from('day_plans')
-            .insert({
+            .upsert({
               id: day.id,
               trip_id: id,
               date: day.date,
-            })
-            .select()
-            .single();
+            }, {
+              onConflict: 'id'
+            });
 
           if (dayError) {
+            console.error('Error upserting day plan:', dayError);
             return { success: false, error: dayError.message };
           }
 
-          // Insert activities for this day
+          // Get existing activity IDs for this day
+          const { data: existingActivities } = await supabase
+            .from('activities')
+            .select('id')
+            .eq('day_plan_id', day.id);
+
+          const existingActivityIds = new Set(existingActivities?.map(a => a.id) || []);
+          const newActivityIds = new Set(day.activities?.map(a => a.id) || []);
+
+          // Delete activities that are no longer in this day
+          const activityIdsToDelete = [...existingActivityIds].filter(id => !newActivityIds.has(id));
+          if (activityIdsToDelete.length > 0) {
+            const { error: deleteActivitiesError } = await supabase
+              .from('activities')
+              .delete()
+              .in('id', activityIdsToDelete);
+
+            if (deleteActivitiesError) {
+              console.error('Error deleting removed activities:', deleteActivitiesError);
+            }
+          }
+
+          // Upsert activities for this day
           if (day.activities && day.activities.length > 0) {
             const { error: activitiesError } = await supabase
               .from('activities')
-              .insert(
+              .upsert(
                 day.activities.map(a => ({
                   id: a.id,
                   day_plan_id: day.id,
@@ -658,10 +716,14 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
                   notes: a.notes,
                   cost: a.cost || 0,
                   icon_name: a.iconName || null,
-                }))
+                })),
+                {
+                  onConflict: 'id'
+                }
               );
 
             if (activitiesError) {
+              console.error('Error upserting activities:', activitiesError);
               return { success: false, error: activitiesError.message };
             }
           }
@@ -670,21 +732,32 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
 
       // Handle expenses updates if provided
       if (updates.expenses !== undefined) {
-        // Delete existing expenses
-        const { error: deleteExpensesError } = await supabase
+        // Get existing expense IDs
+        const { data: existingExpenses } = await supabase
           .from('expenses')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deleteExpensesError) {
-          console.error('Error deleting expenses:', deleteExpensesError);
-          return { success: false, error: `Failed to delete expenses: ${deleteExpensesError.message}` };
+        const existingExpenseIds = new Set(existingExpenses?.map(e => e.id) || []);
+        const newExpenseIds = new Set(updates.expenses.map(e => e.id));
+
+        // Delete expenses that are no longer in the list
+        const expenseIdsToDelete = [...existingExpenseIds].filter(id => !newExpenseIds.has(id));
+        if (expenseIdsToDelete.length > 0) {
+          const { error: deleteExpensesError } = await supabase
+            .from('expenses')
+            .delete()
+            .in('id', expenseIdsToDelete);
+
+          if (deleteExpensesError) {
+            console.error('Error deleting removed expenses:', deleteExpensesError);
+          }
         }
 
-        // Insert new expenses
+        // Upsert expenses
         if (updates.expenses.length > 0) {
           const { data: { user } } = await supabase.auth.getUser();
-          const { error: insertExpensesError } = await supabase.from('expenses').insert(
+          const { error: upsertExpensesError } = await supabase.from('expenses').upsert(
             updates.expenses.map(e => ({
               id: e.id,
               trip_id: id,
@@ -697,64 +770,92 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               paid_by: e.paidBy || null,
               split_method: e.splitMethod || null,
               created_by: user?.id || null,
-            }))
+            })),
+            {
+              onConflict: 'id'
+            }
           );
 
-          if (insertExpensesError) {
-            console.error('Error inserting expenses:', insertExpensesError);
-            return { success: false, error: `Failed to insert expenses: ${insertExpensesError.message}` };
+          if (upsertExpensesError) {
+            console.error('Error upserting expenses:', upsertExpensesError);
+            return { success: false, error: `Failed to upsert expenses: ${upsertExpensesError.message}` };
           }
         }
       }
 
       // Handle packing list updates if provided
       if (updates.packingList !== undefined) {
-        // Delete existing packing items
-        const { error: deletePackingError } = await supabase
+        // Get existing packing item IDs
+        const { data: existingPacking } = await supabase
           .from('packing_items')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deletePackingError) {
-          console.error('Error deleting packing items:', deletePackingError);
-          return { success: false, error: `Failed to delete packing items: ${deletePackingError.message}` };
+        const existingPackingIds = new Set(existingPacking?.map(p => p.id) || []);
+        const newPackingIds = new Set(updates.packingList.map(p => p.id));
+
+        // Delete packing items that are no longer in the list
+        const packingIdsToDelete = [...existingPackingIds].filter(id => !newPackingIds.has(id));
+        if (packingIdsToDelete.length > 0) {
+          const { error: deletePackingError } = await supabase
+            .from('packing_items')
+            .delete()
+            .in('id', packingIdsToDelete);
+
+          if (deletePackingError) {
+            console.error('Error deleting removed packing items:', deletePackingError);
+          }
         }
 
-        // Insert new packing items
+        // Upsert packing items
         if (updates.packingList.length > 0) {
-          const { error: insertPackingError } = await supabase.from('packing_items').insert(
+          const { error: upsertPackingError } = await supabase.from('packing_items').upsert(
             updates.packingList.map(p => ({
               id: p.id,
               trip_id: id,
               name: p.name,
               category: p.category,
               is_packed: p.isPacked,
-            }))
+            })),
+            {
+              onConflict: 'id'
+            }
           );
 
-          if (insertPackingError) {
-            console.error('Error inserting packing items:', insertPackingError);
-            return { success: false, error: `Failed to insert packing items: ${insertPackingError.message}` };
+          if (upsertPackingError) {
+            console.error('Error upserting packing items:', upsertPackingError);
+            return { success: false, error: `Failed to upsert packing items: ${upsertPackingError.message}` };
           }
         }
       }
 
       // Handle wishlist updates if provided
       if (updates.wishlist !== undefined) {
-        // Delete existing wishlist items
-        const { error: deleteWishlistError } = await supabase
+        // Get existing wishlist item IDs
+        const { data: existingWishlist } = await supabase
           .from('wishlist_places')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deleteWishlistError) {
-          console.error('Error deleting wishlist items:', deleteWishlistError);
-          return { success: false, error: `Failed to delete wishlist items: ${deleteWishlistError.message}` };
+        const existingWishlistIds = new Set(existingWishlist?.map(w => w.id) || []);
+        const newWishlistIds = new Set(updates.wishlist.map(w => w.id));
+
+        // Delete wishlist items that are no longer in the list
+        const wishlistIdsToDelete = [...existingWishlistIds].filter(id => !newWishlistIds.has(id));
+        if (wishlistIdsToDelete.length > 0) {
+          const { error: deleteWishlistError } = await supabase
+            .from('wishlist_places')
+            .delete()
+            .in('id', wishlistIdsToDelete);
+
+          if (deleteWishlistError) {
+            console.error('Error deleting removed wishlist items:', deleteWishlistError);
+          }
         }
 
-        // Insert new wishlist items
+        // Upsert wishlist items
         if (updates.wishlist.length > 0) {
-          const { error: insertWishlistError } = await supabase.from('wishlist_places').insert(
+          const { error: upsertWishlistError } = await supabase.from('wishlist_places').upsert(
             updates.wishlist.map(w => ({
               id: w.id,
               trip_id: id,
@@ -762,32 +863,46 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               category: w.category,
               notes: w.notes,
               rating: w.rating,
-            }))
+            })),
+            {
+              onConflict: 'id'
+            }
           );
 
-          if (insertWishlistError) {
-            console.error('Error inserting wishlist items:', insertWishlistError);
-            return { success: false, error: `Failed to insert wishlist items: ${insertWishlistError.message}` };
+          if (upsertWishlistError) {
+            console.error('Error upserting wishlist items:', upsertWishlistError);
+            return { success: false, error: `Failed to upsert wishlist items: ${upsertWishlistError.message}` };
           }
         }
       }
 
       // Handle documents updates if provided
       if (updates.documents !== undefined) {
-        // Delete existing documents
-        const { error: deleteDocumentsError } = await supabase
+        // Get existing document IDs
+        const { data: existingDocuments } = await supabase
           .from('travel_documents')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deleteDocumentsError) {
-          console.error('Error deleting documents:', deleteDocumentsError);
-          return { success: false, error: `Failed to delete documents: ${deleteDocumentsError.message}` };
+        const existingDocumentIds = new Set(existingDocuments?.map(d => d.id) || []);
+        const newDocumentIds = new Set(updates.documents.map(d => d.id));
+
+        // Delete documents that are no longer in the list
+        const documentIdsToDelete = [...existingDocumentIds].filter(id => !newDocumentIds.has(id));
+        if (documentIdsToDelete.length > 0) {
+          const { error: deleteDocumentsError } = await supabase
+            .from('travel_documents')
+            .delete()
+            .in('id', documentIdsToDelete);
+
+          if (deleteDocumentsError) {
+            console.error('Error deleting removed documents:', deleteDocumentsError);
+          }
         }
 
-        // Insert new documents
+        // Upsert documents
         if (updates.documents.length > 0) {
-          const { error: insertDocumentsError } = await supabase.from('travel_documents').insert(
+          const { error: upsertDocumentsError } = await supabase.from('travel_documents').upsert(
             updates.documents.map(d => ({
               id: d.id,
               trip_id: id,
@@ -800,32 +915,46 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               status: d.status || null,
               gate: d.gate || null,
               last_updated: d.lastUpdated || null,
-            }))
+            })),
+            {
+              onConflict: 'id'
+            }
           );
 
-          if (insertDocumentsError) {
-            console.error('Error inserting documents:', insertDocumentsError);
-            return { success: false, error: `Failed to insert documents: ${insertDocumentsError.message}` };
+          if (upsertDocumentsError) {
+            console.error('Error upserting documents:', upsertDocumentsError);
+            return { success: false, error: `Failed to upsert documents: ${upsertDocumentsError.message}` };
           }
         }
       }
 
       // Handle alerts updates if provided
       if (updates.alerts !== undefined) {
-        // Delete existing alerts
-        const { error: deleteAlertsError } = await supabase
+        // Get existing alert IDs
+        const { data: existingAlerts } = await supabase
           .from('travel_alerts')
-          .delete()
+          .select('id')
           .eq('trip_id', id);
 
-        if (deleteAlertsError) {
-          console.error('Error deleting alerts:', deleteAlertsError);
-          return { success: false, error: `Failed to delete alerts: ${deleteAlertsError.message}` };
+        const existingAlertIds = new Set(existingAlerts?.map(a => a.id) || []);
+        const newAlertIds = new Set(updates.alerts.map(a => a.id));
+
+        // Delete alerts that are no longer in the list
+        const alertIdsToDelete = [...existingAlertIds].filter(id => !newAlertIds.has(id));
+        if (alertIdsToDelete.length > 0) {
+          const { error: deleteAlertsError } = await supabase
+            .from('travel_alerts')
+            .delete()
+            .in('id', alertIdsToDelete);
+
+          if (deleteAlertsError) {
+            console.error('Error deleting removed alerts:', deleteAlertsError);
+          }
         }
 
-        // Insert new alerts
+        // Upsert alerts
         if (updates.alerts.length > 0) {
-          const { error: insertAlertsError } = await supabase.from('travel_alerts').insert(
+          const { error: upsertAlertsError } = await supabase.from('travel_alerts').upsert(
             updates.alerts.map(a => ({
               id: a.id,
               trip_id: id,
@@ -834,12 +963,15 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
               description: a.description || null,
               severity: a.severity,
               date: a.date || null,
-            }))
+            })),
+            {
+              onConflict: 'id'
+            }
           );
 
-          if (insertAlertsError) {
-            console.error('Error inserting alerts:', insertAlertsError);
-            return { success: false, error: `Failed to insert alerts: ${insertAlertsError.message}` };
+          if (upsertAlertsError) {
+            console.error('Error upserting alerts:', upsertAlertsError);
+            return { success: false, error: `Failed to upsert alerts: ${upsertAlertsError.message}` };
           }
         }
       }

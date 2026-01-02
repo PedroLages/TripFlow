@@ -12,6 +12,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTerminology } from '../../hooks/TerminologyContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 interface ItineraryTabProps {
   trip: Trip;
@@ -61,6 +62,7 @@ const ActivityIcon = ({ name, className }: { name?: string, className?: string }
 
 const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const t = useTerminology();
+  const { confirm } = useConfirm();
   const [editingActivity, setEditingActivity] = useState<{ dayId: string; activity: Activity | null } | null>(null);
   const isEditor = trip.currentUserRole === 'Editor';
 
@@ -83,12 +85,21 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       }
       return day;
     });
+
     updateTrip({ ...trip, itinerary: newItinerary });
     setEditingActivity(null);
   };
 
-  const deleteActivity = (dayId: string, activityId: string) => {
-    if (!confirm('Abort this activity?')) return;
+  const deleteActivity = async (dayId: string, activityId: string) => {
+    const confirmed = await confirm({
+      title: 'Delete Activity',
+      message: 'Are you sure you want to remove this activity from your itinerary?',
+      type: 'warning',
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
+    });
+
+    if (!confirmed) return;
     const newItinerary = trip.itinerary.map(day => {
       if (day.id === dayId) {
         return { ...day, activities: day.activities.filter(a => a.id !== activityId) };
@@ -135,7 +146,14 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
             <p className="text-white/60 text-sm font-medium max-w-xs">Organize your destination waypoints with tactical precision.</p>
           </div>
           {isEditor && (
-            <button className="relative z-10 w-full bg-white text-brand-secondary hover:bg-slate-100 px-4 py-3 rounded-2xl font-bold text-[10px] flex items-center justify-center gap-2 transition-all shadow-xl uppercase tracking-widest">
+            <button
+              type="button"
+              onClick={() => {
+                // TODO: Implement AI Designer Mode functionality
+                console.log('AI Designer Mode clicked - feature coming soon!');
+              }}
+              className="relative z-10 w-full bg-white text-brand-secondary hover:bg-slate-100 px-4 py-3 rounded-2xl font-bold text-[10px] flex items-center justify-center gap-2 transition-all shadow-xl uppercase tracking-widest"
+            >
               <Wand2 size={14} className="text-brand-primary" /> AI Designer Mode
             </button>
           )}
@@ -169,7 +187,11 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 Start building your tactical itinerary by adding your first phase. Each phase represents a day in your journey.
               </p>
               <button
-                onClick={addDay}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  addDay();
+                }}
                 className="px-8 py-4 bg-brand-primary hover:bg-brand-secondary text-white font-bold rounded-2xl transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 mx-auto"
               >
                 <Plus size={20} />
@@ -186,7 +208,14 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 <span className="text-[8px] px-2 py-0.5 bg-brand-primary text-white rounded-lg uppercase tracking-widest font-black">PHASE {dayIdx + 1}</span>
                 <span>{format(parseISO(day.date), 'EEE, MMM dd')}</span>
                 {isEditor && (
-                  <button onClick={() => setEditingActivity({ dayId: day.id, activity: { id: uuidv4(), type: 'Attraction', name: '', startTime: '09:00', endTime: '10:00', location: '', notes: '', cost: 0, iconName: 'Landmark' } })} className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center hover:rotate-90 transition-all shadow-lg">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditingActivity({ dayId: day.id, activity: { id: uuidv4(), type: 'Attraction', name: '', startTime: '09:00', endTime: '10:00', location: '', notes: '', cost: 0, iconName: 'Landmark' } });
+                    }}
+                    className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-brand-primary text-white flex items-center justify-center hover:rotate-90 transition-all shadow-lg"
+                  >
                     <Plus size={16} />
                   </button>
                 )}
@@ -228,8 +257,26 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                               <p className="text-[9px] md:text-[10px] text-slate-400 font-medium italic line-clamp-1">{act.notes || 'No briefing notes.'}</p>
                               {isEditor && (
                                 <div className="flex gap-1">
-                                  <button onClick={() => setEditingActivity({ dayId: day.id, activity: act })} className="p-1.5 text-slate-300 hover:text-brand-primary transition-colors"><Edit3 size={14} /></button>
-                                  <button onClick={() => deleteActivity(day.id, act.id)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setEditingActivity({ dayId: day.id, activity: act });
+                                    }}
+                                    className="p-1.5 text-slate-300 hover:text-brand-primary transition-colors"
+                                  >
+                                    <Edit3 size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      deleteActivity(day.id, act.id);
+                                    }}
+                                    className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -248,7 +295,11 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
         {trip.itinerary.length > 0 && isEditor && (
           <div className="flex justify-center pt-8">
             <button
-              onClick={addDay}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                addDay();
+              }}
               className="group px-8 py-5 bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-secondary hover:to-brand-primary text-white font-bold rounded-[2rem] transition-all shadow-xl hover:shadow-2xl flex items-center gap-3 hover:scale-105 active:scale-95"
             >
               <div className="p-2 bg-white/20 rounded-xl group-hover:rotate-90 transition-transform duration-300">
@@ -265,11 +316,11 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
           <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] sm:rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[85vh] border border-white/5">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
-                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">Refining Objective Parameters</p>
+                <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">{t.activityConfig}</h3>
+                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">{t.activityConfigSubtitle}</p>
               </div>
-              <button 
-                onClick={() => setEditingActivity(null)} 
+              <button
+                onClick={() => setEditingActivity(null)}
                 className="w-10 h-10 sm:w-12 sm:h-12 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl flex items-center justify-center transition-all text-slate-400"
               >
                 <X size={20} />
@@ -277,14 +328,15 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
             </div>
             <div className="p-6 sm:p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
               <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Objective Signature (Icon)</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t.activityIcon}</label>
                 <div className="grid grid-cols-7 gap-2 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5">
                   {TACTICAL_ICONS.map(item => {
                     const Icon = item.icon;
                     const isSelected = editingActivity.activity?.iconName === item.name;
                     return (
-                      <button 
+                      <button
                         key={item.name}
+                        type="button"
                         onClick={() => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, iconName: item.name } }) : null)}
                         className={`aspect-square rounded-xl flex items-center justify-center transition-all active:scale-90 ${isSelected ? 'bg-brand-primary text-white shadow-md scale-105 z-10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
                       >
@@ -295,9 +347,9 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Designation</label>
-                <input 
-                  value={editingActivity.activity?.name} 
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t.activityName}</label>
+                <input
+                  value={editingActivity.activity?.name}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, name: e.target.value } }) : null)}
                   className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
                   placeholder="e.g., Shibuya Sky"
@@ -305,55 +357,63 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Arrival</label>
-                  <input 
-                    type="time" 
-                    value={editingActivity.activity?.startTime} 
-                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)} 
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm" 
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">{t.activityStart}</label>
+                  <input
+                    type="time"
+                    value={editingActivity.activity?.startTime}
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)}
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Departure</label>
-                  <input 
-                    type="time" 
-                    value={editingActivity.activity?.endTime} 
-                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)} 
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm" 
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">{t.activityEnd}</label>
+                  <input
+                    type="time"
+                    value={editingActivity.activity?.endTime}
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)}
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Geographic Sector</label>
-                <input 
-                  value={editingActivity.activity?.location} 
-                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)} 
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none dark:text-white text-sm shadow-sm" 
-                  placeholder="City or Coordinates" 
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t.activityLocation}</label>
+                <input
+                  value={editingActivity.activity?.location}
+                  onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none dark:text-white text-sm shadow-sm"
+                  placeholder="City or Coordinates"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Briefing Notes</label>
-                <textarea 
-                  value={editingActivity.activity?.notes} 
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{t.activityNotes}</label>
+                <textarea
+                  value={editingActivity.activity?.notes}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, notes: e.target.value } }) : null)}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm" 
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm"
                   placeholder="Key sub-objectives or arrival details..."
                 />
               </div>
             </div>
             <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-white/5 flex flex-row items-center justify-between gap-4 flex-shrink-0">
-              <button 
-                onClick={() => setEditingActivity(null)} 
+              <button
+                type="button"
+                onClick={() => setEditingActivity(null)}
                 className="flex-1 py-4 font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"
               >
-                Abort
+                {t.activityAbort}
               </button>
-              <button 
-                onClick={() => saveActivity(editingActivity.dayId, editingActivity.activity!)} 
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (editingActivity?.activity) {
+                    saveActivity(editingActivity.dayId, editingActivity.activity);
+                  }
+                }}
                 className="flex-[2] py-4 font-bold bg-brand-primary text-white rounded-[1.5rem] shadow-xl hover:shadow-indigo-500/30 active:scale-95 transition-all text-sm uppercase tracking-widest"
               >
-                Lock Objective
+                {t.activityLock}
               </button>
             </div>
           </div>
