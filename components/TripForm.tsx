@@ -325,7 +325,7 @@ const TripForm: React.FC<TripFormProps> = ({ trips = [], onSubmit }) => {
       </div>
 
       {/* Persistent Mobile-First Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 dark:bg-slate-950/80 backdrop-blur-3xl border-t border-slate-100 dark:border-white/5 z-[100] md:relative md:bg-transparent md:border-none md:p-12 md:flex md:justify-end">
+      <div className="fixed bottom-0 left-0 right-0 p-6 z-[100] md:relative md:p-12 md:flex md:justify-end">
         <button
           form="trip-mission-form"
           type="submit"

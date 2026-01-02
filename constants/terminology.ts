@@ -93,6 +93,18 @@ export interface TerminologySet {
   loading: string;
   error: string;
   success: string;
+
+  // Activity Modal
+  activityConfig: string;
+  activityConfigSubtitle: string;
+  activityIcon: string;
+  activityName: string;
+  activityStart: string;
+  activityEnd: string;
+  activityLocation: string;
+  activityNotes: string;
+  activityAbort: string;
+  activityLock: string;
 }
 
 export const TERMINOLOGY: Record<LanguageMode, TerminologySet> = {
@@ -174,6 +186,18 @@ export const TERMINOLOGY: Record<LanguageMode, TerminologySet> = {
     loading: 'Deploying...',
     error: 'Mission Critical',
     success: 'Objective Complete',
+
+    // Activity Modal
+    activityConfig: 'Activity Config',
+    activityConfigSubtitle: 'Refining Objective Parameters',
+    activityIcon: 'Objective Signature (Icon)',
+    activityName: 'Asset Designation',
+    activityStart: 'Arrival',
+    activityEnd: 'Departure',
+    activityLocation: 'Geographic Sector',
+    activityNotes: 'Briefing Notes',
+    activityAbort: 'Abort',
+    activityLock: 'Lock Objective',
   },
 
   standard: {
@@ -254,6 +278,18 @@ export const TERMINOLOGY: Record<LanguageMode, TerminologySet> = {
     loading: 'Loading...',
     error: 'Error',
     success: 'Success',
+
+    // Activity Modal
+    activityConfig: 'Edit Activity',
+    activityConfigSubtitle: 'Manage activity details',
+    activityIcon: 'Icon',
+    activityName: 'Activity Name',
+    activityStart: 'Start Time',
+    activityEnd: 'End Time',
+    activityLocation: 'Location',
+    activityNotes: 'Notes',
+    activityAbort: 'Cancel',
+    activityLock: 'Save Activity',
   },
 };
 

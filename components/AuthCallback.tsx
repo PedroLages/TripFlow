@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../src/lib/supabase';
+import { emailOAuthService } from '../src/services/EmailOAuthService';
 
 export function AuthCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -79,10 +80,14 @@ export function AuthCallback() {
                 setStatus('success');
                 setMessage('Sign in successful! Redirecting...');
                 setTimeout(() => {
-                  // Force a full page reload to ensure App.tsx re-mounts with authenticated state
-                  // Setting hash first, then reloading ensures the app loads at the correct route
-                  window.location.hash = '#/';
-                  window.location.reload();
+                  // Navigate to previous location (for Gmail OAuth) or home
+                  const returnPath = localStorage.getItem('gmail_oauth_return_path');
+                  if (returnPath) {
+                    localStorage.removeItem('gmail_oauth_return_path');
+                    window.location.replace(`/#${returnPath}`);
+                  } else {
+                    window.location.replace('/#/');
+                  }
                 }, 1000);
                 return;
               }
@@ -118,15 +123,46 @@ export function AuthCallback() {
           throw new Error('No authentication session found. Please try signing in again.');
         }
 
+        // Check if this is a Gmail OAuth flow (has provider_token from Google)
+        if (session.provider_token) {
+          console.log('[AuthCallback] Gmail OAuth detected - provider_token present');
+          console.log('[AuthCallback] Provider token scopes (if available):', session);
+
+          setMessage('Storing Gmail connection...');
+
+          // Store the Gmail OAuth connection
+          const gmailResult = await emailOAuthService.handleOAuthCallback();
+
+          if (!gmailResult.success) {
+            console.error('[AuthCallback] Gmail connection storage failed:', gmailResult.error);
+            // Don't fail the entire auth flow - user is still authenticated
+            // They can retry Gmail connection from settings
+          } else {
+            console.log('[AuthCallback] Gmail connection stored successfully');
+          }
+        }
+
         setStatus('success');
         setMessage('Sign in successful! Redirecting...');
 
-        // Redirect to dashboard after a short delay
-        // Force a full page reload to ensure App.tsx re-mounts with authenticated state
+        // Redirect to previous location (for Gmail OAuth) or dashboard
+        const returnPath = localStorage.getItem('gmail_oauth_return_path');
+        console.log('[AuthCallback] Checking redirect path:', {
+          returnPath,
+          hasReturnPath: !!returnPath,
+          currentHash: window.location.hash,
+        });
+
+        // Navigate without reload to avoid service worker cache conflicts
         setTimeout(() => {
-          // Setting hash first, then reloading ensures the app loads at the correct route
-          window.location.hash = '#/';
-          window.location.reload();
+          if (returnPath) {
+            console.log('[AuthCallback] Redirecting to saved path:', returnPath);
+            localStorage.removeItem('gmail_oauth_return_path');
+            window.location.replace(`/#${returnPath}`);
+          } else {
+            console.log('[AuthCallback] No return path, redirecting to dashboard');
+            window.location.replace('/#/');
+          }
         }, 1000);
       } catch (err) {
         console.error('Auth callback error:', err);
