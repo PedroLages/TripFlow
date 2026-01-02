@@ -63,7 +63,7 @@ const AppContent: React.FC<{
           <Route path="/" element={<Dashboard trips={trips.filter(t => t.ownerEmail === user!.email || t.collaborators.some(c => c.email === user!.email))} settings={settings} deleteTrip={deleteTrip} />} />
           <Route path="/create" element={<TripForm onSubmit={addTrip} />} />
           <Route path="/edit/:id" element={<TripForm trips={trips} onSubmit={updateTrip} />} />
-          <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={updateTrip} currentUser={user!} />} />
+          <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={setTripStateOnly} currentUser={user!} />} />
           <Route path="/settings" element={<Settings settings={settings} setSettings={setSettings} onLogout={handleLogout} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -97,6 +97,7 @@ const App: React.FC = () => {
     createTrip: supabaseCreateTrip,
     updateTrip: supabaseUpdateTrip,
     deleteTrip: supabaseDeleteTrip,
+    setTripState: setSupabaseTripState,
     isRealtime
   } = useSupabaseTrips();
 
@@ -318,6 +319,16 @@ const App: React.FC = () => {
       // Local storage mode: update local state and persist
       setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
       await storage.saveTrip(updatedTrip);
+    }
+  };
+
+  // State-only update for optimistic updates (no database sync)
+  // Used by mutation hooks to update UI immediately
+  const setTripStateOnly = (updatedTrip: Trip) => {
+    if (isSupabaseConfigured) {
+      setSupabaseTripState(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    } else {
+      setLocalTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
     }
   };
 
