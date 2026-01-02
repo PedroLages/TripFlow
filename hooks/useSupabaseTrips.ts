@@ -645,9 +645,9 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
                 date: day.date,
               })),
               {
-                // Use the composite unique constraint (trip_id, date) for conflict resolution
-                // This ensures we don't create duplicate dates for the same trip
-                onConflict: 'trip_id,date',
+                // Use the primary key for conflict resolution
+                // This handles both new inserts and updates to existing day plans
+                onConflict: 'id',
                 ignoreDuplicates: false
               }
             );
