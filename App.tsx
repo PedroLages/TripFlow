@@ -237,16 +237,17 @@ const App: React.FC = () => {
     loadData();
   }, [isSupabaseConfigured]);
 
-  // Save trips to IndexedDB when they change
+  // Save trips to IndexedDB when they change (only in local storage mode)
   useEffect(() => {
-    if (!isLoadingTrips) {
+    // Only persist to IndexedDB when NOT using Supabase
+    if (!isLoadingTrips && !isSupabaseConfigured) {
       trips.forEach((trip) => {
         storage.saveTrip(trip).catch((error) => {
           console.error('[App] Error saving trip:', error);
         });
       });
     }
-  }, [trips, isLoadingTrips]);
+  }, [trips, isLoadingTrips, isSupabaseConfigured]);
 
   // Sync sidebar state FROM settings (when settings load or change)
   useEffect(() => {

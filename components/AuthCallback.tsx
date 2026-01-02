@@ -79,10 +79,8 @@ export function AuthCallback() {
                 setStatus('success');
                 setMessage('Sign in successful! Redirecting...');
                 setTimeout(() => {
-                  // Force a full page reload to ensure App.tsx re-mounts with authenticated state
-                  // Setting hash first, then reloading ensures the app loads at the correct route
-                  window.location.hash = '#/';
-                  window.location.reload();
+                  // Navigate to root with hash, replacing the current history entry
+                  window.location.replace('/#/');
                 }, 1000);
                 return;
               }
@@ -122,11 +120,10 @@ export function AuthCallback() {
         setMessage('Sign in successful! Redirecting...');
 
         // Redirect to dashboard after a short delay
-        // Force a full page reload to ensure App.tsx re-mounts with authenticated state
+        // Use replace() to avoid adding to history and prevent back-button loops
         setTimeout(() => {
-          // Setting hash first, then reloading ensures the app loads at the correct route
-          window.location.hash = '#/';
-          window.location.reload();
+          // Navigate to root with hash, replacing the current history entry
+          window.location.replace('/#/');
         }, 1000);
       } catch (err) {
         console.error('Auth callback error:', err);
