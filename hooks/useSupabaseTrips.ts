@@ -414,6 +414,15 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         return { success: false, error: insertError.message };
       }
 
+      // Optimistic update: Add trip to state immediately after main insert succeeds
+      const newTrip: Trip = {
+        ...trip,
+        id: data.id,
+        ownerEmail: user.email || '',
+        isPast: new Date(trip.endDate) < new Date(),
+      } as Trip;
+      setTrips(prev => [...prev, newTrip]);
+
       // Insert related data (expenses, packing items, etc.)
       if (trip.expenses && trip.expenses.length > 0) {
         await supabase.from('expenses').insert(
@@ -582,6 +591,7 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
 
   /**
    * Update an existing trip
+   * Uses optimistic updates for instant UI feedback
    */
   const updateTrip = useCallback(async (
     id: string,
@@ -590,6 +600,12 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
     if (!supabase) {
       return { success: false, error: 'Supabase is not configured' };
     }
+
+    // Save previous state for rollback on failure
+    const previousTrips = trips;
+
+    // Optimistic update: Update UI immediately
+    setTrips(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
 
     try {
       // Update main trip fields
@@ -610,6 +626,8 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
           .eq('id', id);
 
         if (updateError) {
+          // Rollback optimistic update on failure
+          setTrips(previousTrips);
           return { success: false, error: updateError.message };
         }
       }
@@ -625,10 +643,17 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
                 id: day.id,
                 trip_id: id,
                 date: day.date,
-              }))
+              })),
+              {
+                // Use the composite unique constraint (trip_id, date) for conflict resolution
+                // This ensures we don't create duplicate dates for the same trip
+                onConflict: 'trip_id,date',
+                ignoreDuplicates: false
+              }
             );
 
           if (upsertError) {
+            console.error('[useSupabaseTrips] Upsert error:', upsertError);
             return { success: false, error: upsertError.message };
           }
         }
@@ -697,7 +722,12 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
                   notes: a.notes,
                   cost: a.cost || 0,
                   icon_name: a.iconName || null,
-                }))
+                })),
+                {
+                  // Use primary key for conflict resolution
+                  onConflict: 'id',
+                  ignoreDuplicates: false
+                }
               );
 
             if (activitiesError) {
@@ -791,22 +821,29 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
           return { success: false, error: `Failed to delete wishlist items: ${deleteWishlistError.message}` };
         }
 
-        // Insert new wishlist items
+        // Upsert new wishlist items (handles both insert and update)
         if (updates.wishlist.length > 0) {
-          const { error: insertWishlistError } = await supabase.from('wishlist_places').insert(
-            updates.wishlist.map(w => ({
-              id: w.id,
-              trip_id: id,
-              name: w.name,
-              category: w.category,
-              notes: w.notes,
-              rating: w.rating,
-            }))
-          );
+          const { error: upsertWishlistError } = await supabase
+            .from('wishlist_places')
+            .upsert(
+              updates.wishlist.map(w => ({
+                id: w.id,
+                trip_id: id,
+                name: w.name,
+                category: w.category,
+                notes: w.notes,
+                rating: w.rating,
+              })),
+              {
+                // Use the primary key for conflict resolution
+                onConflict: 'id',
+                ignoreDuplicates: false
+              }
+            );
 
-          if (insertWishlistError) {
-            console.error('Error inserting wishlist items:', insertWishlistError);
-            return { success: false, error: `Failed to insert wishlist items: ${insertWishlistError.message}` };
+          if (upsertWishlistError) {
+            console.error('Error upserting wishlist items:', upsertWishlistError);
+            return { success: false, error: `Failed to upsert wishlist items: ${upsertWishlistError.message}` };
           }
         }
       }
@@ -886,12 +923,15 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
       return { success: true };
     } catch (err) {
       console.error('Error updating trip:', err);
+      // Rollback optimistic update on failure
+      setTrips(previousTrips);
       return { success: false, error: err instanceof Error ? err.message : 'Failed to update trip' };
     }
-  }, []);
+  }, [trips]);
 
   /**
    * Delete a trip
+   * Uses optimistic updates for instant UI feedback
    */
   const deleteTrip = useCallback(async (
     id: string
@@ -900,6 +940,12 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
       return { success: false, error: 'Supabase is not configured' };
     }
 
+    // Save trip for potential rollback
+    const tripToDelete = trips.find(t => t.id === id);
+
+    // Optimistic update: Remove from UI immediately
+    setTrips(prev => prev.filter(t => t.id !== id));
+
     try {
       const { error: deleteError } = await supabase
         .from('trips')
@@ -907,15 +953,23 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         .eq('id', id);
 
       if (deleteError) {
+        // Rollback: Restore deleted trip
+        if (tripToDelete) {
+          setTrips(prev => [...prev, tripToDelete]);
+        }
         return { success: false, error: deleteError.message };
       }
 
       return { success: true };
     } catch (err) {
       console.error('Error deleting trip:', err);
+      // Rollback: Restore deleted trip
+      if (tripToDelete) {
+        setTrips(prev => [...prev, tripToDelete]);
+      }
       return { success: false, error: err instanceof Error ? err.message : 'Failed to delete trip' };
     }
-  }, []);
+  }, [trips]);
 
   return {
     trips,

@@ -34,22 +34,29 @@ export function useSupabaseSettings() {
       if (profileError) {
         // If profile doesn't exist yet, create it with Google OAuth data
         if (profileError.code === 'PGRST116') {
-          const { data: newProfile, error: insertError } = await supabase
+          // Use upsert with onConflict to handle race conditions during OAuth
+          const { data: newProfile, error: upsertError } = await supabase
             .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email!,
-              full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-              avatar_url: user.user_metadata?.avatar_url || null,
-              theme: 'light',
-              preferred_currency: 'USD',
-              home_location: '',
-            })
+            .upsert(
+              {
+                id: user.id,
+                email: user.email!,
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+                avatar_url: user.user_metadata?.avatar_url || null,
+                theme: 'light',
+                preferred_currency: 'USD',
+                home_location: '',
+              },
+              {
+                onConflict: 'id',
+                ignoreDuplicates: false
+              }
+            )
             .select()
             .single();
 
-          if (insertError) {
-            throw insertError;
+          if (upsertError) {
+            throw upsertError;
           }
 
           // Map new profile to settings
