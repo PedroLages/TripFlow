@@ -29,7 +29,7 @@ export interface GeminiRequest {
     maxOutputTokens?: number;
     topP?: number;
     topK?: number;
-    tools?: Array<{ googleSearch?: Record<string, never> }>;
+    tools?: Array<{ google_search?: Record<string, never> }>;  // Fixed: Official Gemini 2.0+ API uses snake_case
     responseSchema?: any;
     responseMimeType?: string;
     thinkingConfig?: {
@@ -132,7 +132,7 @@ class GeminiService {
       ...request,
       config: {
         ...request.config,
-        tools: [{ googleSearch: {} }],
+        tools: [{ google_search: {} }],  // Fixed: Official Gemini 2.0+ API uses snake_case
       },
     });
   }
