@@ -11,17 +11,20 @@
  * - Background refetching to ensure sync
  *
  * Note: These hooks work alongside the existing useSupabaseTrips hook
- * by calling updateTrip directly for immediate UI updates.
+ * by calling setTripState directly for immediate UI updates (optimistic).
+ *
+ * Security: All user input is automatically escaped by React when rendered
+ * via JSX, providing XSS protection. No HTML rendering is used in this module.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { Trip, DayPlan, Activity } from '../../types';
 
-// Context for passing updateTrip function
+// Context for passing state setter function
 interface MutationContext {
   trip: Trip;
-  updateTrip: (trip: Trip) => void;
+  setTripState: (trip: Trip) => void;
 }
 
 // ============================================================================
@@ -31,7 +34,7 @@ interface MutationContext {
 interface AddPhaseVariables {
   trip: Trip;
   dayPlan: DayPlan;
-  updateTrip: (trip: Trip) => void;
+  setTripState: (trip: Trip) => void;
 }
 
 export function useAddPhaseMutation() {
@@ -60,7 +63,7 @@ export function useAddPhaseMutation() {
     },
 
     // Optimistic update: Update local state immediately
-    onMutate: async ({ trip, dayPlan, updateTrip }) => {
+    onMutate: async ({ trip, dayPlan, setTripState }) => {
       // Update trip state immediately for instant UI feedback
       const updatedTrip = {
         ...trip,
@@ -69,17 +72,18 @@ export function useAddPhaseMutation() {
         ),
       };
 
-      updateTrip(updatedTrip);
+      setTripState(updatedTrip);
 
       // Return previous trip for potential rollback
-      return { previousTrip: trip, updateTrip };
+      return { previousTrip: trip, setTripState };
     },
 
     // Rollback on error
-    onError: (err, variables, context) => {
+    onError: (err, variables, context?: MutationContext & { previousTrip: Trip }) => {
       console.error('Error adding phase:', err);
-      if (context) {
-        context.updateTrip(context.previousTrip);
+      // Safeguard: Ensure context and required properties exist before rollback
+      if (context?.previousTrip && context?.setTripState) {
+        context.setTripState(context.previousTrip);
       }
     },
   });
@@ -92,7 +96,7 @@ export function useAddPhaseMutation() {
 interface DeletePhaseVariables {
   trip: Trip;
   phaseId: string;
-  updateTrip: (trip: Trip) => void;
+  setTripState: (trip: Trip) => void;
 }
 
 export function useDeletePhaseMutation() {
@@ -111,23 +115,24 @@ export function useDeletePhaseMutation() {
     },
 
     // Optimistic update: Update local state immediately
-    onMutate: async ({ trip, phaseId, updateTrip }) => {
+    onMutate: async ({ trip, phaseId, setTripState }) => {
       // Update trip state immediately for instant UI feedback
       const updatedTrip = {
         ...trip,
         itinerary: trip.itinerary.filter((day) => day.id !== phaseId),
       };
 
-      updateTrip(updatedTrip);
+      setTripState(updatedTrip);
 
       // Return previous trip for potential rollback
-      return { previousTrip: trip, updateTrip };
+      return { previousTrip: trip, setTripState };
     },
 
-    onError: (err, variables, context) => {
+    onError: (err, variables, context?: MutationContext & { previousTrip: Trip }) => {
       console.error('Error deleting phase:', err);
-      if (context) {
-        context.updateTrip(context.previousTrip);
+      // Safeguard: Ensure context and required properties exist before rollback
+      if (context?.previousTrip && context?.setTripState) {
+        context.setTripState(context.previousTrip);
       }
     },
   });
@@ -141,7 +146,7 @@ interface AddActivityVariables {
   trip: Trip;
   dayId: string;
   activity: Activity;
-  updateTrip: (trip: Trip) => void;
+  setTripState: (trip: Trip) => void;
 }
 
 export function useAddActivityMutation() {
@@ -175,7 +180,7 @@ export function useAddActivityMutation() {
       return { dayId, activity };
     },
 
-    onMutate: async ({ trip, dayId, activity, updateTrip }) => {
+    onMutate: async ({ trip, dayId, activity, setTripState }) => {
       // Update trip state immediately for instant UI feedback
       const updatedTrip = {
         ...trip,
@@ -191,16 +196,17 @@ export function useAddActivityMutation() {
         ),
       };
 
-      updateTrip(updatedTrip);
+      setTripState(updatedTrip);
 
       // Return previous trip for potential rollback
-      return { previousTrip: trip, updateTrip };
+      return { previousTrip: trip, setTripState };
     },
 
-    onError: (err, variables, context) => {
+    onError: (err, variables, context?: MutationContext & { previousTrip: Trip }) => {
       console.error('Error adding activity:', err);
-      if (context) {
-        context.updateTrip(context.previousTrip);
+      // Safeguard: Ensure context and required properties exist before rollback
+      if (context?.previousTrip && context?.setTripState) {
+        context.setTripState(context.previousTrip);
       }
     },
   });
@@ -214,7 +220,7 @@ interface DeleteActivityVariables {
   trip: Trip;
   dayId: string;
   activityId: string;
-  updateTrip: (trip: Trip) => void;
+  setTripState: (trip: Trip) => void;
 }
 
 export function useDeleteActivityMutation() {
@@ -232,7 +238,7 @@ export function useDeleteActivityMutation() {
       return { activityId };
     },
 
-    onMutate: async ({ trip, dayId, activityId, updateTrip }) => {
+    onMutate: async ({ trip, dayId, activityId, setTripState }) => {
       // Update trip state immediately for instant UI feedback
       const updatedTrip = {
         ...trip,
@@ -248,16 +254,17 @@ export function useDeleteActivityMutation() {
         ),
       };
 
-      updateTrip(updatedTrip);
+      setTripState(updatedTrip);
 
       // Return previous trip for potential rollback
-      return { previousTrip: trip, updateTrip };
+      return { previousTrip: trip, setTripState };
     },
 
-    onError: (err, variables, context) => {
+    onError: (err, variables, context?: MutationContext & { previousTrip: Trip }) => {
       console.error('Error deleting activity:', err);
-      if (context) {
-        context.updateTrip(context.previousTrip);
+      // Safeguard: Ensure context and required properties exist before rollback
+      if (context?.previousTrip && context?.setTripState) {
+        context.setTripState(context.previousTrip);
       }
     },
   });
@@ -271,7 +278,7 @@ interface UpdateActivityVariables {
   trip: Trip;
   dayId: string;
   activity: Activity;
-  updateTrip: (trip: Trip) => void;
+  setTripState: (trip: Trip) => void;
 }
 
 export function useUpdateActivityMutation() {
@@ -298,7 +305,7 @@ export function useUpdateActivityMutation() {
       return { dayId, activity };
     },
 
-    onMutate: async ({ trip, dayId, activity, updateTrip }) => {
+    onMutate: async ({ trip, dayId, activity, setTripState }) => {
       // Update trip state immediately for instant UI feedback
       const updatedTrip = {
         ...trip,
@@ -314,16 +321,17 @@ export function useUpdateActivityMutation() {
         ),
       };
 
-      updateTrip(updatedTrip);
+      setTripState(updatedTrip);
 
       // Return previous trip for potential rollback
-      return { previousTrip: trip, updateTrip };
+      return { previousTrip: trip, setTripState };
     },
 
-    onError: (err, variables, context) => {
+    onError: (err, variables, context?: MutationContext & { previousTrip: Trip }) => {
       console.error('Error updating activity:', err);
-      if (context) {
-        context.updateTrip(context.previousTrip);
+      // Safeguard: Ensure context and required properties exist before rollback
+      if (context?.previousTrip && context?.setTripState) {
+        context.setTripState(context.previousTrip);
       }
     },
   });
