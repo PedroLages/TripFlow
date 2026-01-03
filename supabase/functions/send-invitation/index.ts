@@ -33,6 +33,9 @@ serve(async (req) => {
   try {
     // 1. Verify authentication
     const authHeader = req.headers.get('Authorization');
+    console.log('[Auth Check] Authorization header present:', !!authHeader);
+    console.log('[Auth Check] Header value (first 20 chars):', authHeader?.substring(0, 20));
+
     if (!authHeader) {
       throw new Error('Missing authorization header');
     }
@@ -44,9 +47,14 @@ serve(async (req) => {
     );
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    console.log('[Auth Check] getUser result:', { hasUser: !!user, error: userError?.message });
+
     if (userError || !user) {
+      console.error('[Auth Check] Authentication failed:', userError);
       throw new Error('Unauthorized');
     }
+
+    console.log('[Auth Check] User authenticated:', user.id);
 
     // 2. Parse and validate request body
     const { tripId, inviteeEmail, role }: InvitationRequest = await req.json();

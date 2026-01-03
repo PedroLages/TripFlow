@@ -59,10 +59,14 @@ export async function sendInvitation(
       tokenLength: session.access_token?.length
     });
 
-    // Call the Edge Function
+    // Call the Edge Function with explicit auth header
+    // Note: Supabase client should handle this automatically, but we're setting it explicitly
+    // to ensure the session token is passed correctly
     const { data, error } = await supabase.functions.invoke('send-invitation', {
-      body: request
-      // Note: Don't manually set Authorization header - Supabase client handles this automatically
+      body: request,
+      headers: {
+        Authorization: `Bearer ${session.access_token}`
+      }
     });
 
     if (error) {
