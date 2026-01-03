@@ -100,7 +100,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
         trip,
         dayId,
         activity,
-        updateTrip,
+        setTripState: updateTrip,
       });
     } else {
       // Add new activity
@@ -108,7 +108,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
         trip,
         dayId,
         activity,
-        updateTrip,
+        setTripState: updateTrip,
       });
     }
 
@@ -126,7 +126,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       trip,
       dayId: deleteConfirm.dayId,
       activityId: deleteConfirm.activityId,
-      updateTrip,
+      setTripState: updateTrip,
     });
 
     setDeleteConfirm(null);
@@ -161,7 +161,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     addPhaseMutation.mutate({
       trip,
       dayPlan: newDay,
-      updateTrip,
+      setTripState: updateTrip,
     });
   };
 
