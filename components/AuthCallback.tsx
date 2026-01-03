@@ -108,11 +108,12 @@ export function AuthCallback() {
                     localStorage.removeItem('gmail_oauth_return_path');
                     // SECURITY: Validate return path before redirect to prevent XSS/open redirect
                     const safePath = isValidReturnPath(returnPath) ? returnPath : '/';
-                    // Use full URL to force proper navigation
-                    window.location.href = `${window.location.origin}/#${safePath}`;
+                    // Navigate by changing hash first, then reload
+                    window.location.hash = safePath;
+                    window.location.reload();
                   } else {
-                    // Use full URL to force proper navigation
-                    window.location.href = `${window.location.origin}/#/`;
+                    // Load the base URL without hash - app will initialize at home route
+                    window.location.href = window.location.origin + '/';
                   }
                 }, 300);
                 return;
@@ -186,12 +187,13 @@ export function AuthCallback() {
             localStorage.removeItem('gmail_oauth_return_path');
             // SECURITY: Validate return path before redirect to prevent XSS/open redirect
             const safePath = isValidReturnPath(returnPath) ? returnPath : '/';
-            // Use full URL to force proper navigation
-            window.location.href = `${window.location.origin}/#${safePath}`;
+            // Navigate by changing hash first, then reload
+            window.location.hash = safePath;
+            window.location.reload();
           } else {
             console.log('[AuthCallback] No return path, redirecting to dashboard');
-            // Use full URL to force proper navigation
-            window.location.href = `${window.location.origin}/#/`;
+            // Load the base URL without hash - app will initialize at home route
+            window.location.href = window.location.origin + '/';
           }
         }, 300);
       } catch (err) {
