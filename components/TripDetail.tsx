@@ -355,7 +355,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         <div className="fixed top-24 right-6 md:right-10 z-[200] w-[calc(100vw-3rem)] md:w-96 bg-white dark:bg-slate-800 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] rounded-[2.5rem] border border-slate-100 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-4">
           <div className="p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
             <h4 className="font-bold text-base flex items-center gap-3"><Radio size={16} className="text-red-500 animate-pulse" /> Live Intel</h4>
-            <button onClick={() => setShowAlerts(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors"><X size={20} className="text-slate-400" /></button>
+            <button onClick={() => setShowAlerts(false)} aria-label="Close live intel panel" className="p-2 hover:bg-slate-100 rounded-xl transition-colors"><X size={20} className="text-slate-400" /></button>
           </div>
           <div className="max-h-[500px] overflow-y-auto p-6 space-y-4 no-scrollbar">
             {trip.alerts?.length > 0 ? trip.alerts.map(alert => (
@@ -375,7 +375,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
               <div>
                 <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Crew Hub</h3>
               </div>
-              <button onClick={() => setShowShare(false)} className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"><X size={20} /></button>
+              <button onClick={() => setShowShare(false)} aria-label="Close crew hub modal" className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"><X size={20} /></button>
             </div>
 
             <div className="p-6 sm:p-8 space-y-8 overflow-y-auto no-scrollbar">
@@ -510,6 +510,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                               }
                             }
                           }}
+                          aria-label={`Revoke invitation for ${invitation.invitee_email}`}
                           title="Revoke invitation"
                           className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 transition-all flex-shrink-0"
                         >
