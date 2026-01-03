@@ -48,6 +48,7 @@ function mapSupabaseTripToTrip(
     collaborators?: Collaborator[];
     settlements?: Settlement[];
     activityLogs?: ActivityLog[];
+    ownerEmail?: string;
   } = {}
 ): Trip {
   return {
@@ -68,7 +69,7 @@ function mapSupabaseTripToTrip(
     collaborators: extras.collaborators || [],
     alerts: extras.alerts || [],
     activityLogs: extras.activityLogs || [],
-    ownerEmail: '', // Will be populated from profile
+    ownerEmail: extras.ownerEmail || '',
     isPast: new Date(dbTrip.end_date) < new Date(),
     settlements: extras.settlements || [],
   };
@@ -125,15 +126,43 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         return;
       }
 
-      // Fetch trips (RLS handles access control)
-      const { data: tripsData, error: tripsError } = await supabase
+      // Fetch owned trips (RLS policy returns only trips user owns)
+      const { data: ownedTripsData, error: ownedError } = await supabase
         .from('trips')
         .select('*')
         .order('start_date', { ascending: true });
 
-      if (tripsError) {
-        throw tripsError;
+      if (ownedError) {
+        throw ownedError;
       }
+
+      // Fetch trips where user is a member (via RPC function to bypass RLS circular dependency)
+      const { data: memberTripsData, error: memberError } = await supabase
+        .rpc('get_member_trips');
+
+      if (memberError) {
+        console.error('Error fetching member trips:', memberError);
+        // Continue with just owned trips if member fetch fails
+      }
+
+      // Merge and deduplicate trips (owned + member)
+      const tripsMap = new Map<string, SupabaseTrip>();
+
+      // Add owned trips
+      (ownedTripsData || []).forEach(trip => {
+        tripsMap.set(trip.id, trip);
+      });
+
+      // Add member trips (won't overwrite if already owned)
+      (memberTripsData || []).forEach((trip: SupabaseTrip) => {
+        if (!tripsMap.has(trip.id)) {
+          tripsMap.set(trip.id, trip);
+        }
+      });
+
+      const tripsData = Array.from(tripsMap.values()).sort((a, b) =>
+        new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      );
 
       if (!tripsData || tripsData.length === 0) {
         setTrips([]);
@@ -275,24 +304,21 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
             date: a.date || '',
           }));
 
+        // Build collaborators list, excluding the owner (they're rendered separately as "Lead Planner")
         const tripCollaborators: Collaborator[] = (membersData || [])
           .filter(m => m.trip_id === dbTrip.id)
+          .filter(m => {
+            // Exclude owner from collaborators list - they're shown separately in the UI
+            const memberEmail = (m.user as any)?.email?.trim().toLowerCase();
+            const ownerEmail = owner?.email?.trim().toLowerCase();
+            return memberEmail !== ownerEmail;
+          })
           .map(m => ({
             email: (m.user as any)?.email || '',
             role: m.role as Collaborator['role'],
             avatar: (m.user as any)?.avatar_url || '',
             isOwner: false,
           }));
-
-        // Add owner as collaborator
-        if (owner) {
-          tripCollaborators.unshift({
-            email: owner.email,
-            role: 'Editor',
-            avatar: owner.avatar_url || '',
-            isOwner: true,
-          });
-        }
 
         // Map day plans and activities to itinerary
         const tripItinerary: DayPlan[] = (dayPlansData || [])
@@ -323,6 +349,7 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
           alerts: tripAlerts,
           collaborators: tripCollaborators,
           itinerary: tripItinerary,
+          ownerEmail: owner?.email || '',
         });
       });
 

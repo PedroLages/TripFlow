@@ -5,11 +5,12 @@ import { Trip, Collaborator, UserRole, User, ActivityLog } from '../types';
 import {
   Calendar, Map as MapIcon, Heart, DollarSign, Package, FileText,
   Settings, Users, X, Bell, Radio, CloudSun, Clock, Sparkles, Edit3, Eye,
-  ChevronLeft, BarChart3, Loader2
+  ChevronLeft, BarChart3, Loader2, ChevronDown, Trash2
 } from 'lucide-react';
 // Added missing import for format from date-fns
 import { format } from 'date-fns';
 import { geminiService } from '../src/services/GeminiService';
+import { sendInvitation, getTripInvitations, revokeInvitation, type TripInvitation } from '../src/services/invitationService';
 import ItineraryTab from './tabs/ItineraryTab';
 import MapTab from './tabs/MapTab';
 import WishlistTab from './tabs/WishlistTab';
@@ -41,7 +42,12 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const [scrollY, setScrollY] = useState(0);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('Editor');
-  
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+  const [pendingInvitations, setPendingInvitations] = useState<TripInvitation[]>([]);
+
   const [liveWeather, setLiveWeather] = useState<{ temp: string, condition: string, time: string } | null>(null);
   const [isFetchingWeather, setIsFetchingWeather] = useState(false);
 
@@ -52,6 +58,32 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const currentRole: UserRole = isOwner ? 'Editor' : (collaborator?.role || 'Viewer');
   const isEditor = currentRole === 'Editor';
 
+  // ESC key handler for modals
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showShare) setShowShare(false);
+        if (showAlerts) setShowAlerts(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showShare, showAlerts]);
+
+  // Load pending invitations when share modal opens
+  useEffect(() => {
+    const loadInvitations = async () => {
+      if (showShare && trip && isEditor) {
+        const result = await getTripInvitations(trip.id);
+        if (result.success && result.invitations) {
+          setPendingInvitations(result.invitations.filter(inv => inv.status === 'pending'));
+        }
+      }
+    };
+    loadInvitations();
+  }, [showShare, trip?.id, isEditor]);
+
   const createActivityLog = (action: string): ActivityLog => {
     return {
       id: Math.random().toString(36).substr(2, 9),
@@ -59,6 +91,40 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       action,
       timestamp: new Date().toISOString(),
     };
+  };
+
+  const handleRemoveCollaborator = (email: string) => {
+    const updatedCollaborators = trip.collaborators?.filter(c => c.email !== email) || [];
+    const log = createActivityLog(`Removed ${email} from crew`);
+    updateTrip({
+      ...trip,
+      collaborators: updatedCollaborators,
+      activityLogs: [log, ...(trip.activityLogs || [])]
+    });
+  };
+
+  const handleChangeRole = (email: string, newRole: UserRole) => {
+    const updatedCollaborators = trip.collaborators?.map(c =>
+      c.email === email ? { ...c, role: newRole } : c
+    ) || [];
+    const log = createActivityLog(`Changed ${email}'s role to ${newRole}`);
+    updateTrip({
+      ...trip,
+      collaborators: updatedCollaborators,
+      activityLogs: [log, ...(trip.activityLogs || [])]
+    });
+  };
+
+  const handleLeaveTrip = () => {
+    const updatedCollaborators = trip.collaborators?.filter(c => c.email !== currentUser.email) || [];
+    const log = createActivityLog(`${currentUser.email} left the trip`);
+    updateTrip({
+      ...trip,
+      collaborators: updatedCollaborators,
+      activityLogs: [log, ...(trip.activityLogs || [])]
+    });
+    setShowShare(false);
+    navigate('/');
   };
 
   const fetchLiveInfo = async () => {
@@ -303,61 +369,219 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       )}
 
       {showShare && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8 bg-slate-950/95 backdrop-blur-3xl overflow-hidden">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-xl rounded-[3rem] sm:rounded-[4.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-white/5 flex flex-col max-h-[90vh]">
-            <div className="p-8 sm:p-12 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-white/5 flex flex-col max-h-[90vh]">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
-                <h3 className="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-white">Crew Hub</h3>
+                <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Crew Hub</h3>
               </div>
-              <button onClick={() => setShowShare(false)} className="w-12 h-12 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-[1.5rem] flex items-center justify-center transition-all text-slate-400 flex-shrink-0"><X size={24} /></button>
+              <button onClick={() => setShowShare(false)} className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"><X size={20} /></button>
             </div>
-            
-            <div className="p-8 sm:p-12 space-y-10 overflow-y-auto no-scrollbar">
+
+            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto no-scrollbar">
               {isOwner && (
                 <div className="space-y-4">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Send Invite</label>
-                  <div className="flex gap-3">
-                    <input 
-                      value={inviteEmail} 
-                      onChange={(e) => setInviteEmail(e.target.value)} 
-                      placeholder="explorer@tripflow.ai" 
-                      className="flex-1 p-5 bg-slate-50 dark:bg-slate-900 rounded-3xl outline-none dark:text-white border-2 border-transparent focus:border-brand-primary/20 transition-all text-sm font-bold" 
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="explorer@tripflow.ai"
+                      className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-2xl outline-none dark:text-white border-2 border-transparent focus:border-brand-primary/20 transition-all text-sm font-medium min-w-0"
                     />
-                    <button 
-                      onClick={() => { if(inviteEmail) { updateTrip({...trip, collaborators: [...trip.collaborators, {email: inviteEmail, role: inviteRole, avatar: `https://i.pravatar.cc/150?u=${inviteEmail}`}]}); setInviteEmail(''); } }} 
-                      className="bg-brand-primary text-white px-8 rounded-3xl font-bold text-sm shadow-xl"
-                    >
-                      Invite
-                    </button>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1 sm:flex-initial">
+                        <button
+                          onClick={() => setShowRoleSelector(!showRoleSelector)}
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-2xl font-medium text-sm text-slate-700 dark:text-white border-2 border-transparent hover:border-brand-primary/20 transition-all whitespace-nowrap"
+                        >
+                          {inviteRole === 'Editor' ? <Edit3 size={14} className="text-brand-primary" /> : <Eye size={14} className="text-slate-400" />}
+                          {inviteRole}
+                          <ChevronDown size={14} className="text-slate-400" />
+                        </button>
+                        {showRoleSelector && (
+                          <div className="absolute top-full mt-2 right-0 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 min-w-[140px]">
+                            <button
+                              onClick={() => { setInviteRole('Editor'); setShowRoleSelector(false); }}
+                              className="w-full flex items-center gap-2.5 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-left"
+                            >
+                              <Edit3 size={14} className="text-brand-primary" />
+                              <span className="text-sm font-medium text-slate-900 dark:text-white">Editor</span>
+                            </button>
+                            <button
+                              onClick={() => { setInviteRole('Viewer'); setShowRoleSelector(false); }}
+                              className="w-full flex items-center gap-2.5 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-left"
+                            >
+                              <Eye size={14} className="text-slate-400" />
+                              <span className="text-sm font-medium text-slate-900 dark:text-white">Viewer</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!inviteEmail.trim()) return;
+
+                          setIsSendingInvite(true);
+                          setInviteError(null);
+                          setInviteSuccess(null);
+
+                          const result = await sendInvitation({
+                            tripId: trip.id,
+                            inviteeEmail: inviteEmail.trim(),
+                            role: inviteRole
+                          });
+
+                          setIsSendingInvite(false);
+
+                          if (result.success) {
+                            setInviteSuccess(`Invitation sent to ${inviteEmail}!`);
+                            setInviteEmail('');
+                            // Reload pending invitations
+                            const invitations = await getTripInvitations(trip.id);
+                            if (invitations.success && invitations.invitations) {
+                              setPendingInvitations(invitations.invitations.filter(inv => inv.status === 'pending'));
+                            }
+                            // Clear success message after 3 seconds
+                            setTimeout(() => setInviteSuccess(null), 3000);
+                          } else {
+                            setInviteError(result.error || 'Failed to send invitation');
+                          }
+                        }}
+                        disabled={isSendingInvite || !inviteEmail.trim()}
+                        className="bg-brand-primary text-white px-6 py-3 rounded-2xl font-medium text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all whitespace-nowrap flex-1 sm:flex-initial disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                      >
+                        {isSendingInvite ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          'Invite'
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Success/Error Messages */}
+                    {inviteSuccess && (
+                      <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-400 text-sm font-medium flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        {inviteSuccess}
+                      </div>
+                    )}
+                    {inviteError && (
+                      <div className="mt-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm font-medium">
+                        {inviteError}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
-              
-              <div className="space-y-6">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Active Crew</label>
+
+              {/* Pending Invitations */}
+              {isEditor && pendingInvitations.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-6 rounded-[2.5rem] bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-[1.5rem] bg-brand-primary flex items-center justify-center text-white font-black text-xl shadow-lg">{trip.ownerEmail[0].toUpperCase()}</div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Pending Invitations</label>
+                  <div className="space-y-2">
+                    {pendingInvitations.map((invitation) => (
+                      <div key={invitation.id} className="flex items-center justify-between p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white font-bold text-base shadow-md">
+                            {invitation.invitee_email[0]?.toUpperCase() || '?'}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{invitation.invitee_email}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <Clock size={11} className="text-amber-500 flex-shrink-0" />
+                              <p className="text-[9px] text-amber-600 dark:text-amber-400 font-semibold uppercase tracking-[0.15em]">
+                                Invited as {invitation.role} • Pending
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            const result = await revokeInvitation(invitation.id);
+                            if (result.success) {
+                              // Reload invitations
+                              const invitations = await getTripInvitations(trip.id);
+                              if (invitations.success && invitations.invitations) {
+                                setPendingInvitations(invitations.invitations.filter(inv => inv.status === 'pending'));
+                              }
+                            }
+                          }}
+                          title="Revoke invitation"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 transition-all flex-shrink-0"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Active Crew</label>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-base shadow-md">{trip.ownerEmail?.[0]?.toUpperCase() || 'U'}</div>
                       <div>
-                        <p className="text-base font-bold text-slate-900 dark:text-white">{trip.ownerEmail}</p>
-                        <p className="text-[9px] text-brand-primary font-black uppercase tracking-[0.2em] mt-0.5">Lead Planner</p>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{trip.ownerEmail}</p>
+                        <p className="text-[9px] text-brand-primary font-bold uppercase tracking-[0.15em] mt-0.5">Lead Planner</p>
                       </div>
                     </div>
                   </div>
                   {trip.collaborators?.map((col, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-6 rounded-[2.5rem] hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800 group">
-                      <div className="flex items-center gap-5">
-                        <img src={col.avatar} className="w-14 h-14 rounded-[1.5rem] object-cover shadow-lg border-2 border-white dark:border-slate-800 group-hover:scale-110 transition-transform" />
-                        <div>
-                          <p className="text-base font-bold text-slate-900 dark:text-white">{col.email}</p>
-                          <p className="text-[9px] text-slate-400 flex items-center gap-1 font-bold uppercase tracking-[0.2em] mt-0.5">{col.role}</p>
+                    <div key={idx} className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800 group">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <img src={col.avatar} className="w-10 h-10 rounded-xl object-cover shadow-md border-2 border-white dark:border-slate-800 group-hover:scale-105 transition-transform flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{col.email}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {col.role === 'Editor' ? <Edit3 size={11} className="text-brand-primary flex-shrink-0" /> : <Eye size={11} className="text-slate-400 flex-shrink-0" />}
+                            <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-[0.15em]">{col.role}</p>
+                          </div>
                         </div>
                       </div>
+                      {isOwner && (
+                        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                          <button
+                            onClick={() => {
+                              const newRole = col.role === 'Editor' ? 'Viewer' : 'Editor';
+                              handleChangeRole(col.email, newRole);
+                            }}
+                            title={col.role === 'Editor' ? 'Demote to Viewer (view-only access)' : 'Promote to Editor (can edit trip)'}
+                            className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg text-xs font-medium transition-all whitespace-nowrap"
+                          >
+                            {col.role === 'Editor' ? 'Demote' : 'Promote'}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveCollaborator(col.email)}
+                            title="Remove from trip"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 transition-all flex-shrink-0"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
+
+              {!isOwner && (
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                  <button
+                    onClick={handleLeaveTrip}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-950/50 text-red-600 dark:text-red-400 rounded-2xl font-medium text-sm transition-all border-2 border-red-100 dark:border-red-900/50"
+                  >
+                    <X size={16} />
+                    Leave Trip
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

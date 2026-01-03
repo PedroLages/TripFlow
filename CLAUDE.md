@@ -183,6 +183,73 @@ Use Tailwind utility classes consistently:
 </button>
 ```
 
+#### Modal Design Pattern
+TripFlow uses a compact, modern modal design for consistency and professional appearance:
+
+```tsx
+// Modal container - compact sizing
+<div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
+  <div className="bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-white/5 flex flex-col max-h-[90vh]">
+
+    {/* Modal Header - compact padding */}
+    <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
+      <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Modal Title</h3>
+      <button className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0">
+        <X size={20} />
+      </button>
+    </div>
+
+    {/* Modal Content - compact spacing */}
+    <div className="p-6 sm:p-8 space-y-8 overflow-y-auto no-scrollbar">
+      {/* Inputs - py-3 for ~38px height */}
+      <input className="px-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-2xl outline-none dark:text-white border-2 border-transparent focus:border-brand-primary/20 transition-all text-sm font-medium" />
+
+      {/* Buttons - py-3 for ~38px height */}
+      <button className="px-6 py-3 bg-brand-primary text-white rounded-2xl font-medium text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all">
+        Action
+      </button>
+
+      {/* List items - p-4 padding, space-y-2 */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all">
+          <div className="flex items-center gap-3">
+            <img className="w-10 h-10 rounded-xl object-cover shadow-md" />
+            <p className="text-sm font-semibold">Content</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+**Key sizing principles:**
+
+- Modal padding: `p-6 sm:p-8` (desktop: 32px, mobile: 24px)
+- Section spacing: `space-y-8` (32px between sections)
+- Input/button height: `py-3` (~38px total height)
+- List item padding: `p-4` (16px all around)
+- Avatars: `w-10 h-10` (40px square)
+- Icons: 14-16px for buttons, 20px for close button
+- Border radius: `rounded-2xl` (16px) for most elements, `rounded-xl` (12px) for smaller items
+- Font weights: Use `font-medium` instead of `font-bold` for modern, less "chunky" appearance
+
+**ESC key handling:**
+Always add ESC key support for modal dismissal:
+
+```typescript
+useEffect(() => {
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (modalOpen) setModalOpen(false);
+    }
+  };
+
+  window.addEventListener('keydown', handleEscape);
+  return () => window.removeEventListener('keydown', handleEscape);
+}, [modalOpen]);
+```
+
 ### Data Handling
 
 #### Date Formatting
