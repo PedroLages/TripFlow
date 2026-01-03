@@ -664,6 +664,41 @@ describe('calculateBudgetStatus', () => {
 - Check for conflicting styles
 - Test responsive classes at different breakpoints
 
+### Invitation System Issues
+
+⚠️ **CRITICAL: Edge Function Authentication Configuration**
+
+The `send-invitation` Edge Function requires special authentication configuration. Do not modify these settings without understanding the implications.
+
+**Problem**: Edge Function returns 401 Unauthorized errors despite valid JWT token.
+
+**Root Cause**: Supabase Edge Functions have two authentication layers:
+
+1. **Platform-level JWT verification** (`verify_jwt` setting) - Supabase validates JWT before function runs
+2. **Function-level authentication** (`auth.getUser(token)`) - Function code explicitly validates user
+
+When both layers are enabled (default), they conflict because our function code already handles authentication explicitly ([send-invitation/index.ts:43-79](supabase/functions/send-invitation/index.ts#L43-L79)).
+
+**Solution**: Deploy with platform-level JWT verification disabled:
+
+```bash
+npx supabase functions deploy send-invitation --no-verify-jwt --project-ref xnmbvjlhwrukliuzhhvf
+```
+
+**Why This Works**:
+
+- Function code handles authentication explicitly with `auth.getUser(token)`
+- Checks user permissions (owner or Editor role)
+- Validates invitation business logic
+- Platform-level verification is redundant and causes conflicts
+
+**Related Fixes**:
+
+- Invitation acceptance flow: [AcceptInvitation.tsx:83-91](components/AcceptInvitation.tsx#L83-L91) stores redirect URL in sessionStorage
+- Auto-redirect after login: [useSupabaseAuth.ts:76-82](hooks/useSupabaseAuth.ts#L76-L82) checks for pending invitation URL
+- Avatar imports: [20260103190000_fix_avatar_import_from_oauth.sql](supabase/migrations/20260103190000_fix_avatar_import_from_oauth.sql) extracts Google OAuth avatars
+- Email logo: Uses emoji (✈️) instead of external image for email client compatibility
+
 ## Documentation Organization
 
 ### Folder Structure

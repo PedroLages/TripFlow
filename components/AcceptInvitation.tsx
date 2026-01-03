@@ -81,6 +81,11 @@ export function AcceptInvitation() {
   }, [searchParams, acceptInvitation]);
 
   const handleSignIn = () => {
+    const token = searchParams.get('token');
+    if (token) {
+      // Keep the token in the URL so we can accept after login
+      sessionStorage.setItem('invitation_redirect_url', `/accept-invitation?token=${token}`);
+    }
     // Redirect to home page which will show the login modal
     navigate('/', { replace: true });
   };

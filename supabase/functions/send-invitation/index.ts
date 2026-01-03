@@ -40,9 +40,8 @@ serve(async (req) => {
       throw new Error('Missing authorization header');
     }
 
-    // Create Supabase client with Authorization header for RLS context
-    // This is critical: RLS policies need the auth context to be set on the client
-    // See: https://supabase.com/docs/guides/functions/auth
+    // Create Supabase client for database operations
+    // Set Authorization header globally so RLS policies work correctly
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -54,18 +53,30 @@ serve(async (req) => {
     );
 
     // Verify the user is authenticated
-    // Extract JWT token from Authorization header and pass it to getUser()
-    // This is required for Edge Functions - see https://supabase.com/docs/guides/functions/auth
+    // Extract JWT token and verify it
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    console.log('[Auth Check] getUser result:', { hasUser: !!user, error: userError?.message });
+    console.log('[Auth Check] getUser result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      error: userError?.message,
+      errorDetails: userError
+    });
 
     if (userError || !user) {
-      console.error('[Auth Check] Authentication failed:', userError);
+      console.error('[Auth Check] Authentication failed:', {
+        error: userError,
+        message: userError?.message,
+        status: userError?.status
+      });
       throw new Error('Unauthorized');
     }
 
-    console.log('[Auth Check] User authenticated:', user.id);
+    console.log('[Auth Check] User authenticated successfully:', {
+      id: user.id,
+      email: user.email
+    });
 
     // 2. Parse and validate request body
     const { tripId, inviteeEmail, role }: InvitationRequest = await req.json();
@@ -84,26 +95,33 @@ serve(async (req) => {
       throw new Error('Invalid email address');
     }
 
-    // 3. Check if user is Editor of this trip
-    const { data: membership, error: membershipError } = await supabaseClient
-      .from('trip_members')
-      .select('role, trips!inner(name, owner_id)')
-      .eq('trip_id', tripId)
-      .eq('user_id', user.id)
+    // 3. Check if user is owner or Editor of this trip
+    // First check if trip exists and get owner
+    const { data: trip, error: tripError } = await supabaseClient
+      .from('trips')
+      .select('id, name, owner_id')
+      .eq('id', tripId)
       .single();
 
-    if (membershipError || !membership) {
-      throw new Error('Trip not found or access denied');
+    if (tripError || !trip) {
+      throw new Error('Trip not found');
     }
 
-    // @ts-ignore - trips is a joined relation
-    const tripName = membership.trips.name;
-    // @ts-ignore
-    const ownerId = membership.trips.owner_id;
-    const isOwner = ownerId === user.id;
+    const isOwner = trip.owner_id === user.id;
+    const tripName = trip.name;
 
-    if (membership.role !== 'Editor' && !isOwner) {
-      throw new Error('Only Editors can send invitations');
+    // If not owner, check if user is an Editor member
+    if (!isOwner) {
+      const { data: membership, error: membershipError } = await supabaseClient
+        .from('trip_members')
+        .select('role')
+        .eq('trip_id', tripId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (membershipError || !membership || membership.role !== 'Editor') {
+        throw new Error('Only trip owners and Editors can send invitations');
+      }
     }
 
     // 4. Check if invitation already exists
@@ -165,8 +183,8 @@ serve(async (req) => {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 40px 30px; text-align: center;">
-              <!-- TripFlow Logo -->
-              <img src="https://trip.pedrolages.net/icon.svg" alt="TripFlow" style="width: 56px; height: 56px; margin: 0 auto 16px; display: block;" />
+              <!-- TripFlow Logo (emoji for email client compatibility) -->
+              <div style="font-size: 56px; line-height: 1; margin: 0 auto 16px;">✈️</div>
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
                 TripFlow Invitation
               </h1>

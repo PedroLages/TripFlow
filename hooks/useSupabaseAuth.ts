@@ -67,10 +67,20 @@ export function useSupabaseAuth(): UseSupabaseAuthReturn {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setError(null);
+
+        // Check for pending invitation redirect after sign-in
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          const invitationRedirectUrl = sessionStorage.getItem('invitation_redirect_url');
+          if (invitationRedirectUrl) {
+            sessionStorage.removeItem('invitation_redirect_url');
+            // Redirect to the invitation acceptance page
+            window.location.hash = invitationRedirectUrl;
+          }
+        }
       }
     );
 
