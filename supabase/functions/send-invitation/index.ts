@@ -6,18 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-/**
- * Escapes HTML special characters to prevent XSS attacks
- */
-function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 interface InvitationRequest {
   tripId: string;
   inviteeEmail: string;
@@ -65,11 +53,6 @@ serve(async (req) => {
       throw new Error('Invalid email address');
     }
 
-    // Prevent self-invitation
-    if (inviteeEmail.toLowerCase() === user.email?.toLowerCase()) {
-      throw new Error('You cannot invite yourself to a trip');
-    }
-
     // 3. Check if user is Editor of this trip
     const { data: membership, error: membershipError } = await supabaseClient
       .from('trip_members')
@@ -92,22 +75,7 @@ serve(async (req) => {
       throw new Error('Only Editors can send invitations');
     }
 
-    // 4. Rate limiting: Check how many invitations user has sent in the last hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count: recentInvitationsCount, error: countError } = await supabaseClient
-      .from('trip_invitations')
-      .select('id', { count: 'exact', head: true })
-      .eq('invited_by', user.id)
-      .gte('created_at', oneHourAgo);
-
-    if (countError) {
-      console.error('Error checking rate limit:', countError);
-      // Don't fail the request if count check fails
-    } else if (recentInvitationsCount && recentInvitationsCount >= 20) {
-      throw new Error('Rate limit exceeded. You can send a maximum of 20 invitations per hour.');
-    }
-
-    // 5. Check if invitation already exists
+    // 4. Check if invitation already exists
     const { data: existingInvitation } = await supabaseClient
       .from('trip_invitations')
       .select('id, status')
@@ -120,7 +88,7 @@ serve(async (req) => {
       throw new Error('An active invitation already exists for this email');
     }
 
-    // 6. Create invitation record
+    // 5. Create invitation record
     const { data: invitation, error: invitationError } = await supabaseClient
       .from('trip_invitations')
       .insert({
@@ -137,11 +105,11 @@ serve(async (req) => {
       throw new Error('Failed to create invitation');
     }
 
-    // 7. Generate invitation URL
+    // 6. Generate invitation URL
     const baseUrl = Deno.env.get('APP_URL') || 'https://trip.pedrolages.net';
     const invitationUrl = `${baseUrl}/accept-invitation?token=${invitation.invitation_token}`;
 
-    // 8. Send email via Resend
+    // 7. Send email via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'hello@trip.pedrolages.net';
 
@@ -166,8 +134,15 @@ serve(async (req) => {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 40px 30px; text-align: center;">
+              <!-- Compass Icon -->
+              <div style="margin: 0 auto 16px; width: 56px; height: 56px; background: rgba(255, 255, 255, 0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+              </div>
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                🌍 TripFlow Invitation
+                TripFlow Invitation
               </h1>
               <p style="margin: 10px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; font-weight: 500;">
                 You've been invited to collaborate
@@ -182,12 +157,12 @@ serve(async (req) => {
                 Hi there! 👋
               </p>
               <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.6;">
-                You've been invited to join the trip <strong style="color: #667eea;">${escapeHtml(tripName)}</strong> as a <strong>${escapeHtml(role)}</strong>.
+                You've been invited to join the trip <strong style="color: #667eea;">${tripName}</strong> as a <strong>${role}</strong>.
               </p>
 
               <div style="background-color: #f1f5f9; border-left: 4px solid #667eea; padding: 16px 20px; margin: 30px 0; border-radius: 8px;">
                 <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6;">
-                  <strong style="color: #1e293b;">Your Role:</strong> ${escapeHtml(role)}
+                  <strong style="color: #1e293b;">Your Role:</strong> ${role}
                 </p>
                 <p style="margin: 8px 0 0; color: #475569; font-size: 13px;">
                   ${role === 'Editor'
@@ -278,9 +253,9 @@ Sent by TripFlow — Smart trip planning, together.
         'Authorization': `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: fromEmail,
+        from: `TripFlow <${fromEmail}>`,
         to: inviteeEmail,
-        subject: `You're invited to ${escapeHtml(tripName)} on TripFlow 🌍`,
+        subject: `You're invited to ${escapeHtml(tripName)} on TripFlow`,
         html: emailHtml,
         text: emailText,
       }),
@@ -294,7 +269,7 @@ Sent by TripFlow — Smart trip planning, together.
 
     const emailData = await emailResponse.json();
 
-    // 9. Return success response
+    // 8. Return success response
     return new Response(
       JSON.stringify({
         success: true,
