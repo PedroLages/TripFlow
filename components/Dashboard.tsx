@@ -167,7 +167,7 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
             <span className="text-[10px] font-black uppercase tracking-widest">Financials</span>
           </div>
           <p className="text-3xl font-display font-bold text-brand-secondary dark:text-white">${stats.totalBudget.toLocaleString()}</p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Total Allocated</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-300 font-bold uppercase mt-1">Total Allocated</p>
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-700 flex flex-col justify-center">
@@ -178,7 +178,7 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
           <p className="text-2xl font-display font-bold text-brand-secondary dark:text-white truncate">
             {upcomingTrips[0]?.destinations[0] || 'TBD'}
           </p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Primary Goal</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-300 font-bold uppercase mt-1">Primary Goal</p>
         </div>
       </section>
 
@@ -293,7 +293,7 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => Promise<void>
         <img src={trip.coverImage} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]" alt={trip.name} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:hidden" />
         <div className="absolute top-6 left-6 flex gap-2">
-          <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-secondary">
+          <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-brand-secondary dark:text-white">
             {trip.type}
           </div>
         </div>
@@ -309,7 +309,7 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => Promise<void>
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <h4 className="text-2xl font-display font-bold group-hover:text-brand-primary transition-colors line-clamp-1">{trip.name}</h4>
-              <div className="flex items-center gap-2 text-slate-400">
+              <div className="flex items-center gap-2 text-slate-400 dark:text-slate-300">
                 <MapPin size={14} className="text-brand-primary" />
                 <span className="text-xs font-bold truncate max-w-[200px]">{trip.destinations.join(' → ')}</span>
               </div>
@@ -340,11 +340,11 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => Promise<void>
                   <Clock size={14} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Upcoming Stop</p>
-                  <p className="text-xs font-bold truncate max-w-[150px]">{nextActivity.name}</p>
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-300 uppercase tracking-widest leading-none mb-1">Upcoming Stop</p>
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{nextActivity.name}</p>
                 </div>
               </div>
-              <p className="text-[10px] font-bold text-slate-400">{nextActivity.startTime}</p>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-300">{nextActivity.startTime}</p>
             </div>
           )}
         </div>
@@ -361,7 +361,7 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => Promise<void>
                 </div>
               )}
             </div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Team Access</span>
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-300 uppercase tracking-widest">Team Access</span>
           </div>
           
           <div className="flex items-center gap-2 group/btn">

@@ -73,6 +73,18 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ dayId: string; activityId: string } | null>(null);
   const isEditor = trip.currentUserRole === 'Editor';
 
+  // ESC key handler for modal
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && editingActivity) {
+        setEditingActivity(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [editingActivity]);
+
   // TanStack Query mutations for optimistic updates
   const addPhaseMutation = useAddPhaseMutation();
   const deletePhaseMutation = useDeletePhaseMutation();
@@ -304,21 +316,21 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       </div>
 
       {editingActivity && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8 bg-slate-950/95 backdrop-blur-3xl overflow-hidden">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] sm:rounded-[4rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[85vh] border border-white/5">
-            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh] border border-white/5">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div className="space-y-1">
-                <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
+                <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">Refining Objective Parameters</p>
               </div>
               <button
                 onClick={() => setEditingActivity(null)}
-                className="w-10 h-10 sm:w-12 sm:h-12 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl flex items-center justify-center transition-all text-slate-400"
+                className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"
               >
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
+            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto no-scrollbar flex-1">
               <div className="space-y-4">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Objective Signature (Icon)</label>
                 <div className="grid grid-cols-7 gap-2 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5">
@@ -342,7 +354,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 <input
                   value={editingActivity.activity?.name}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, name: e.target.value } }) : null)}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
                   placeholder="e.g., Shibuya Sky"
                 />
               </div>
@@ -353,7 +365,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                     type="time"
                     value={editingActivity.activity?.startTime}
                     onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)}
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-medium dark:text-white text-sm"
                   />
                 </div>
                 <div className="space-y-2">
@@ -362,7 +374,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                     type="time"
                     value={editingActivity.activity?.endTime}
                     onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)}
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-bold dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-medium dark:text-white text-sm"
                   />
                 </div>
               </div>
@@ -371,7 +383,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 <input
                   value={editingActivity.activity?.location}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none dark:text-white text-sm shadow-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white text-sm shadow-sm"
                   placeholder="City or Coordinates"
                 />
               </div>
@@ -380,21 +392,21 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 <textarea
                   value={editingActivity.activity?.notes}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, notes: e.target.value } }) : null)}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm"
                   placeholder="Key sub-objectives or arrival details..."
                 />
               </div>
             </div>
-            <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-white/5 flex flex-row items-center justify-between gap-4 flex-shrink-0">
+            <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-row items-center justify-between gap-4 flex-shrink-0">
               <button
                 onClick={() => setEditingActivity(null)}
-                className="flex-1 py-4 font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"
+                className="flex-1 px-4 py-3 font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"
               >
                 Abort
               </button>
               <button
                 onClick={() => saveActivity(editingActivity.dayId, editingActivity.activity!)}
-                className="flex-[2] py-4 font-bold bg-brand-primary text-white rounded-[1.5rem] shadow-xl hover:shadow-indigo-500/30 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                className="flex-[2] px-6 py-3 font-medium bg-brand-primary text-white rounded-2xl shadow-xl hover:shadow-indigo-500/30 active:scale-95 transition-all text-sm uppercase tracking-widest"
               >
                 Lock Objective
               </button>

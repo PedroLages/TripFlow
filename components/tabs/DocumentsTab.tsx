@@ -63,6 +63,21 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
   const isEditor = trip.currentUserRole === 'Editor';
 
+  // ESC key handler for modals
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showSmartImport) setShowSmartImport(false);
+        if (showManualImport) setShowManualImport(false);
+        if (showEmailImport) setShowEmailImport(false);
+        if (showCamera) stopCamera();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showSmartImport, showManualImport, showEmailImport, showCamera]);
+
   // Load email connections on mount
   useEffect(() => {
     loadEmailConnections();
@@ -614,37 +629,37 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Smart Import Modal */}
       {showSmartImport && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white flex-shrink-0">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
-                <h3 className="text-xl md:text-2xl font-display font-bold mb-1">Email Parser</h3>
+                <h3 className="text-2xl sm:text-3xl font-display font-bold mb-1 text-slate-900 dark:text-white">Email Parser</h3>
                 <p className="text-slate-400 font-medium text-sm">Extract intel from booking confirmations.</p>
               </div>
               <button
                 onClick={() => setShowSmartImport(false)}
                 aria-label="Close"
-                className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"
+                className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"
               >
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
+            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Confirmation Content</label>
                 <textarea
                   value={importText}
                   onChange={(e) => setImportText(e.target.value)}
                   placeholder="Paste your booking email text here..."
-                  className="w-full p-4 md:p-6 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-medium outline-none h-36 md:h-48 border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none h-36 sm:h-48 border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm resize-none"
                 />
               </div>
               <button
                 onClick={handleSmartImport}
                 disabled={isParsing || !importText.trim()}
-                className="w-full py-4 md:py-5 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
+                className="w-full px-6 py-3 bg-brand-primary text-white font-medium text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isParsing ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                {isParsing ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
                 {isParsing ? 'Decrypting Intel...' : 'Infiltrate Document'}
               </button>
             </div>
@@ -654,22 +669,22 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Manual Import Modal */}
       {showManualImport && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white flex-shrink-0">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
-                <h3 className="text-xl md:text-2xl font-display font-bold mb-1">Manual Import</h3>
+                <h3 className="text-2xl sm:text-3xl font-display font-bold mb-1 text-slate-900 dark:text-white">Manual Import</h3>
                 <p className="text-slate-400 font-medium text-sm">Add travel documents directly.</p>
               </div>
               <button
                 onClick={() => setShowManualImport(false)}
                 aria-label="Close"
-                className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"
+                className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"
               >
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
+            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
               {/* Document Type Selector */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Document Type</label>
@@ -705,7 +720,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                   value={manualDocData.title}
                   onChange={(e) => setManualDocData({ ...manualDocData, title: e.target.value })}
                   placeholder="e.g. United Airlines Flight, Marriott Hotel"
-                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
                 />
               </div>
 
@@ -716,7 +731,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                   value={manualDocData.details}
                   onChange={(e) => setManualDocData({ ...manualDocData, details: e.target.value })}
                   placeholder="e.g. SFO to NYC, Room 502, etc."
-                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-medium outline-none h-24 border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none h-24 border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm resize-none"
                 />
               </div>
 
@@ -728,7 +743,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                   value={manualDocData.confirmation}
                   onChange={(e) => setManualDocData({ ...manualDocData, confirmation: e.target.value.toUpperCase() })}
                   placeholder="e.g. ABC123"
-                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-mono font-bold outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm uppercase"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-mono font-bold outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm uppercase"
                 />
               </div>
 
@@ -739,7 +754,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                   <select
                     value={manualDocData.status}
                     onChange={(e) => setManualDocData({ ...manualDocData, status: e.target.value })}
-                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm"
                   >
                     <option value="Confirmed">Confirmed</option>
                     <option value="On Time">On Time</option>
@@ -757,7 +772,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                       value={manualDocData.gate}
                       onChange={(e) => setManualDocData({ ...manualDocData, gate: e.target.value.toUpperCase() })}
                       placeholder="e.g. 12A"
-                      className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-mono font-bold outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm uppercase"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-mono font-bold outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white text-sm uppercase"
                     />
                   </div>
                 )}
@@ -767,9 +782,9 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
               <button
                 onClick={handleManualImport}
                 disabled={!manualDocData.title.trim() || !manualDocData.confirmation.trim()}
-                className="w-full py-4 md:py-5 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full px-6 py-3 bg-brand-primary text-white font-medium text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                <Plus size={18} />
+                <Plus size={14} />
                 Add {manualDocType} Document
               </button>
             </div>
@@ -779,24 +794,24 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Email Import Modal */}
       {showEmailImport && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
             {/* Header */}
-            <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 text-slate-900 dark:text-white flex-shrink-0">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
-                <h3 className="text-xl md:text-2xl font-display font-bold mb-1">Email Import</h3>
+                <h3 className="text-2xl sm:text-3xl font-display font-bold mb-1 text-slate-900 dark:text-white">Email Import</h3>
                 <p className="text-slate-400 font-medium text-sm">Automatically scan and import booking confirmations from Gmail.</p>
               </div>
               <button
                 onClick={() => setShowEmailImport(false)}
-                className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"
+                className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
+            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
               {/* Email Connections Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -804,7 +819,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                   {emailConnections.length > 0 && (
                     <button
                       onClick={handleConnectGmail}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold text-xs hover:bg-blue-600 transition-colors flex items-center gap-2"
+                      className="px-4 py-3 bg-blue-500 text-white rounded-xl font-medium text-xs hover:bg-blue-600 transition-colors flex items-center gap-2"
                     >
                       <Plus size={14} /> Add Account
                     </button>
@@ -822,9 +837,9 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                     <p className="text-slate-500 mb-6">Connect your Gmail account to scan for booking confirmations.</p>
                     <button
                       onClick={handleConnectGmail}
-                      className="px-8 py-4 bg-brand-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all"
+                      className="px-6 py-3 bg-brand-primary text-white rounded-2xl font-medium text-xs uppercase tracking-widest hover:scale-105 transition-all"
                     >
-                      <Mail size={16} className="inline mr-2" /> Connect Gmail
+                      <Mail size={14} className="inline mr-2" /> Connect Gmail
                     </button>
                   </div>
                 ) : (
@@ -862,7 +877,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                           <button
                             onClick={() => handleScanEmails(connection.id)}
                             disabled={isScanning || connection.connection_status !== 'active'}
-                            className="px-6 py-3 bg-brand-primary text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-6 py-3 bg-brand-primary text-white rounded-xl font-medium text-xs uppercase tracking-wider hover:bg-brand-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           >
                             {isScanning ? (
                               <>
@@ -877,7 +892,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                           <button
                             onClick={() => handleRematchEmails(connection.id)}
                             disabled={isScanning || connection.connection_status !== 'active'}
-                            className="px-4 py-3 bg-purple-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="px-4 py-3 bg-purple-600 text-white rounded-xl font-medium text-xs uppercase tracking-wider hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             title="Re-run matching logic on existing parsed emails"
                           >
                             {isScanning ? (
@@ -892,10 +907,10 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
                           </button>
                           <button
                             onClick={() => handleDisconnectGmail(connection.id)}
-                            className="p-3 bg-red-50 dark:bg-red-950/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all"
+                            className="w-10 h-10 bg-red-50 dark:bg-red-950/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
                             title="Disconnect Gmail"
                           >
-                            <X size={18} />
+                            <X size={16} />
                           </button>
                         </div>
                       </div>

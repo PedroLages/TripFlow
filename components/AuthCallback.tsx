@@ -199,35 +199,35 @@ export function AuthCallback() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
         {status === 'loading' && (
           <>
             <Loader2 className="w-16 h-16 mx-auto mb-4 text-blue-500 animate-spin" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Signing In
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">{message}</p>
+            <p className="text-gray-600">{message}</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Welcome!
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">{message}</p>
+            <p className="text-gray-600">{message}</p>
           </>
         )}
 
         {status === 'error' && (
           <>
             <XCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Sign In Failed
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">{message}</p>
+            <p className="text-gray-600 mb-4">{message}</p>
             <button
               onClick={() => window.location.replace('/#/')}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"

@@ -76,6 +76,18 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
     rating: 5
   });
 
+  // ESC key handler for modal
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showAdd) {
+        setShowAdd(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showAdd]);
+
   const handleAddPlace = (place: Partial<WishlistPlace>) => {
     const item: WishlistPlace = {
       id: uuidv4(),
@@ -576,23 +588,23 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
 
       {/* Entry Modal */}
       {showAdd && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-6 md:p-10 border-b dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 flex-shrink-0">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
-                <h3 className="text-xl md:text-2xl font-display font-bold text-slate-900 dark:text-white">Register Waypoint</h3>
+                <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Register Waypoint</h3>
                 <p className="text-slate-400 font-medium text-sm">Capture intelligence on a new destination.</p>
               </div>
-              <button onClick={() => setShowAdd(false)} className="w-10 h-10 hover:bg-white dark:hover:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 transition-all"><X size={20} /></button>
+              <button onClick={() => setShowAdd(false)} className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 transition-all flex-shrink-0"><X size={20} /></button>
             </div>
-            <form onSubmit={handleManualSubmit} className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
+            <form onSubmit={handleManualSubmit} className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Name</label>
                 <input
                   required
                   value={newPlace.name}
                   onChange={(e) => setNewPlace({ ...newPlace, name: e.target.value })}
-                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-xl md:rounded-2xl font-bold text-sm md:text-base outline-none dark:text-white transition-all"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-sm outline-none dark:text-white transition-all"
                   placeholder="e.g., Shibuya Sky Observatory"
                 />
               </div>
@@ -602,7 +614,7 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                   <select
                     value={newPlace.category}
                     onChange={(e) => setNewPlace({ ...newPlace, category: e.target.value as any })}
-                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-xl md:rounded-2xl font-bold outline-none dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium outline-none dark:text-white text-sm"
                   >
                     {Object.keys(CATEGORY_THEMES).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
@@ -613,7 +625,7 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                     type="number" min="1" max="5"
                     value={newPlace.rating}
                     onChange={(e) => setNewPlace({ ...newPlace, rating: Number(e.target.value) })}
-                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-xl md:rounded-2xl font-bold outline-none dark:text-white text-center text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium outline-none dark:text-white text-center text-sm"
                   />
                 </div>
               </div>
@@ -622,13 +634,13 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                 <textarea
                   value={newPlace.notes}
                   onChange={(e) => setNewPlace({ ...newPlace, notes: e.target.value })}
-                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-xl md:rounded-2xl font-medium outline-none h-24 dark:text-white text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium outline-none h-24 dark:text-white text-sm"
                   placeholder="Operational notes and arrival details..."
                 />
               </div>
               <button
                 type="submit"
-                className="w-full py-4 md:py-5 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all"
+                className="w-full px-6 py-3 bg-brand-primary text-white font-medium text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all"
               >
                 Seal Entry & Deploy
               </button>

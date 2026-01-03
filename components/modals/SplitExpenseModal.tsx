@@ -83,6 +83,18 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
     }
   }, [isOpen]);
 
+  // ESC key handler for modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   const handleNext = () => {
     setError('');
 
@@ -224,12 +236,12 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
         {/* Header */}
-        <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 flex-shrink-0">
+        <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
           <div>
-            <h3 className="text-3xl font-display font-bold text-slate-900 dark:text-white">
+            <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">
               Split Expense
             </h3>
             <p className="text-slate-400 font-medium">
@@ -242,14 +254,15 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-4 hover:bg-white dark:hover:bg-slate-800 rounded-3xl transition-all text-slate-400"
+            aria-label="Close split expense modal"
+            className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Progress Indicator */}
-        <div className="px-6 md:px-10 py-4 md:py-6 bg-slate-50 dark:bg-slate-950/30 flex justify-between items-center flex-shrink-0">
+        <div className="px-6 sm:px-8 py-4 sm:py-6 bg-slate-50 dark:bg-slate-950/30 flex justify-between items-center flex-shrink-0">
           {['amount', 'method', 'participants', 'configure', 'preview'].map((s, i) => (
             <div
               key={s}
@@ -263,7 +276,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 md:p-10 space-y-6 md:space-y-8 overflow-y-auto flex-1">
+        <div className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
           {/* Step 1: Amount & Payer */}
           {step === 'amount' && (
             <>
@@ -279,7 +292,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full p-6 pl-12 bg-slate-50 dark:bg-slate-950 rounded-3xl font-display font-bold text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
+                    className="w-full px-4 py-3 pl-12 bg-slate-50 dark:bg-slate-950 rounded-2xl font-display font-medium text-3xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
                     placeholder="0.00"
                     step="0.01"
                     autoFocus
@@ -295,7 +308,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                   >
                     {Object.keys(CATEGORY_COLORS).map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -310,7 +323,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                   />
                 </div>
               </div>
@@ -322,7 +335,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                 <input
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                   placeholder="e.g., Group dinner at Izakaya"
                 />
               </div>
@@ -458,7 +471,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                           newAmounts.set(email, e.target.value);
                           setCustomAmounts(newAmounts);
                         }}
-                        className="w-full p-3 pl-7 bg-slate-50 dark:bg-slate-950 rounded-xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                        className="w-full px-3 py-2 pl-7 bg-slate-50 dark:bg-slate-950 rounded-xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                         step="0.01"
                       />
                     </div>
@@ -498,7 +511,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                           newPercentages.set(email, e.target.value);
                           setPercentages(newPercentages);
                         }}
-                        className="w-full p-3 pr-7 bg-slate-50 dark:bg-slate-950 rounded-xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                        className="w-full px-3 py-2 pr-7 bg-slate-50 dark:bg-slate-950 rounded-xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                         step="0.1"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-primary font-bold">%</span>
@@ -538,7 +551,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
                         newShares.set(email, e.target.value);
                         setShares(newShares);
                       }}
-                      className="w-32 p-3 bg-slate-50 dark:bg-slate-950 rounded-xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                      className="w-32 px-3 py-2 bg-slate-50 dark:bg-slate-950 rounded-xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                       min="1"
                       step="1"
                     />
@@ -647,11 +660,11 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 md:p-10 border-t border-slate-100 dark:border-white/5 flex gap-4 flex-shrink-0">
+        <div className="p-6 sm:p-8 border-t border-slate-100 dark:border-slate-700 flex gap-4 flex-shrink-0">
           {step !== 'amount' && (
             <button
               onClick={handleBack}
-              className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2"
             >
               <ChevronLeft size={20} />
               Back
@@ -660,7 +673,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
           {step !== 'preview' ? (
             <button
               onClick={handleNext}
-              className="flex-1 px-8 py-4 bg-brand-primary text-white font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-brand-secondary transition-all flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-brand-primary text-white font-medium text-sm uppercase tracking-widest rounded-2xl hover:bg-brand-secondary transition-all flex items-center justify-center gap-2"
             >
               Next
               <ChevronRight size={20} />
@@ -668,7 +681,7 @@ const SplitExpenseModal: React.FC<SplitExpenseModalProps> = ({
           ) : (
             <button
               onClick={handleSubmit}
-              className="flex-1 px-8 py-4 bg-brand-primary text-white font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-brand-secondary transition-all flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-brand-primary text-white font-medium text-sm uppercase tracking-widest rounded-2xl hover:bg-brand-secondary transition-all flex items-center justify-center gap-2"
             >
               <Check size={20} />
               Create Split Expense

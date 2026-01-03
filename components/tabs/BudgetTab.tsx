@@ -74,6 +74,19 @@ const BudgetTab: React.FC<BudgetTabProps> = ({ trip, updateTrip }) => {
   const [aiInsights, setAiInsights] = useState<string | null>(null);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
+  // ESC key handler for modals
+  React.useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showAddExpense) setShowAddExpense(false);
+        if (showScanner) stopScanner();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showAddExpense, showScanner]);
+
   // Filter expenses based on selection
   const filteredExpenses = useMemo(() => {
     if (expenseFilter === 'split') {
@@ -699,29 +712,29 @@ Focus on: spending patterns, overspending categories, and smart recommendations.
 
       {/* Manual Expense Modal */}
       {showAddExpense && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] md:rounded-[3rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/50 flex-shrink-0">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl" role="dialog" aria-modal="true" aria-labelledby="expense-modal-title">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
-                <h3 id="expense-modal-title" className="text-xl md:text-2xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
+                <h3 id="expense-modal-title" className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">New Expense</h3>
                 <p className="text-slate-400 font-medium text-sm">Capture capital deployment data.</p>
               </div>
-              <button onClick={() => setShowAddExpense(false)} aria-label="Close expense modal" className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all text-slate-400"><X size={20} aria-hidden="true" /></button>
+              <button onClick={() => setShowAddExpense(false)} aria-label="Close expense modal" className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"><X size={20} aria-hidden="true" /></button>
             </div>
 
-            <div className="p-6 md:p-10 space-y-6 overflow-y-auto flex-1">
+            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Total Amount</label>
-                <div className="grid grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2 relative">
-                     <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-xl md:text-2xl">
+                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary font-display font-bold text-xl">
                        {getCurrencySymbol(newExpense.currency || 'USD')}
                      </div>
                      <input
                       type="number"
                       value={newExpense.amount}
                       onChange={(e) => setNewExpense({ ...newExpense, amount: Number(e.target.value) })}
-                      className="w-full p-4 md:p-5 pl-10 md:pl-12 bg-slate-50 dark:bg-slate-950 rounded-2xl md:rounded-3xl font-display font-bold text-xl md:text-2xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
+                      className="w-full px-4 py-3 pl-10 bg-slate-50 dark:bg-slate-950 rounded-2xl font-display font-medium text-xl outline-none border-2 border-transparent focus:border-brand-primary transition-all dark:text-white"
                       placeholder="0.00"
                     />
                   </div>
@@ -729,7 +742,7 @@ Focus on: spending patterns, overspending categories, and smart recommendations.
                     <select
                       value={newExpense.currency}
                       onChange={(e) => setNewExpense({ ...newExpense, currency: e.target.value })}
-                      className="w-full h-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-2xl md:rounded-3xl font-bold text-sm outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
+                      className="w-full h-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium text-sm outline-none border-2 border-transparent focus:border-brand-primary dark:text-white"
                     >
                       {SUPPORTED_CURRENCIES.map(curr => (
                         <option key={curr.code} value={curr.code}>
@@ -741,13 +754,13 @@ Focus on: spending patterns, overspending categories, and smart recommendations.
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Sector</label>
                   <select
                     value={newExpense.category}
                     onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as any })}
-                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
                   >
                     {Object.keys(CATEGORY_COLORS).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                   </select>
@@ -758,7 +771,7 @@ Focus on: spending patterns, overspending categories, and smart recommendations.
                     type="date"
                     value={newExpense.date}
                     onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                    className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
                   />
                 </div>
               </div>
@@ -768,14 +781,14 @@ Focus on: spending patterns, overspending categories, and smart recommendations.
                 <input
                   value={newExpense.notes}
                   onChange={(e) => setNewExpense({ ...newExpense, notes: e.target.value })}
-                  className="w-full p-4 md:p-5 bg-slate-50 dark:bg-slate-950 rounded-xl md:rounded-2xl font-bold outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary dark:text-white text-sm"
                   placeholder="e.g., Starbucks Shinjuku"
                 />
               </div>
 
               <button
                 onClick={handleAddExpense}
-                className="w-full py-4 md:py-5 bg-brand-primary text-white font-black text-xs uppercase tracking-widest rounded-xl md:rounded-2xl shadow-2xl shadow-indigo-500/30 hover:bg-brand-secondary transition-all active:scale-95"
+                className="w-full px-6 py-3 bg-brand-primary text-white font-medium text-xs uppercase tracking-widest rounded-2xl shadow-2xl shadow-indigo-500/30 hover:bg-brand-secondary transition-all active:scale-95"
               >
                 Seal Ledger Entry
               </button>
