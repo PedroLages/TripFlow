@@ -40,18 +40,22 @@ serve(async (req) => {
       throw new Error('Missing authorization header');
     }
 
-    // Extract JWT token from Bearer header
-    const jwt = authHeader.replace('Bearer ', '');
-    console.log('[Auth Check] JWT extracted, length:', jwt.length);
-
-    // Create Supabase client
+    // Create Supabase client with Authorization header for RLS context
+    // This is critical: RLS policies need the auth context to be set on the client
+    // See: https://supabase.com/docs/guides/functions/auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader }
+        }
+      }
     );
 
-    // Pass JWT directly to getUser() instead of using global headers
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(jwt);
+    // Verify the user is authenticated
+    // Note: We don't pass JWT here because it's already in the client's global headers
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     console.log('[Auth Check] getUser result:', { hasUser: !!user, error: userError?.message });
 
     if (userError || !user) {
