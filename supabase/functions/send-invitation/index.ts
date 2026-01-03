@@ -165,13 +165,8 @@ serve(async (req) => {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 40px 30px; text-align: center;">
-              <!-- Compass Icon -->
-              <div style="margin: 0 auto 16px; width: 56px; height: 56px; background: rgba(255, 255, 255, 0.2); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                </svg>
-              </div>
+              <!-- TripFlow Logo -->
+              <img src="https://trip.pedrolages.net/icon.svg" alt="TripFlow" style="width: 56px; height: 56px; margin: 0 auto 16px; display: block;" />
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
                 TripFlow Invitation
               </h1>
