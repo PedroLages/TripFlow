@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../src/lib/supabase';
 import { CheckCircle2, XCircle, Loader2, Mail, ArrowRight } from 'lucide-react';
@@ -10,19 +10,7 @@ export function AcceptInvitation() {
   const [message, setMessage] = useState('');
   const [tripId, setTripId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = searchParams.get('token');
-
-    if (!token) {
-      setStatus('error');
-      setMessage('Invalid invitation link. No token provided.');
-      return;
-    }
-
-    acceptInvitation(token);
-  }, [searchParams]);
-
-  const acceptInvitation = async (token: string) => {
+  const acceptInvitation = useCallback(async (token: string) => {
     try {
       // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
@@ -61,6 +49,9 @@ export function AcceptInvitation() {
       setMessage(`You've been added to the trip as ${result.role}!`);
       setTripId(result.trip_id || null);
 
+      // Clear the pending invitation token from sessionStorage
+      sessionStorage.removeItem('pending_invitation_token');
+
       // Redirect to the trip after 2 seconds
       setTimeout(() => {
         if (result.trip_id) {
@@ -75,7 +66,19 @@ export function AcceptInvitation() {
       setStatus('error');
       setMessage('An unexpected error occurred. Please try again.');
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+
+    if (!token) {
+      setStatus('error');
+      setMessage('Invalid invitation link. No token provided.');
+      return;
+    }
+
+    acceptInvitation(token);
+  }, [searchParams, acceptInvitation]);
 
   const handleSignIn = () => {
     // Redirect to home page which will show the login modal

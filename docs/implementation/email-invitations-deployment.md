@@ -24,18 +24,22 @@ Your Edge Function needs access to the Resend API key. Set these in Supabase:
 
    | Secret Name | Value |
    |-------------|-------|
-   | `RESEND_API_KEY` | `re_kN3ZnELu_6vyCFtyiZ1LvJmgzwWRNYU1G` |
+   | `RESEND_API_KEY` | `YOUR_RESEND_API_KEY_HERE` |
    | `RESEND_FROM_EMAIL` | `hello@trip.pedrolages.net` |
    | `APP_URL` | `https://trip.pedrolages.net` |
+
+   ⚠️ **SECURITY WARNING**: Never commit actual API keys to version control! Get your Resend API key from [Resend Dashboard](https://resend.com/api-keys).
 
 ### Using Supabase CLI (Alternative)
 
 ```bash
 # Set secrets via CLI
-supabase secrets set RESEND_API_KEY=re_kN3ZnELu_6vyCFtyiZ1LvJmgzwWRNYU1G
+supabase secrets set RESEND_API_KEY=YOUR_RESEND_API_KEY_HERE
 supabase secrets set RESEND_FROM_EMAIL=hello@trip.pedrolages.net
 supabase secrets set APP_URL=https://trip.pedrolages.net
 ```
+
+⚠️ **Replace** `YOUR_RESEND_API_KEY_HERE` with your actual Resend API key from [Resend Dashboard](https://resend.com/api-keys).
 
 ---
 
