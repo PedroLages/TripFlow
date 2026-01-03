@@ -54,8 +54,10 @@ serve(async (req) => {
     );
 
     // Verify the user is authenticated
-    // Note: We don't pass JWT here because it's already in the client's global headers
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Extract JWT token from Authorization header and pass it to getUser()
+    // This is required for Edge Functions - see https://supabase.com/docs/guides/functions/auth
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     console.log('[Auth Check] getUser result:', { hasUser: !!user, error: userError?.message });
 
     if (userError || !user) {
