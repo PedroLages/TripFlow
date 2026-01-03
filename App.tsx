@@ -26,6 +26,8 @@ import { isSupabaseReady } from './src/lib/supabase';
 import { TerminologyProvider } from './hooks/TerminologyContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/lib/queryClient';
+import { ToastProvider } from './contexts/ToastContext';
+import { ConfirmProvider } from './contexts/ConfirmContext';
 
 const AppContent: React.FC<{
   user: User | null;
@@ -452,31 +454,35 @@ const App: React.FC = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* PWA Update Banner */}
-      {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
+      <ToastProvider>
+        <ConfirmProvider>
+          {/* PWA Update Banner */}
+          {needRefresh && <UpdateBanner onUpdate={updateServiceWorker} />}
 
-      <TerminologyProvider languageMode={settings.languageMode}>
-        <Router>
-          <AppContent
-            user={user}
-            trips={trips}
-            settings={settings}
-            setSettings={setSettings}
-            isSidebarCollapsed={isSidebarCollapsed}
-            handleSidebarToggle={handleSidebarToggle}
-            isOffline={isOffline}
-            hasPendingSync={syncStatus.isSyncing}
-            handleLogout={handleLogout}
-            updateTrip={updateTrip}
-            setTripStateOnly={setTripStateOnly}
-            addTrip={addTrip}
-            deleteTrip={deleteTrip}
-          />
-        </Router>
-      </TerminologyProvider>
+          <TerminologyProvider languageMode={settings.languageMode}>
+            <Router>
+              <AppContent
+                user={user}
+                trips={trips}
+                settings={settings}
+                setSettings={setSettings}
+                isSidebarCollapsed={isSidebarCollapsed}
+                handleSidebarToggle={handleSidebarToggle}
+                isOffline={isOffline}
+                hasPendingSync={syncStatus.isSyncing}
+                handleLogout={handleLogout}
+                updateTrip={updateTrip}
+                setTripStateOnly={setTripStateOnly}
+                addTrip={addTrip}
+                deleteTrip={deleteTrip}
+              />
+            </Router>
+          </TerminologyProvider>
 
-      {/* PWA Install Prompt */}
-      {isInstallable && <InstallPrompt onInstall={installPrompt} />}
+          {/* PWA Install Prompt */}
+          {isInstallable && <InstallPrompt onInstall={installPrompt} />}
+        </ConfirmProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 };
