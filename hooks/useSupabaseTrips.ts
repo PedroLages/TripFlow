@@ -126,7 +126,7 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         return;
       }
 
-      // Fetch owned trips (RLS policy returns only trips user owns)
+      // Fetch trips (RLS policy returns trips user owns OR is a member of)
       const { data: ownedTripsData, error: ownedError } = await supabase
         .from('trips')
         .select('*')

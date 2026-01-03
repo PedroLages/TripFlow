@@ -64,7 +64,7 @@ const AppContent: React.FC<{
       />
       <main className="flex-1 flex flex-col relative h-screen overflow-hidden">
         <Routes>
-          <Route path="/" element={<Dashboard trips={trips.filter(t => t.ownerEmail === user!.email || t.collaborators.some(c => c.email === user!.email))} settings={settings} deleteTrip={deleteTrip} />} />
+          <Route path="/" element={<Dashboard trips={trips} settings={settings} deleteTrip={deleteTrip} />} />
           <Route path="/create" element={<TripForm onSubmit={addTrip} />} />
           <Route path="/edit/:id" element={<TripForm trips={trips} onSubmit={updateTrip} />} />
           <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={setTripStateOnly} currentUser={user!} />} />
