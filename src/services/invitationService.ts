@@ -62,13 +62,15 @@ export async function sendInvitation(
 
     if (error) {
       console.error('Edge Function error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return {
         success: false,
-        error: error.message || 'Failed to send invitation'
+        error: error.message || error.context?.message || 'Failed to send invitation'
       };
     }
 
     if (!data.success) {
+      console.error('Edge Function returned error:', data.error);
       return {
         success: false,
         error: data.error || 'Failed to send invitation'
