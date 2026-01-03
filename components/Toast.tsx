@@ -3,12 +3,13 @@
  *
  * Provides non-intrusive notifications for user actions.
  * Automatically dismisses after a few seconds.
+ * Positioned in bottom-right corner with TripFlow's modern design.
  */
 
 import React, { useEffect } from 'react';
-import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 
-export type ToastType = 'success' | 'error' | 'info';
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastProps {
   message: string;
@@ -26,35 +27,53 @@ export function Toast({ message, type, onClose, duration = 4000 }: ToastProps) {
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
-  const icons = {
-    success: <CheckCircle size={20} className="text-green-500" />,
-    error: <XCircle size={20} className="text-red-500" />,
-    info: <AlertCircle size={20} className="text-blue-500" />,
+  const config = {
+    success: {
+      icon: <CheckCircle size={20} />,
+      bgClass: 'bg-green-500 dark:bg-green-600',
+      textClass: 'text-white',
+    },
+    error: {
+      icon: <XCircle size={20} />,
+      bgClass: 'bg-red-500 dark:bg-red-600',
+      textClass: 'text-white',
+    },
+    warning: {
+      icon: <AlertCircle size={20} />,
+      bgClass: 'bg-amber-500 dark:bg-amber-600',
+      textClass: 'text-white',
+    },
+    info: {
+      icon: <Info size={20} />,
+      bgClass: 'bg-blue-500 dark:bg-blue-600',
+      textClass: 'text-white',
+    },
   };
 
-  const styles = {
-    success: 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800/30 text-green-900 dark:text-green-100',
-    error: 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800/30 text-red-900 dark:text-red-100',
-    info: 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/30 text-blue-900 dark:text-blue-100',
-  };
+  const { icon, bgClass, textClass } = config[type];
 
   return (
     <div
       className={`
-        fixed bottom-6 right-6 z-[200]
-        max-w-md w-full md:w-auto
-        ${styles[type]}
-        border-2 rounded-2xl shadow-2xl
-        p-4 pr-12
+        ${bgClass} ${textClass}
+        rounded-2xl shadow-2xl
+        px-5 py-4 pr-12
         flex items-center gap-3
-        animate-in slide-in-from-bottom-4 duration-300
+        min-w-[320px] max-w-md
+        animate-in slide-in-from-right-full duration-300
+        backdrop-blur-xl
       `}
     >
-      {icons[type]}
-      <p className="font-medium text-sm flex-1">{message}</p>
+      <div className="flex-shrink-0">
+        {icon}
+      </div>
+      <p className="font-medium text-sm flex-1 leading-snug">
+        {message}
+      </p>
       <button
         onClick={onClose}
-        className="absolute top-3 right-3 p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
+        className="absolute top-3 right-3 p-1.5 hover:bg-white/10 rounded-lg transition-all active:scale-95"
+        aria-label="Close notification"
       >
         <X size={16} />
       </button>
@@ -69,13 +88,9 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   return (
-    <>
-      {toasts.map((toast, index) => (
-        <div
-          key={toast.id}
-          style={{ bottom: `${6 + index * 5}rem` }}
-          className="fixed right-6 z-[200]"
-        >
+    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
+      {toasts.map((toast) => (
+        <div key={toast.id} className="pointer-events-auto">
           <Toast
             message={toast.message}
             type={toast.type}
@@ -83,6 +98,6 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
           />
         </div>
       ))}
-    </>
+    </div>
   );
 }

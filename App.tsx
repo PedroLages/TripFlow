@@ -28,7 +28,7 @@ import { TerminologyProvider } from './hooks/TerminologyContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/lib/queryClient';
 import { ToastProvider } from './contexts/ToastContext';
-import { ConfirmProvider } from './contexts/ConfirmContext';
+import { ConfirmProvider, useConfirm } from './contexts/ConfirmContext';
 
 const AppContent: React.FC<{
   user: User | null;
@@ -46,15 +46,31 @@ const AppContent: React.FC<{
   deleteTrip: (id: string) => void;
 }> = ({ user, trips, settings, setSettings, isSidebarCollapsed, handleSidebarToggle, isOffline, hasPendingSync, handleLogout, updateTrip, setTripStateOnly, addTrip, deleteTrip }) => {
   const location = useLocation();
+  const { confirm } = useConfirm();
   const isTripView = location.pathname.startsWith('/trip/');
   const currentTripId = isTripView ? location.pathname.split('/')[2] : null;
+
+  // Confirmed logout handler
+  const handleConfirmedLogout = async () => {
+    const confirmed = await confirm({
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out? Any unsaved changes will be lost.',
+      type: 'warning',
+      confirmText: 'Sign Out',
+      cancelText: 'Stay Signed In'
+    });
+
+    if (confirmed) {
+      await handleLogout(true);
+    }
+  };
 
   return (
     <div className={`min-h-screen ${settings.theme === 'dark' ? 'bg-slate-900 text-white' : 'bg-[#F8FAFC] text-slate-900'} flex overflow-hidden`}>
       <Sidebar
         trips={trips}
         className="hidden md:flex"
-        onLogout={handleLogout}
+        onLogout={handleConfirmedLogout}
         isCollapsed={isSidebarCollapsed}
         onToggle={handleSidebarToggle}
         isOffline={isOffline}
@@ -68,7 +84,7 @@ const AppContent: React.FC<{
           <Route path="/create" element={<TripForm onSubmit={addTrip} />} />
           <Route path="/edit/:id" element={<TripForm trips={trips} onSubmit={updateTrip} />} />
           <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={setTripStateOnly} currentUser={user!} />} />
-          <Route path="/settings" element={<Settings settings={settings} setSettings={setSettings} onLogout={handleLogout} />} />
+          <Route path="/settings" element={<Settings settings={settings} setSettings={setSettings} onLogout={handleConfirmedLogout} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/accept-invitation" element={<AcceptInvitation />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -352,7 +368,13 @@ const App: React.FC = () => {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = async (confirmed?: boolean) => {
+    if (!confirmed) {
+      // This is the initial call without confirmation - no-op
+      // Actual confirmation happens in AppContent where we have access to useConfirm
+      return;
+    }
+
     if (isSupabaseConfigured) {
       await supabaseSignOut();
     }

@@ -154,9 +154,9 @@ serve(async (req) => {
       throw new Error('Failed to create invitation');
     }
 
-    // 6. Generate invitation URL
+    // 6. Generate invitation URL (with hash for HashRouter)
     const baseUrl = Deno.env.get('APP_URL') || 'https://trip.pedrolages.net';
-    const invitationUrl = `${baseUrl}/accept-invitation?token=${invitation.invitation_token}`;
+    const invitationUrl = `${baseUrl}/#/accept-invitation?token=${invitation.invitation_token}`;
 
     // 7. Send email via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');

@@ -102,6 +102,15 @@ export function AuthCallback() {
                 setStatus('success');
                 setMessage('Sign in successful! Redirecting...');
                 setTimeout(() => {
+                  // Check for pending invitation token (takes priority)
+                  const pendingToken = localStorage.getItem('pending_invitation_token');
+                  if (pendingToken) {
+                    console.log('[AuthCallback] Found pending invitation token, redirecting to /accept-invitation');
+                    window.location.hash = '/accept-invitation';
+                    window.location.reload();
+                    return;
+                  }
+
                   // Navigate to previous location (for Gmail OAuth) or home
                   const returnPath = localStorage.getItem('gmail_oauth_return_path');
                   if (returnPath) {
@@ -171,6 +180,18 @@ export function AuthCallback() {
 
         setStatus('success');
         setMessage('Sign in successful! Redirecting...');
+
+        // Check for pending invitation token (takes priority over other redirects)
+        const pendingToken = localStorage.getItem('pending_invitation_token');
+        if (pendingToken) {
+          console.log('[AuthCallback] Found pending invitation token, redirecting to /accept-invitation');
+          // Don't remove the token here - let AcceptInvitation component handle it
+          setTimeout(() => {
+            window.location.hash = '/accept-invitation';
+            window.location.reload();
+          }, 300);
+          return;
+        }
 
         // Redirect to previous location (for Gmail OAuth) or dashboard
         const returnPath = localStorage.getItem('gmail_oauth_return_path');
