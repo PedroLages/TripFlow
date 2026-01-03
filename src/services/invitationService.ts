@@ -42,22 +42,27 @@ export async function sendInvitation(
   request: InvitationRequest
 ): Promise<InvitationResponse> {
   try {
-    // Get the current session
+    // Get the current session and refresh if needed
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError || !session) {
+      console.error('Session error:', sessionError);
       return {
         success: false,
         error: 'You must be signed in to send invitations'
       };
     }
 
+    console.log('[Invitation] Sending with session:', {
+      hasSession: !!session,
+      hasAccessToken: !!session.access_token,
+      tokenLength: session.access_token?.length
+    });
+
     // Call the Edge Function
     const { data, error } = await supabase.functions.invoke('send-invitation', {
-      body: request,
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
+      body: request
+      // Note: Don't manually set Authorization header - Supabase client handles this automatically
     });
 
     if (error) {
