@@ -425,96 +425,58 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         </div>
       )}
 
-      {/* Crew Hub Modal - Redesigned */}
+      {/* Crew Hub Modal - Simplified */}
       {showShare && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl overflow-hidden">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-white/5 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-xl overflow-hidden">
+          <div className="bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-800 flex flex-col max-h-[90vh]">
 
-            {/* Modal Header with Stats */}
-            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 flex-shrink-0">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Crew Hub</h3>
-                    <div className="flex items-center gap-2">
-                      {/* Member count badges */}
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <Users size={14} className="text-brand-primary" />
-                        <span className="text-xs font-bold text-slate-700 dark:text-white">{activeMembersCount}</span>
-                      </div>
-                      {pendingCount > 0 && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl border border-amber-200 dark:border-amber-800">
-                          <Clock size={14} className="text-amber-600 dark:text-amber-400" />
-                          <span className="text-xs font-bold text-amber-700 dark:text-amber-400">{pendingCount}</span>
-                        </div>
-                      )}
-                    </div>
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-800 bg-slate-900 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-semibold text-white">Crew Hub</h3>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 rounded-lg border border-slate-700">
+                    <Users size={14} className="text-slate-400" />
+                    <span className="text-xs font-medium text-slate-300">{activeMembersCount}</span>
                   </div>
-
-                  {/* Avatar Stack Preview */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      {/* Owner avatar */}
-                      <div className="relative group">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white font-bold text-xs shadow-lg border-2 border-white dark:border-slate-800 ring-2 ring-amber-500/20">
-                          {trip.ownerEmail?.[0]?.toUpperCase() || 'O'}
-                        </div>
-                        <Crown size={10} className="absolute -top-1 -right-1 text-amber-500 drop-shadow-lg" />
-                      </div>
-
-                      {/* Collaborator avatars (max 4) */}
-                      {trip.collaborators?.slice(0, 4).map((col, idx) => (
-                        <div key={idx} className="w-8 h-8 rounded-lg overflow-hidden shadow-lg border-2 border-white dark:border-slate-800">
-                          <img src={col.avatar} className="w-full h-full object-cover" alt={col.email} />
-                        </div>
-                      ))}
-
-                      {/* +N more indicator */}
-                      {(trip.collaborators?.length || 0) > 4 && (
-                        <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-black text-slate-600 dark:text-slate-300 shadow-lg border-2 border-white dark:border-slate-800">
-                          +{(trip.collaborators?.length || 0) - 4}
-                        </div>
-                      )}
+                  {pendingCount > 0 && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-900/30 rounded-lg border border-amber-800/50">
+                      <Clock size={14} className="text-amber-500" />
+                      <span className="text-xs font-medium text-amber-400">{pendingCount}</span>
                     </div>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium ml-1">
-                      {trip.name} crew
-                    </span>
-                  </div>
+                  )}
                 </div>
 
                 <button
                   onClick={() => setShowShare(false)}
                   aria-label="Close crew hub modal"
-                  className="w-10 h-10 hover:bg-white dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 hover:text-slate-600 dark:hover:text-white flex-shrink-0 border border-transparent hover:border-slate-200 dark:hover:border-slate-600"
+                  className="w-9 h-9 hover:bg-slate-800 rounded-lg flex items-center justify-center transition-colors text-slate-500 hover:text-slate-300"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto no-scrollbar">
+            <div className="p-6 space-y-6 overflow-y-auto no-scrollbar">
 
               {/* Invite Section (Owner/Editor only) */}
               {isEditor && (
-                <div className="space-y-4 p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-100 dark:border-indigo-900/30">
+                <div className="space-y-3 p-5 rounded-xl bg-slate-800/50 border border-slate-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
-                        <UserPlus size={16} className="text-white" />
-                      </div>
-                      <label className="text-sm font-bold text-slate-900 dark:text-white">Invite New Member</label>
+                      <UserPlus size={16} className="text-slate-400" />
+                      <label className="text-sm font-medium text-white">Invite Member</label>
                     </div>
 
-                    {/* Quick copy link button */}
                     <button
                       onClick={handleCopyInviteLink}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 transition-all border border-slate-200 dark:border-slate-700"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium text-slate-300 transition-colors"
                     >
                       {copiedLink ? (
                         <>
-                          <Check size={12} className="text-green-500" />
-                          <span className="text-green-600 dark:text-green-400">Copied!</span>
+                          <Check size={12} className="text-green-400" />
+                          <span className="text-green-400">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -529,8 +491,8 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                     <input
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="explorer@tripflow.ai"
-                      className="flex-1 px-4 py-3 bg-white dark:bg-slate-900 rounded-xl outline-none dark:text-white border-2 border-slate-200 dark:border-slate-700 focus:border-brand-primary/50 transition-all text-sm font-medium min-w-0 placeholder:text-slate-400"
+                      placeholder="email@example.com"
+                      className="flex-1 px-3 py-2.5 bg-slate-900 rounded-lg outline-none text-white border border-slate-700 focus:border-slate-600 transition-colors text-sm min-w-0 placeholder:text-slate-500"
                     />
 
                     <div className="flex gap-2">
@@ -538,11 +500,11 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                       <div className="relative flex-1 sm:flex-initial">
                         <button
                           onClick={() => setShowRoleSelector(!showRoleSelector)}
-                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-slate-900 rounded-xl font-medium text-sm text-slate-700 dark:text-white border-2 border-slate-200 dark:border-slate-700 hover:border-brand-primary/30 transition-all whitespace-nowrap"
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-900 rounded-lg font-medium text-sm text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors whitespace-nowrap"
                         >
                           {inviteRole === 'Editor' ? (
                             <>
-                              <Edit3 size={14} className="text-brand-primary" />
+                              <Edit3 size={14} className="text-blue-400" />
                               <span>Editor</span>
                             </>
                           ) : (
@@ -551,33 +513,29 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                               <span>Viewer</span>
                             </>
                           )}
-                          <ChevronDown size={14} className="text-slate-400" />
+                          <ChevronDown size={14} className="text-slate-500" />
                         </button>
 
                         {showRoleSelector && (
-                          <div className="absolute top-full mt-2 right-0 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 min-w-[160px]">
+                          <div className="absolute top-full mt-2 right-0 bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden z-50 min-w-[160px]">
                             <button
                               onClick={() => { setInviteRole('Editor'); setShowRoleSelector(false); }}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-all text-left group"
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 transition-colors text-left"
                             >
-                              <div className="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Edit3 size={12} className="text-brand-primary" />
-                              </div>
+                              <Edit3 size={14} className="text-blue-400" />
                               <div>
-                                <span className="text-sm font-semibold text-slate-900 dark:text-white block">Editor</span>
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400">Can modify trip</span>
+                                <span className="text-sm font-medium text-white block">Editor</span>
+                                <span className="text-[10px] text-slate-400">Can modify trip</span>
                               </div>
                             </button>
                             <button
                               onClick={() => { setInviteRole('Viewer'); setShowRoleSelector(false); }}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-left group"
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 transition-colors text-left"
                             >
-                              <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Eye size={12} className="text-slate-400" />
-                              </div>
+                              <Eye size={14} className="text-slate-400" />
                               <div>
-                                <span className="text-sm font-semibold text-slate-900 dark:text-white block">Viewer</span>
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400">View-only access</span>
+                                <span className="text-sm font-medium text-white block">Viewer</span>
+                                <span className="text-[10px] text-slate-400">View-only access</span>
                               </div>
                             </button>
                           </div>
@@ -614,7 +572,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                           }
                         }}
                         disabled={isSendingInvite || !inviteEmail.trim()}
-                        className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all whitespace-nowrap flex-1 sm:flex-initial disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-colors whitespace-nowrap flex-1 sm:flex-initial disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center justify-center gap-2"
                       >
                         {isSendingInvite ? (
                           <>
@@ -622,10 +580,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                             Sending...
                           </>
                         ) : (
-                          <>
-                            <Sparkles size={16} />
-                            Invite
-                          </>
+                          'Invite'
                         )}
                       </button>
                     </div>
@@ -633,18 +588,12 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
                   {/* Success/Error Messages */}
                   {inviteSuccess && (
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2">
-                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check size={12} className="text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-green-700 dark:text-green-400">{inviteSuccess}</p>
-                        <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">They'll receive an email with access details</p>
-                      </div>
+                    <div className="p-3 bg-green-900/30 border border-green-800/50 rounded-lg text-green-400 text-sm">
+                      {inviteSuccess}
                     </div>
                   )}
                   {inviteError && (
-                    <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm font-medium">
+                    <div className="p-3 bg-red-900/30 border border-red-800/50 rounded-lg text-red-400 text-sm">
                       {inviteError}
                     </div>
                   )}
@@ -656,8 +605,8 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Clock size={14} className="text-amber-500" />
-                    <label className="text-sm font-bold text-slate-900 dark:text-white">Pending Invitations</label>
-                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-[10px] font-black">
+                    <label className="text-sm font-medium text-white">Pending</label>
+                    <span className="px-2 py-0.5 bg-amber-900/30 text-amber-400 rounded text-[10px] font-medium">
                       {pendingInvitations.length}
                     </span>
                   </div>
@@ -666,21 +615,18 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                     {pendingInvitations.map((invitation) => (
                       <div
                         key={invitation.id}
-                        className="group flex items-center justify-between p-4 rounded-xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 hover:border-amber-200 dark:hover:border-amber-800 transition-all"
+                        className="group flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-slate-600 transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-md relative">
+                          <div className="w-9 h-9 rounded-lg bg-amber-900/30 flex items-center justify-center text-amber-400 font-medium text-sm">
                             {invitation.invitee_email[0]?.toUpperCase() || '?'}
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center border-2 border-amber-50 dark:border-amber-950">
-                              <Clock size={8} className="text-amber-600" />
-                            </div>
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{invitation.invitee_email}</p>
+                            <p className="text-sm font-medium text-white truncate">{invitation.invitee_email}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <RoleBadge role={invitation.role} />
-                              <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
-                                Awaiting Response
+                              <span className="text-[9px] text-amber-500 font-medium uppercase">
+                                Pending
                               </span>
                             </div>
                           </div>
@@ -697,7 +643,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                           }}
                           aria-label={`Revoke invitation for ${invitation.invitee_email}`}
                           title="Revoke invitation"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 transition-all flex-shrink-0 opacity-0 group-hover:opacity-100"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
                         >
                           <X size={16} />
                         </button>
@@ -710,30 +656,30 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
               {/* Active Crew Members */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Users size={14} className="text-brand-primary" />
-                  <label className="text-sm font-bold text-slate-900 dark:text-white">Active Members</label>
-                  <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-brand-primary rounded-full text-[10px] font-black">
+                  <Users size={14} className="text-slate-400" />
+                  <label className="text-sm font-medium text-white">Members</label>
+                  <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-medium">
                     {activeMembersCount}
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   {/* Owner */}
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border border-amber-100 dark:border-amber-900/30">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="relative">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        <div className="w-10 h-10 rounded-lg bg-amber-600 flex items-center justify-center text-white font-medium text-sm">
                           {trip.ownerEmail?.[0]?.toUpperCase() || 'O'}
                         </div>
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 shadow-md">
-                          <Crown size={10} className="text-white" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                          <Crown size={9} className="text-white" />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{trip.ownerEmail}</p>
+                          <p className="text-sm font-medium text-white truncate">{trip.ownerEmail}</p>
                           {trip.ownerEmail === currentUser.email && (
-                            <span className="px-2 py-0.5 bg-brand-primary text-white rounded-md text-[9px] font-black uppercase tracking-wider">
+                            <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[9px] font-medium uppercase">
                               You
                             </span>
                           )}
@@ -745,41 +691,39 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
                   {/* Collaborators */}
                   {trip.collaborators?.length === 0 ? (
-                    <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
-                      <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center mb-3">
-                        <Users size={20} className="text-slate-400" />
-                      </div>
-                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">No crew members yet</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-500">
-                        {isEditor ? 'Invite teammates to start collaborating' : 'Ask the trip owner to invite you'}
+                    <div className="p-6 rounded-lg bg-slate-800/30 border border-dashed border-slate-700 text-center">
+                      <Users size={20} className="text-slate-600 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-slate-400 mb-1">No members yet</p>
+                      <p className="text-xs text-slate-500">
+                        {isEditor ? 'Invite people to collaborate' : 'Ask the owner to invite you'}
                       </p>
                     </div>
                   ) : (
                     trip.collaborators?.map((col, idx) => (
                       <div
                         key={idx}
-                        className={`group flex items-center justify-between p-4 rounded-xl transition-all border ${
+                        className={`group flex items-center justify-between p-3 rounded-lg transition-all border ${
                           removingMemberId === col.email
-                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900 opacity-50 scale-95'
-                            : 'bg-white dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-md'
+                            ? 'bg-red-900/20 border-red-800 opacity-50'
+                            : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <img
                             src={col.avatar}
-                            className="w-12 h-12 rounded-xl object-cover shadow-md border-2 border-white dark:border-slate-800 group-hover:scale-105 transition-transform flex-shrink-0"
+                            className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
                             alt={col.email}
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{col.email}</p>
+                              <p className="text-sm font-medium text-white truncate">{col.email}</p>
                               {col.email === currentUser.email && (
-                                <span className="px-2 py-0.5 bg-brand-primary text-white rounded-md text-[9px] font-black uppercase tracking-wider">
+                                <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[9px] font-medium uppercase">
                                   You
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="mt-0.5">
                               <RoleBadge role={col.role} />
                             </div>
                           </div>
@@ -792,8 +736,8 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                                 const newRole = col.role === 'Editor' ? 'Viewer' : 'Editor';
                                 handleChangeRole(col.email, newRole);
                               }}
-                              title={col.role === 'Editor' ? 'Change to Viewer (view-only)' : 'Promote to Editor (can edit)'}
-                              className="px-3 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-brand-primary rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5"
+                              title={col.role === 'Editor' ? 'Change to Viewer' : 'Change to Editor'}
+                              className="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium text-slate-300 transition-colors whitespace-nowrap flex items-center gap-1.5"
                             >
                               {col.role === 'Editor' ? (
                                 <>
@@ -810,7 +754,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                             <button
                               onClick={() => handleRemoveCollaborator(col.email)}
                               title="Remove from trip"
-                              className="w-9 h-9 rounded-lg flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-950/30 text-slate-400 hover:text-red-500 transition-all flex-shrink-0"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -824,10 +768,10 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
               {/* Leave Trip (Non-owners) */}
               {!isOwner && (
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                <div className="pt-4 border-t border-slate-800">
                   <button
                     onClick={handleLeaveTrip}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-950/50 text-red-600 dark:text-red-400 rounded-xl font-semibold text-sm transition-all border-2 border-red-100 dark:border-red-900/50 hover:border-red-200 dark:hover:border-red-800"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-lg font-medium text-sm transition-colors border border-red-800/50 hover:border-red-700"
                   >
                     <X size={16} />
                     Leave Trip
