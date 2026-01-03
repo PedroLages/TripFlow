@@ -12,6 +12,7 @@ import MobileNav from './components/MobileNav';
 import TripMobileNav from './components/TripMobileNav';
 import AuthModal from './components/AuthModal';
 import AuthCallback from './components/AuthCallback';
+import { AcceptInvitation } from './components/AcceptInvitation';
 import { Compass, Loader2 } from 'lucide-react';
 import { storage } from './src/services/StorageManager';
 import { usePWA } from './src/hooks/usePWA';
@@ -69,6 +70,7 @@ const AppContent: React.FC<{
           <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={setTripStateOnly} currentUser={user!} />} />
           <Route path="/settings" element={<Settings settings={settings} setSettings={setSettings} onLogout={handleLogout} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/accept-invitation" element={<AcceptInvitation />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         
