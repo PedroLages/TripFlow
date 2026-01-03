@@ -39,12 +39,6 @@ export async function getDB(): Promise<IDBPDatabase<TripFlowDB>> {
             console.log('[DB] Created trips object store with indexes');
           }
 
-          // Create settings object store
-          if (!db.objectStoreNames.contains('settings')) {
-            db.createObjectStore('settings', { keyPath: 'key' });
-            console.log('[DB] Created settings object store');
-          }
-
           // Create syncQueue object store
           if (!db.objectStoreNames.contains('syncQueue')) {
             const syncStore = db.createObjectStore('syncQueue', {
@@ -60,11 +54,15 @@ export async function getDB(): Promise<IDBPDatabase<TripFlowDB>> {
           }
         }
 
-        // Future version upgrades will go here
-        // Example:
-        // if (oldVersion < 2) {
-        //   // Add new object store or index
-        // }
+        // Version 2: Add settings object store
+        // This fixes the issue where some users had v1 DB without settings store
+        if (oldVersion < 2) {
+          // Create settings object store if it doesn't exist
+          if (!db.objectStoreNames.contains('settings')) {
+            db.createObjectStore('settings', { keyPath: 'key' });
+            console.log('[DB] Created settings object store (v2 upgrade)');
+          }
+        }
       },
       blocked() {
         console.warn('[DB] Database upgrade blocked by another tab');

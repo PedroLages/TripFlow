@@ -78,7 +78,7 @@ export interface TripFlowDB extends DBSchema {
  * Database name and version
  */
 export const DB_NAME = 'TripFlowDB';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 /**
  * Default sync queue retry settings
