@@ -142,6 +142,9 @@ public struct LoginView: View {
                             }
                             .disabled(auth.isLoading)
 
+                            // MARK: - Sign in with Apple (Requires Paid Apple Developer Account)
+                            // Temporarily disabled - uncomment when enrolled in Apple Developer Program
+                            /*
                             Button {
                                 Task {
                                     try? await auth.signInWithApple()
@@ -163,6 +166,7 @@ public struct LoginView: View {
                                 )
                             }
                             .disabled(auth.isLoading)
+                            */
                         }
 
                         // Sign up link
