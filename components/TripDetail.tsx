@@ -427,7 +427,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
       {/* Crew Hub Modal - Clean */}
       {showShare && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
+        <div className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}

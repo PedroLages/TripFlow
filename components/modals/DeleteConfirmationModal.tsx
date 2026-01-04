@@ -61,7 +61,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn"
+      className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn"
       onClick={!isLoading ? onCancel : undefined}
       role="dialog"
       aria-modal="true"

@@ -84,7 +84,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   if (!isSupabaseConfigured) {
     return (
       <div
-        className="fixed inset-0 bg-[#0a0e1a]/98 backdrop-blur-2xl flex items-center justify-center z-50 p-4"
+        className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 bg-[#0a0e1a]/98 backdrop-blur-2xl flex items-center justify-center z-50 p-4"
         onClick={handleBackdropClick}
       >
         <div className="bg-white dark:bg-[#161b28] rounded-2xl shadow-xl max-w-md w-full p-4 md:p-6 max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-[#1e2533]/30">
@@ -118,7 +118,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-[#0a0e1a]/98 backdrop-blur-2xl flex items-center justify-center z-50 p-4"
+      className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 bg-[#0a0e1a]/98 backdrop-blur-2xl flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
       <div className="bg-white dark:bg-[#161b28] rounded-2xl shadow-xl max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col border border-slate-200 dark:border-[#1e2533]/30">

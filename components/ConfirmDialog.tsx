@@ -71,7 +71,7 @@ export function ConfirmDialog({
   const Icon = style.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e1a]/98 backdrop-blur-2xl">
+    <div className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-50 flex items-center justify-center p-4 bg-[#0a0e1a]/98 backdrop-blur-2xl">
       <div className="bg-white dark:bg-[#161b28] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in border border-slate-200 dark:border-[#1e2533]/30">
         {/* Header */}
         <div className={`${style.bgColor} p-6 flex items-start gap-4`}>
