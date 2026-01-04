@@ -265,7 +265,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       </div>
 
       {/* 2. Primary Navbar */}
-      <header className="sticky top-0 left-0 right-0 z-[100] transition-all duration-300">
+      <header className="sticky top-0 left-0 right-0 z-[1001] transition-all duration-300">
         <div
           className="absolute inset-0 bg-white/95 dark:bg-slate-900/95 transition-all duration-300 border-b shadow-lg shadow-slate-900/5"
           style={{
@@ -427,7 +427,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
       {/* Crew Hub Modal - Clean */}
       {showShare && (
-        <div className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}

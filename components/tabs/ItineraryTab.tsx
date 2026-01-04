@@ -316,7 +316,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       </div>
 
       {editingActivity && (
-        <div className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col h-full border border-slate-200 dark:border-[#1e2533]/30">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div className="space-y-1">

@@ -80,7 +80,7 @@ export default function PartialPaymentModal({
   const formattedHistory = formatPaymentHistory(split.paymentHistory || []);
 
   return (
-    <div className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-slate-900 p-8 border-b border-gray-100 dark:border-white/5 flex items-center justify-between rounded-t-[2.5rem]">

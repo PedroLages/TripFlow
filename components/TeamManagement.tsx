@@ -426,7 +426,7 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
 
       {/* Invite Modal */}
       {inviteModalOpen && (
-        <div className="fixed top-20 left-0 right-0 bottom-20 md:bottom-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}
