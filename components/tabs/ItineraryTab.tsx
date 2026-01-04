@@ -85,6 +85,28 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [editingActivity]);
 
+  // Hide navigation bars when modal is open
+  React.useEffect(() => {
+    const header = document.querySelector('header');
+    const bottomNav = document.querySelector('nav[class*="bottom"]');
+
+    if (editingActivity) {
+      // Modal is open - hide navigation
+      if (header) header.style.display = 'none';
+      if (bottomNav) bottomNav.style.display = 'none';
+    } else {
+      // Modal is closed - show navigation
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    };
+  }, [editingActivity]);
+
   // TanStack Query mutations for optimistic updates
   const addPhaseMutation = useAddPhaseMutation();
   const deletePhaseMutation = useDeletePhaseMutation();

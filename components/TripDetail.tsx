@@ -79,6 +79,28 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     return () => window.removeEventListener('keydown', handleEscape);
   }, [showShare, showAlerts]);
 
+  // Hide navigation bars when modal is open
+  useEffect(() => {
+    const header = document.querySelector('header');
+    const bottomNav = document.querySelector('nav[class*="bottom"]');
+
+    if (showShare) {
+      // Modal is open - hide navigation
+      if (header) header.style.display = 'none';
+      if (bottomNav) bottomNav.style.display = 'none';
+    } else {
+      // Modal is closed - show navigation
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    };
+  }, [showShare]);
+
   // Load pending invitations when share modal opens
   useEffect(() => {
     const loadInvitations = async () => {
