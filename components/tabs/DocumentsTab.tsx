@@ -588,7 +588,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Vision Scanner Modal */}
       {showCamera && (
-        <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center p-4 bg-slate-950/95 backdrop-blur-3xl">
+        <div className="fixed inset-0 z-[120] flex flex-col items-center justify-center p-4 bg-[#0a0e1a]/98 backdrop-blur-2xl">
            <div className="relative w-full max-w-2xl aspect-[3/4] bg-black rounded-[4rem] overflow-hidden border-4 border-white/10 shadow-3xl">
               <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
               <canvas ref={canvasRef} className="hidden" />
@@ -629,8 +629,8 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Smart Import Modal */}
       {showSmartImport && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-slate-200 dark:border-[#1e2533]/30">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
                 <h3 className="text-2xl sm:text-3xl font-display font-bold mb-1 text-slate-900 dark:text-white">Email Parser</h3>
@@ -669,8 +669,8 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Manual Import Modal */}
       {showManualImport && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-slate-200 dark:border-[#1e2533]/30">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
                 <h3 className="text-2xl sm:text-3xl font-display font-bold mb-1 text-slate-900 dark:text-white">Manual Import</h3>
@@ -794,8 +794,8 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ trip, updateTrip }) => {
 
       {/* Email Import Modal */}
       {showEmailImport && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-4xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-slate-200 dark:border-[#1e2533]/30">
             {/* Header */}
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>

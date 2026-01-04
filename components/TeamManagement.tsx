@@ -426,11 +426,11 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
 
       {/* Invite Modal */}
       {inviteModalOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-white/5 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}
-            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 flex-shrink-0">
+            <div className="p-6 sm:p-8 border-b border-slate-200 dark:border-[#1e2533]/50 flex justify-between items-center dark:bg-[#0f1419]/30 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <Sparkles className="w-6 h-6 text-white" />
@@ -472,10 +472,10 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
                   placeholder="colleague@example.com"
                   required
                   autoFocus
-                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-2xl outline-none dark:text-white border-2 ${
+                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-[#0d1117] rounded-2xl outline-none dark:text-white border-2 ${
                     emailError
                       ? 'border-red-500 focus:border-red-500'
-                      : 'border-transparent focus:border-purple-500/50'
+                      : 'border-slate-200 dark:border-[#1e2533]/50 focus:border-blue-500 dark:focus:border-blue-500/80'
                   } transition-all text-sm font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500`}
                 />
                 {emailError && (
@@ -499,7 +499,7 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
                   <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                     inviteRole === 'Editor'
                       ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 dark:border-purple-600'
-                      : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-800'
+                      : 'bg-slate-50 dark:bg-[#0f1419] border-slate-200 dark:border-[#1e2533]/50 hover:border-purple-300 dark:hover:border-[#1e2533]'
                   }`}>
                     <input
                       type="radio"
@@ -520,8 +520,8 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
 
                   <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                     inviteRole === 'Viewer'
-                      ? 'bg-slate-100 dark:bg-slate-800 border-slate-500 dark:border-slate-600'
-                      : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                      ? 'bg-slate-100 dark:bg-slate-800/50 border-slate-500 dark:border-slate-600'
+                      : 'bg-slate-50 dark:bg-[#0f1419] border-slate-200 dark:border-[#1e2533]/50 hover:border-slate-300 dark:hover:border-[#1e2533]'
                   }`}>
                     <input
                       type="radio"
@@ -543,7 +543,7 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
               </div>
 
               {/* Info Box */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4">
+              <div className="bg-blue-50 dark:bg-[#0f1419] border border-blue-200 dark:border-[#1e2533]/50 rounded-2xl p-4">
                 <p className="text-sm text-blue-900 dark:text-blue-200">
                   An email will be sent to <strong>{inviteEmail || 'the invitee'}</strong> with a link to join this trip.
                 </p>
@@ -554,7 +554,7 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
                 <button
                   type="button"
                   onClick={() => setInviteModalOpen(false)}
-                  className="px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-medium text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-all"
+                  className="px-6 py-3 bg-slate-100 dark:bg-[#0f1419] text-slate-900 dark:text-white rounded-2xl font-medium text-sm hover:bg-slate-200 dark:hover:bg-[#0d1117] transition-all border border-slate-200 dark:border-[#1e2533]/50"
                 >
                   Cancel
                 </button>

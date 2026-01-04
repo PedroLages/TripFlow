@@ -71,8 +71,8 @@ export function ConfirmDialog({
   const Icon = style.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0e1a]/98 backdrop-blur-2xl">
+      <div className="bg-white dark:bg-[#161b28] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-in border border-slate-200 dark:border-[#1e2533]/30">
         {/* Header */}
         <div className={`${style.bgColor} p-6 flex items-start gap-4`}>
           <div className={`${style.iconColor} mt-1`}>
@@ -96,10 +96,10 @@ export function ConfirmDialog({
         </div>
 
         {/* Actions */}
-        <div className="p-6 flex gap-3 justify-end bg-slate-50 dark:bg-slate-900/50">
+        <div className="p-6 flex gap-3 justify-end bg-slate-50 dark:bg-[#0f1419]/30">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-medium"
+            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-[#1e2533]/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#0d1117] transition-colors font-medium"
           >
             {cancelText}
           </button>

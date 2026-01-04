@@ -217,26 +217,26 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const RoleBadge = ({ role, isOwner: owner }: { role: UserRole, isOwner?: boolean }) => {
     if (owner) {
       return (
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 rounded-lg">
-          <Crown size={11} className="text-amber-500" />
-          <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-[0.15em]">Owner</span>
+        <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+          <Crown size={10} className="text-amber-600 dark:text-amber-400" />
+          <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Owner</span>
         </div>
       );
     }
 
     if (role === 'Editor') {
       return (
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
-          <Edit3 size={11} className="text-brand-primary" />
-          <span className="text-[9px] text-brand-primary font-bold uppercase tracking-[0.15em]">Editor</span>
+        <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+          <Edit3 size={10} className="text-blue-600 dark:text-blue-400" />
+          <span className="text-[10px] text-blue-700 dark:text-blue-400 font-medium">Editor</span>
         </div>
       );
     }
 
     return (
-      <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-        <Eye size={11} className="text-slate-400" />
-        <span className="text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.15em]">Viewer</span>
+      <div className="flex items-center gap-1 px-2 py-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded">
+        <Eye size={10} className="text-slate-500 dark:text-slate-400" />
+        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">Viewer</span>
       </div>
     );
   };
@@ -425,32 +425,32 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         </div>
       )}
 
-      {/* Crew Hub Modal - Simplified */}
+      {/* Crew Hub Modal - Clean */}
       {showShare && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-xl overflow-hidden">
-          <div className="bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-800 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-800 bg-slate-900 flex-shrink-0">
+            <div className="px-6 py-5 border-b border-slate-200 dark:border-[#1e2533]/50 flex-shrink-0 dark:bg-[#0f1419]/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-semibold text-white">Crew Hub</h3>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 rounded-lg border border-slate-700">
-                    <Users size={14} className="text-slate-400" />
-                    <span className="text-xs font-medium text-slate-300">{activeMembersCount}</span>
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Team Members</h3>
+                  <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <Users size={14} className="text-blue-600 dark:text-blue-400" />
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-400">{activeMembersCount}</span>
                   </div>
                   {pendingCount > 0 && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-900/30 rounded-lg border border-amber-800/50">
-                      <Clock size={14} className="text-amber-500" />
-                      <span className="text-xs font-medium text-amber-400">{pendingCount}</span>
+                    <div className="flex items-center gap-2 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <Clock size={14} className="text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-medium text-amber-700 dark:text-amber-400">{pendingCount}</span>
                     </div>
                   )}
                 </div>
 
                 <button
                   onClick={() => setShowShare(false)}
-                  aria-label="Close crew hub modal"
-                  className="w-9 h-9 hover:bg-slate-800 rounded-lg flex items-center justify-center transition-colors text-slate-500 hover:text-slate-300"
+                  aria-label="Close team members modal"
+                  className="w-9 h-9 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center justify-center transition-colors text-slate-500 dark:text-slate-400"
                 >
                   <X size={18} />
                 </button>
@@ -458,25 +458,25 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 space-y-6 overflow-y-auto no-scrollbar">
+            <div className="px-6 py-6 space-y-6 overflow-y-auto no-scrollbar">
 
               {/* Invite Section (Owner/Editor only) */}
               {isEditor && (
-                <div className="space-y-3 p-5 rounded-xl bg-slate-800/50 border border-slate-700">
+                <div className="space-y-3 p-4 rounded-2xl bg-slate-50 dark:bg-[#0f1419] border border-slate-200 dark:border-[#1e2533]/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <UserPlus size={16} className="text-slate-400" />
-                      <label className="text-sm font-medium text-white">Invite Member</label>
+                      <UserPlus size={16} className="text-slate-600 dark:text-slate-400" />
+                      <label className="text-sm font-semibold text-slate-900 dark:text-white">Invite Member</label>
                     </div>
 
                     <button
                       onClick={handleCopyInviteLink}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium text-slate-300 transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#0d1117] hover:bg-slate-100 dark:hover:bg-[#161b28] border border-slate-200 dark:border-[#1e2533]/50 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors"
                     >
                       {copiedLink ? (
                         <>
-                          <Check size={12} className="text-green-400" />
-                          <span className="text-green-400">Copied!</span>
+                          <Check size={12} className="text-green-600 dark:text-green-400" />
+                          <span className="text-green-600 dark:text-green-400">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -491,8 +491,8 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                     <input
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="email@example.com"
-                      className="flex-1 px-3 py-2.5 bg-slate-900 rounded-lg outline-none text-white border border-slate-700 focus:border-slate-600 transition-colors text-sm min-w-0 placeholder:text-slate-500"
+                      placeholder="colleague@example.com"
+                      className="flex-1 px-3 py-2.5 bg-white dark:bg-[#0d1117] rounded-xl outline-none text-slate-900 dark:text-white border border-slate-200 dark:border-[#1e2533]/50 focus:border-blue-500 dark:focus:border-blue-500/80 transition-colors text-sm min-w-0 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
 
                     <div className="flex gap-2">
@@ -500,42 +500,42 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                       <div className="relative flex-1 sm:flex-initial">
                         <button
                           onClick={() => setShowRoleSelector(!showRoleSelector)}
-                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-900 rounded-lg font-medium text-sm text-slate-300 border border-slate-700 hover:border-slate-600 transition-colors whitespace-nowrap"
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2.5 bg-white dark:bg-[#0d1117] rounded-xl font-medium text-sm text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#1e2533]/50 hover:border-slate-300 dark:hover:border-[#1e2533] transition-colors whitespace-nowrap"
                         >
                           {inviteRole === 'Editor' ? (
                             <>
-                              <Edit3 size={14} className="text-blue-400" />
+                              <Edit3 size={14} className="text-blue-600 dark:text-blue-400" />
                               <span>Editor</span>
                             </>
                           ) : (
                             <>
-                              <Eye size={14} className="text-slate-400" />
+                              <Eye size={14} className="text-slate-500 dark:text-slate-400" />
                               <span>Viewer</span>
                             </>
                           )}
-                          <ChevronDown size={14} className="text-slate-500" />
+                          <ChevronDown size={14} className="text-slate-400" />
                         </button>
 
                         {showRoleSelector && (
-                          <div className="absolute top-full mt-2 right-0 bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden z-50 min-w-[160px]">
+                          <div className="absolute top-full mt-2 right-0 bg-white dark:bg-[#0d1117] rounded-xl shadow-2xl border border-slate-200 dark:border-[#1e2533]/50 overflow-hidden z-50 min-w-[160px]">
                             <button
                               onClick={() => { setInviteRole('Editor'); setShowRoleSelector(false); }}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 transition-colors text-left"
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#161b28] transition-colors text-left"
                             >
-                              <Edit3 size={14} className="text-blue-400" />
+                              <Edit3 size={14} className="text-blue-600 dark:text-blue-400" />
                               <div>
-                                <span className="text-sm font-medium text-white block">Editor</span>
-                                <span className="text-[10px] text-slate-400">Can modify trip</span>
+                                <span className="text-sm font-medium text-slate-900 dark:text-white block">Editor</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">Can modify trip</span>
                               </div>
                             </button>
                             <button
                               onClick={() => { setInviteRole('Viewer'); setShowRoleSelector(false); }}
-                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700 transition-colors text-left"
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-[#161b28] transition-colors text-left"
                             >
-                              <Eye size={14} className="text-slate-400" />
+                              <Eye size={14} className="text-slate-500 dark:text-slate-400" />
                               <div>
-                                <span className="text-sm font-medium text-white block">Viewer</span>
-                                <span className="text-[10px] text-slate-400">View-only access</span>
+                                <span className="text-sm font-medium text-slate-900 dark:text-white block">Viewer</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">View-only access</span>
                               </div>
                             </button>
                           </div>
@@ -588,12 +588,12 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
                   {/* Success/Error Messages */}
                   {inviteSuccess && (
-                    <div className="p-3 bg-green-900/30 border border-green-800/50 rounded-lg text-green-400 text-sm">
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400 text-sm">
                       {inviteSuccess}
                     </div>
                   )}
                   {inviteError && (
-                    <div className="p-3 bg-red-900/30 border border-red-800/50 rounded-lg text-red-400 text-sm">
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
                       {inviteError}
                     </div>
                   )}
@@ -604,9 +604,9 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
               {isEditor && pendingInvitations.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Clock size={14} className="text-amber-500" />
-                    <label className="text-sm font-medium text-white">Pending</label>
-                    <span className="px-2 py-0.5 bg-amber-900/30 text-amber-400 rounded text-[10px] font-medium">
+                    <Clock size={14} className="text-amber-600 dark:text-amber-400" />
+                    <label className="text-sm font-semibold text-slate-900 dark:text-white">Pending</label>
+                    <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded text-xs font-medium">
                       {pendingInvitations.length}
                     </span>
                   </div>
@@ -615,17 +615,17 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                     {pendingInvitations.map((invitation) => (
                       <div
                         key={invitation.id}
-                        className="group flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-slate-600 transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#0f1419] border border-slate-200 dark:border-[#1e2533]/50 hover:border-slate-300 dark:hover:border-[#1e2533] transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-9 h-9 rounded-lg bg-amber-900/30 flex items-center justify-center text-amber-400 font-medium text-sm">
+                          <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-700 dark:text-amber-400 font-medium text-sm">
                             {invitation.invitee_email[0]?.toUpperCase() || '?'}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-white truncate">{invitation.invitee_email}</p>
+                            <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{invitation.invitee_email}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <RoleBadge role={invitation.role} />
-                              <span className="text-[9px] text-amber-500 font-medium uppercase">
+                              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
                                 Pending
                               </span>
                             </div>
@@ -643,7 +643,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                           }}
                           aria-label={`Revoke invitation for ${invitation.invitee_email}`}
                           title="Revoke invitation"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
                         >
                           <X size={16} />
                         </button>
@@ -653,22 +653,22 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                 </div>
               )}
 
-              {/* Active Crew Members */}
+              {/* Active Members */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Users size={14} className="text-slate-400" />
-                  <label className="text-sm font-medium text-white">Members</label>
-                  <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px] font-medium">
+                  <Users size={14} className="text-slate-600 dark:text-slate-400" />
+                  <label className="text-sm font-semibold text-slate-900 dark:text-white">Members</label>
+                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-medium">
                     {activeMembersCount}
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   {/* Owner */}
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-[#0f1419] border border-slate-200 dark:border-[#1e2533]/50">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-lg bg-amber-600 flex items-center justify-center text-white font-medium text-sm">
+                        <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-amber-700 dark:text-amber-400 font-medium text-sm">
                           {trip.ownerEmail?.[0]?.toUpperCase() || 'O'}
                         </div>
                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
@@ -677,9 +677,9 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium text-white truncate">{trip.ownerEmail}</p>
+                          <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{trip.ownerEmail}</p>
                           {trip.ownerEmail === currentUser.email && (
-                            <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[9px] font-medium uppercase">
+                            <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-xs font-medium">
                               You
                             </span>
                           )}
@@ -691,10 +691,10 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
                   {/* Collaborators */}
                   {trip.collaborators?.length === 0 ? (
-                    <div className="p-6 rounded-lg bg-slate-800/30 border border-dashed border-slate-700 text-center">
-                      <Users size={20} className="text-slate-600 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-slate-400 mb-1">No members yet</p>
-                      <p className="text-xs text-slate-500">
+                    <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#0d1117] border border-dashed border-slate-200 dark:border-[#1e2533]/50 text-center">
+                      <Users size={20} className="text-slate-400 dark:text-slate-600 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">No members yet</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-500">
                         {isEditor ? 'Invite people to collaborate' : 'Ask the owner to invite you'}
                       </p>
                     </div>
@@ -702,10 +702,10 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                     trip.collaborators?.map((col, idx) => (
                       <div
                         key={idx}
-                        className={`group flex items-center justify-between p-3 rounded-lg transition-all border ${
+                        className={`group flex items-center justify-between p-3 rounded-xl transition-all border ${
                           removingMemberId === col.email
-                            ? 'bg-red-900/20 border-red-800 opacity-50'
-                            : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 opacity-50'
+                            : 'bg-white dark:bg-[#0f1419] border-slate-200 dark:border-[#1e2533]/50 hover:border-slate-300 dark:hover:border-[#1e2533]'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -716,9 +716,9 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-white truncate">{col.email}</p>
+                              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{col.email}</p>
                               {col.email === currentUser.email && (
-                                <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-[9px] font-medium uppercase">
+                                <span className="px-1.5 py-0.5 bg-blue-600 text-white rounded text-xs font-medium">
                                   You
                                 </span>
                               )}
@@ -737,7 +737,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                                 handleChangeRole(col.email, newRole);
                               }}
                               title={col.role === 'Editor' ? 'Change to Viewer' : 'Change to Editor'}
-                              className="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium text-slate-300 transition-colors whitespace-nowrap flex items-center gap-1.5"
+                              className="px-2.5 py-1.5 bg-slate-100 dark:bg-[#0d1117] hover:bg-slate-200 dark:hover:bg-[#161b28] border border-slate-200 dark:border-[#1e2533]/50 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors whitespace-nowrap flex items-center gap-1.5"
                             >
                               {col.role === 'Editor' ? (
                                 <>
@@ -754,7 +754,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
                             <button
                               onClick={() => handleRemoveCollaborator(col.email)}
                               title="Remove from trip"
-                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-900/30 text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors flex-shrink-0"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -768,10 +768,10 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
               {/* Leave Trip (Non-owners) */}
               {!isOwner && (
-                <div className="pt-4 border-t border-slate-800">
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
                   <button
                     onClick={handleLeaveTrip}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-lg font-medium text-sm transition-colors border border-red-800/50 hover:border-red-700"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg font-medium text-sm transition-colors border border-red-200 dark:border-red-800"
                   >
                     <X size={16} />
                     Leave Trip

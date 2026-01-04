@@ -84,10 +84,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   if (!isSupabaseConfigured) {
     return (
       <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-[#0a0e1a]/98 backdrop-blur-2xl flex items-center justify-center z-50 p-4"
         onClick={handleBackdropClick}
       >
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-4 md:p-6 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-[#161b28] rounded-2xl shadow-xl max-w-md w-full p-4 md:p-6 max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-[#1e2533]/30">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Sign In Not Available
@@ -118,10 +118,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-[#0a0e1a]/98 backdrop-blur-2xl flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-[#161b28] rounded-2xl shadow-xl max-w-md w-full overflow-hidden max-h-[90vh] flex flex-col border border-slate-200 dark:border-[#1e2533]/30">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 md:p-6 text-white flex-shrink-0">
           <div className="flex justify-between items-start">

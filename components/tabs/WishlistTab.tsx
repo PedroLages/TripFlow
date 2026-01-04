@@ -588,8 +588,8 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
 
       {/* Entry Modal */}
       {showAdd && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-3xl">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-white/5">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-[#0a0e1a]/98 backdrop-blur-2xl">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col border border-slate-200 dark:border-[#1e2533]/30">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div>
                 <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Register Waypoint</h3>
