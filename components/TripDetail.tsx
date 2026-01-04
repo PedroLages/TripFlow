@@ -479,8 +479,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
             className="absolute inset-0 md:relative bg-white dark:bg-[#161b28] w-full md:max-w-2xl shadow-2xl overflow-hidden flex flex-col md:h-auto md:rounded-3xl md:m-4 md:max-h-[90vh] md:border md:border-slate-200 md:dark:border-[#1e2533]/30"
             style={{
               transform: isMobile ? `translateY(${translateY}px)` : undefined,
-              transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-              paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out'
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
