@@ -101,14 +101,15 @@ public struct CreateTripView: View {
             .navigationTitle("Create Trip")
             .navigationBarTitleDisplayMode(.large)
         }
-        .toolbar(id: "createTripToolbar") {
-            ToolbarItem(id: "cancel", placement: .cancellationAction) {
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
                     dismiss()
                 }
             }
 
-            ToolbarItem(id: "create", placement: .confirmationAction) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button("Create") {
                     Task {
                         await createTrip()
