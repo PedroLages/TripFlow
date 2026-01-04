@@ -102,21 +102,30 @@ public struct CreateTripView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
+            cancelButton
+            createButton
+        }
+    }
 
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Create") {
-                    Task {
-                        await createTrip()
-                    }
-                }
-                .disabled(!isFormValid || isCreating)
-                .fontWeight(.semibold)
+    @ToolbarContentBuilder
+    private var cancelButton: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") {
+                dismiss()
             }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var createButton: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            Button("Create") {
+                Task {
+                    await createTrip()
+                }
+            }
+            .disabled(!isFormValid || isCreating)
+            .fontWeight(.semibold)
         }
     }
 
