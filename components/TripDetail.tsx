@@ -12,6 +12,7 @@ import {
 import { format } from 'date-fns';
 import { geminiService } from '../src/services/GeminiService';
 import { sendInvitation, getTripInvitations, revokeInvitation, type TripInvitation } from '../src/services/invitationService';
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 import ItineraryTab from './tabs/ItineraryTab';
 import MapTab from './tabs/MapTab';
 import WishlistTab from './tabs/WishlistTab';
@@ -66,6 +67,14 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   const activeMembersCount = totalCrewCount;
   const pendingCount = pendingInvitations.length;
 
+  // Swipe-to-dismiss for mobile (only enabled on mobile devices)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const { translateY, handleTouchStart, handleTouchMove, handleTouchEnd, isDragging } = useSwipeToDismiss({
+    onDismiss: () => setShowShare(false),
+    threshold: 150,
+    enabled: isMobile && showShare
+  });
+
   // ESC key handler for modals
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -78,6 +87,38 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [showShare, showAlerts]);
+
+  // Hide navigation bars when modal is open (mobile only)
+  useEffect(() => {
+    const header = document.querySelector('header');
+    const bottomNav = document.querySelector('nav[class*="bottom"]');
+
+    const updateNavVisibility = () => {
+      const isMobile = window.innerWidth <= 768;
+
+      if (showShare && isMobile) {
+        // Modal is open on mobile - hide navigation
+        if (header) header.style.display = 'none';
+        if (bottomNav) bottomNav.style.display = 'none';
+      } else {
+        // Modal is closed OR desktop view - show navigation
+        if (header) header.style.display = '';
+        if (bottomNav) bottomNav.style.display = '';
+      }
+    };
+
+    updateNavVisibility();
+
+    // Listen for window resize to update visibility
+    window.addEventListener('resize', updateNavVisibility);
+
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('resize', updateNavVisibility);
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    };
+  }, [showShare]);
 
   // Load pending invitations when share modal opens
   useEffect(() => {
@@ -427,11 +468,32 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
       {/* Crew Hub Modal - Clean */}
       {showShare && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
-          <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
+        <div
+          className="fixed inset-0 z-[1002] bg-[#0a0e1a] backdrop-blur-3xl overflow-hidden md:flex md:items-center md:justify-center"
+          style={{
+            minHeight: '100vh',
+            minHeight: '-webkit-fill-available'
+          }}
+        >
+          <div
+            className="absolute inset-0 md:relative bg-white dark:bg-[#161b28] w-full md:max-w-2xl shadow-2xl overflow-hidden flex flex-col md:h-auto md:rounded-3xl md:m-4 md:max-h-[90vh] md:border md:border-slate-200 md:dark:border-[#1e2533]/30"
+            style={{
+              transform: isMobile ? `translateY(${translateY}px)` : undefined,
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Drag Handle (Mobile Only) */}
+            {isMobile && (
+              <div className="md:hidden flex justify-center pt-3 pb-2 bg-white dark:bg-[#161b28]">
+                <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+              </div>
+            )}
 
             {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-slate-200 dark:border-[#1e2533]/50 flex-shrink-0 dark:bg-[#0f1419]/30">
+            <div className="px-6 py-5 border-b border-slate-200 dark:border-[#1e2533]/50 flex-shrink-0 bg-white dark:bg-[#161b28]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h3 className="text-xl font-semibold text-slate-900 dark:text-white">Team Members</h3>
