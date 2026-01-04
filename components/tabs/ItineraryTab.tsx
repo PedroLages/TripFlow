@@ -12,6 +12,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTerminology } from '../../hooks/TerminologyContext';
+import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss';
 import { ConfirmDialog } from '../ConfirmDialog';
 import {
   useAddPhaseMutation,
@@ -73,6 +74,14 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ dayId: string; activityId: string } | null>(null);
   const isEditor = trip.currentUserRole === 'Editor';
 
+  // Swipe-to-dismiss for mobile (only enabled on mobile devices)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const { translateY, handleTouchStart, handleTouchMove, handleTouchEnd, isDragging } = useSwipeToDismiss({
+    onDismiss: () => setEditingActivity(null),
+    threshold: 150,
+    enabled: isMobile && !!editingActivity
+  });
+
   // ESC key handler for modal
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -85,23 +94,33 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [editingActivity]);
 
-  // Hide navigation bars when modal is open
+  // Hide navigation bars when modal is open (mobile only)
   React.useEffect(() => {
     const header = document.querySelector('header');
     const bottomNav = document.querySelector('nav[class*="bottom"]');
 
-    if (editingActivity) {
-      // Modal is open - hide navigation
-      if (header) header.style.display = 'none';
-      if (bottomNav) bottomNav.style.display = 'none';
-    } else {
-      // Modal is closed - show navigation
-      if (header) header.style.display = '';
-      if (bottomNav) bottomNav.style.display = '';
-    }
+    const updateNavVisibility = () => {
+      const isMobile = window.innerWidth <= 768;
+
+      if (editingActivity && isMobile) {
+        // Modal is open on mobile - hide navigation
+        if (header) header.style.display = 'none';
+        if (bottomNav) bottomNav.style.display = 'none';
+      } else {
+        // Modal is closed OR desktop view - show navigation
+        if (header) header.style.display = '';
+        if (bottomNav) bottomNav.style.display = '';
+      }
+    };
+
+    updateNavVisibility();
+
+    // Listen for window resize to update visibility
+    window.addEventListener('resize', updateNavVisibility);
 
     // Cleanup on unmount
     return () => {
+      window.removeEventListener('resize', updateNavVisibility);
       if (header) header.style.display = '';
       if (bottomNav) bottomNav.style.display = '';
     };
@@ -338,9 +357,25 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       </div>
 
       {editingActivity && (
-        <div className="fixed inset-0 z-[1002] bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden flex items-center justify-center p-4 sm:p-6">
-          <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col my-20 md:my-auto max-h-[calc(100vh-160px)] md:max-h-[calc(100vh-120px)] border border-slate-200 dark:border-[#1e2533]/30">
-            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
+        <div className="fixed inset-0 z-[1002] bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden md:flex md:items-center md:justify-center">
+          <div
+            className="absolute inset-0 md:relative bg-white dark:bg-[#161b28] w-full md:max-w-lg shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col md:h-auto md:rounded-[2.5rem] md:m-4 md:max-h-[90vh] md:border md:border-slate-200 md:dark:border-[#1e2533]/30"
+            style={{
+              transform: isMobile ? `translateY(${translateY}px)` : undefined,
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Drag Handle (Mobile Only) */}
+            {isMobile && (
+              <div className="md:hidden flex justify-center pt-3 pb-2 bg-white dark:bg-[#161b28]">
+                <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+              </div>
+            )}
+
+            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-[#161b28] flex-shrink-0">
               <div className="space-y-1">
                 <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">Refining Objective Parameters</p>
@@ -419,7 +454,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 />
               </div>
             </div>
-            <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-row items-center justify-between gap-4 flex-shrink-0">
+            <div className="px-6 py-4 sm:px-8 sm:py-6 bg-white dark:bg-[#161b28] border-t border-slate-100 dark:border-slate-700 flex flex-row items-center justify-between gap-4 flex-shrink-0">
               <button
                 onClick={() => setEditingActivity(null)}
                 className="flex-1 px-4 py-3 font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"

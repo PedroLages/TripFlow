@@ -4,6 +4,7 @@ import { Users, Mail, Crown, UserMinus, XCircle, Send, Plus, Shield, Eye, Clock,
 import type { Trip, Collaborator, UserRole } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { useConfirm } from '../contexts/ConfirmContext';
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss';
 import { formatDistanceToNow } from 'date-fns';
 
 interface TeamManagementProps {
@@ -44,6 +45,14 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
     });
   }, []);
 
+  // Swipe-to-dismiss for mobile (only enabled on mobile devices)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const { translateY, handleTouchStart, handleTouchMove, handleTouchEnd, isDragging } = useSwipeToDismiss({
+    onDismiss: () => setInviteModalOpen(false),
+    threshold: 150,
+    enabled: isMobile && inviteModalOpen
+  });
+
   // ESC key handler for modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -56,23 +65,33 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [inviteModalOpen]);
 
-  // Hide navigation bars when modal is open
+  // Hide navigation bars when modal is open (mobile only)
   useEffect(() => {
     const header = document.querySelector('header');
     const bottomNav = document.querySelector('nav[class*="bottom"]');
 
-    if (inviteModalOpen) {
-      // Modal is open - hide navigation
-      if (header) header.style.display = 'none';
-      if (bottomNav) bottomNav.style.display = 'none';
-    } else {
-      // Modal is closed - show navigation
-      if (header) header.style.display = '';
-      if (bottomNav) bottomNav.style.display = '';
-    }
+    const updateNavVisibility = () => {
+      const isMobile = window.innerWidth <= 768;
+
+      if (inviteModalOpen && isMobile) {
+        // Modal is open on mobile - hide navigation
+        if (header) header.style.display = 'none';
+        if (bottomNav) bottomNav.style.display = 'none';
+      } else {
+        // Modal is closed OR desktop view - show navigation
+        if (header) header.style.display = '';
+        if (bottomNav) bottomNav.style.display = '';
+      }
+    };
+
+    updateNavVisibility();
+
+    // Listen for window resize to update visibility
+    window.addEventListener('resize', updateNavVisibility);
 
     // Cleanup on unmount
     return () => {
+      window.removeEventListener('resize', updateNavVisibility);
       if (header) header.style.display = '';
       if (bottomNav) bottomNav.style.display = '';
     };
@@ -448,11 +467,26 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
 
       {/* Invite Modal */}
       {inviteModalOpen && (
-        <div className="fixed inset-0 z-[1002] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[1002] bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200 md:flex md:items-center md:justify-center">
+          <div
+            className="absolute inset-0 md:relative bg-white dark:bg-[#161b28] w-full md:max-w-lg shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col md:h-auto md:rounded-[2.5rem] md:m-4 md:max-h-[90vh] md:border md:border-slate-200 md:dark:border-[#1e2533]/30"
+            style={{
+              transform: isMobile ? `translateY(${translateY}px)` : undefined,
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Drag Handle (Mobile Only) */}
+            {isMobile && (
+              <div className="md:hidden flex justify-center pt-3 pb-2 bg-white dark:bg-[#161b28]">
+                <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+              </div>
+            )}
 
             {/* Modal Header */}
-            <div className="p-6 sm:p-8 border-b border-slate-200 dark:border-[#1e2533]/50 flex justify-between items-center dark:bg-[#0f1419]/30 flex-shrink-0">
+            <div className="p-6 sm:p-8 border-b border-slate-200 dark:border-[#1e2533]/50 flex justify-between items-center bg-white dark:bg-[#161b28] flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <Sparkles className="w-6 h-6 text-white" />
