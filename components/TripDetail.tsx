@@ -468,12 +468,19 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
       {/* Crew Hub Modal - Clean */}
       {showShare && (
-        <div className="fixed inset-0 z-[1002] bg-[#0a0e1a] backdrop-blur-3xl overflow-hidden md:flex md:items-center md:justify-center">
+        <div
+          className="fixed inset-0 z-[1002] bg-[#0a0e1a] backdrop-blur-3xl overflow-hidden md:flex md:items-center md:justify-center"
+          style={{
+            minHeight: '100vh',
+            minHeight: '-webkit-fill-available'
+          }}
+        >
           <div
             className="absolute inset-0 md:relative bg-white dark:bg-[#161b28] w-full md:max-w-2xl shadow-2xl overflow-hidden flex flex-col md:h-auto md:rounded-3xl md:m-4 md:max-h-[90vh] md:border md:border-slate-200 md:dark:border-[#1e2533]/30"
             style={{
               transform: isMobile ? `translateY(${translateY}px)` : undefined,
-              transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+              transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+              paddingTop: isMobile ? 'env(safe-area-inset-top)' : undefined
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
