@@ -100,22 +100,22 @@ public struct CreateTripView: View {
             .disabled(isCreating)
             .navigationTitle("Create Trip")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItemGroup(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+        }
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    dismiss()
                 }
+            }
 
-                ToolbarItemGroup(placement: .confirmationAction) {
-                    Button("Create") {
-                        Task {
-                            await createTrip()
-                        }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Create") {
+                    Task {
+                        await createTrip()
                     }
-                    .disabled(!isFormValid || isCreating)
-                    .fontWeight(.semibold)
                 }
+                .disabled(!isFormValid || isCreating)
+                .fontWeight(.semibold)
             }
         }
     }
