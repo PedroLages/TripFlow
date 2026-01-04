@@ -16,6 +16,8 @@ public struct DashboardView: View {
     @Environment(AuthService.self) private var auth
     @Environment(TripService.self) private var tripService
 
+    @State private var showingCreateTrip = false
+
     public init() {}
 
     public var body: some View {
@@ -26,7 +28,7 @@ public struct DashboardView: View {
 
                 if tripService.trips.isEmpty && !tripService.isLoading {
                     // Empty state
-                    EmptyStateView()
+                    EmptyStateView(showingCreateTrip: $showingCreateTrip)
                 } else {
                     // Trip list
                     ScrollView {
@@ -67,7 +69,7 @@ public struct DashboardView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     // Add trip button
                     Button {
-                        // TODO: Show create trip modal
+                        showingCreateTrip = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
@@ -82,6 +84,9 @@ public struct DashboardView: View {
                 if tripService.trips.isEmpty {
                     await tripService.fetchTrips()
                 }
+            }
+            .sheet(isPresented: $showingCreateTrip) {
+                CreateTripView()
             }
         }
     }
@@ -188,6 +193,8 @@ struct TripCardView: View {
 // MARK: - Empty State
 
 struct EmptyStateView: View {
+    @Binding var showingCreateTrip: Bool
+
     var body: some View {
         VStack(spacing: Spacing.xl) {
             Image(systemName: "airplane.departure")
@@ -212,7 +219,7 @@ struct EmptyStateView: View {
             }
 
             Button {
-                // TODO: Show create trip modal
+                showingCreateTrip = true
             } label: {
                 Text("Create Your First Trip")
                     .primaryButton()
