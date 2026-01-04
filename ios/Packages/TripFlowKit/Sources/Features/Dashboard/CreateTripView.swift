@@ -99,7 +99,7 @@ public struct CreateTripView: View {
             }
             .navigationTitle("Create Trip")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
@@ -115,7 +115,7 @@ public struct CreateTripView: View {
                     .disabled(!isFormValid || isCreating)
                     .fontWeight(.semibold)
                 }
-            }
+            })
             .disabled(isCreating)
         }
     }
