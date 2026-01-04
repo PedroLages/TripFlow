@@ -34,7 +34,10 @@ public struct DashboardView: View {
                     ScrollView {
                         VStack(spacing: Spacing.md) {
                             ForEach(tripService.trips) { trip in
-                                TripCardView(trip: trip)
+                                NavigationLink(destination: TripDetailView(trip: trip)) {
+                                    TripCardView(trip: trip)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(Spacing.screenPadding)
