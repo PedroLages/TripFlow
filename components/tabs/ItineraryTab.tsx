@@ -316,9 +316,8 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       </div>
 
       {editingActivity && (
-        <div className="fixed inset-0 z-[1000] bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
-          <div className="h-full flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6">
-            <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-full my-auto border border-slate-200 dark:border-[#1e2533]/30">
+        <div className="fixed inset-0 z-[1000] bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col my-20 md:my-auto max-h-[calc(100vh-160px)] md:max-h-[calc(100vh-120px)] border border-slate-200 dark:border-[#1e2533]/30">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
               <div className="space-y-1">
                 <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
@@ -411,7 +410,6 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
               >
                 Lock Objective
               </button>
-            </div>
             </div>
           </div>
         </div>
