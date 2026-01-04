@@ -167,13 +167,38 @@ public final class AuthService {
         errorMessage = nil
 
         do {
-            // TODO: Implement Google OAuth flow
-            // Requires setting up Google OAuth in Supabase dashboard
-            // and configuring URL scheme in Xcode project
-            throw AuthError.notImplemented("Google OAuth not yet configured")
+            // Use Supabase OAuth flow with Google provider
+            // The SDK will handle the OAuth dance and callback
+            try await supabase.auth.signInWithOAuth(
+                provider: .google,
+                redirectTo: URL(string: "tripflow://auth/callback")
+            )
+
+            // After OAuth completes, check for session
+            // Note: The session will be set when the deep link callback is handled
+            try await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+            await checkSession()
+
+            if !isAuthenticated {
+                throw AuthError.invalidCredential("OAuth sign in was not completed")
+            }
+
+            isLoading = false
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false
+            throw error
+        }
+    }
+
+    /// Handle OAuth callback from deep link
+    @MainActor
+    public func handleOAuthCallback(url: URL) async throws {
+        do {
+            try await supabase.auth.session(from: url)
+            await checkSession()
+        } catch {
+            errorMessage = "Failed to complete OAuth sign in: \(error.localizedDescription)"
             throw error
         }
     }
@@ -185,9 +210,40 @@ public final class AuthService {
         errorMessage = nil
 
         do {
-            // TODO: Implement Sign in with Apple flow
-            // Required for App Store if offering Google OAuth
-            throw AuthError.notImplemented("Sign in with Apple not yet configured")
+            // Create Apple ID credential request
+            let provider = ASAuthorizationAppleIDProvider()
+            let request = provider.createRequest()
+            request.requestedScopes = [.fullName, .email]
+
+            // Create coordinator
+            let coordinator = AppleSignInCoordinator()
+
+            // Perform authorization
+            let authorization = try await coordinator.signIn(with: request)
+
+            guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+                throw AuthError.invalidCredential("Invalid Apple ID credential")
+            }
+
+            guard let identityToken = appleIDCredential.identityToken,
+                  let tokenString = String(data: identityToken, encoding: .utf8) else {
+                throw AuthError.invalidCredential("Unable to get identity token")
+            }
+
+            // Sign in to Supabase with the ID token
+            try await supabase.auth.signInWithIdToken(
+                credentials: .init(
+                    provider: .apple,
+                    idToken: tokenString
+                )
+            )
+
+            // Get the session
+            let session = try await supabase.auth.session
+            self.session = session
+            self.user = session.user
+
+            isLoading = false
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false
@@ -200,11 +256,74 @@ public final class AuthService {
 
 public enum AuthError: LocalizedError {
     case notImplemented(String)
+    case invalidCredential(String)
+    case cancelled
 
     public var errorDescription: String? {
         switch self {
         case .notImplemented(let message):
             return message
+        case .invalidCredential(let message):
+            return message
+        case .cancelled:
+            return "Sign in was cancelled"
         }
+    }
+}
+
+// MARK: - Apple Sign In Coordinator
+
+/// Coordinator to handle async Sign in with Apple flow
+@MainActor
+final class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private var continuation: CheckedContinuation<ASAuthorization, Error>?
+
+    func signIn(with request: ASAuthorizationAppleIDRequest) async throws -> ASAuthorization {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
+    }
+
+    // MARK: - ASAuthorizationControllerDelegate
+
+    nonisolated func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithAuthorization authorization: ASAuthorization
+    ) {
+        Task { @MainActor in
+            continuation?.resume(returning: authorization)
+            continuation = nil
+        }
+    }
+
+    nonisolated func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithError error: Error
+    ) {
+        Task { @MainActor in
+            if let authError = error as? ASAuthorizationError,
+               authError.code == .canceled {
+                continuation?.resume(throwing: AuthError.cancelled)
+            } else {
+                continuation?.resume(throwing: error)
+            }
+            continuation = nil
+        }
+    }
+
+    // MARK: - ASAuthorizationControllerPresentationContextProviding
+
+    nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        // Get the key window
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = scene.windows.first else {
+            fatalError("No window available for Sign in with Apple")
+        }
+        return window
     }
 }

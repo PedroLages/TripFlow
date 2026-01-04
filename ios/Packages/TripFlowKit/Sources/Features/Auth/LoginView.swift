@@ -118,10 +118,12 @@ public struct LoginView: View {
                         }
                         .padding(.vertical, 8)
 
-                        // OAuth buttons (placeholder)
+                        // OAuth buttons
                         VStack(spacing: 12) {
                             Button {
-                                // TODO: Implement Google OAuth
+                                Task {
+                                    try? await auth.signInWithGoogle()
+                                }
                             } label: {
                                 HStack {
                                     Image(systemName: "globe")
@@ -138,9 +140,12 @@ public struct LoginView: View {
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                                 )
                             }
+                            .disabled(auth.isLoading)
 
                             Button {
-                                // TODO: Implement Sign in with Apple
+                                Task {
+                                    try? await auth.signInWithApple()
+                                }
                             } label: {
                                 HStack {
                                     Image(systemName: "apple.logo")
@@ -157,6 +162,7 @@ public struct LoginView: View {
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                                 )
                             }
+                            .disabled(auth.isLoading)
                         }
 
                         // Sign up link
