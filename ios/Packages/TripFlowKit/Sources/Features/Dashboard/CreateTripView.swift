@@ -97,16 +97,17 @@ public struct CreateTripView: View {
                     }
                 }
             }
+            .disabled(isCreating)
             .navigationTitle("Create Trip")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItemGroup(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
 
-                ToolbarItem(placement: .confirmationAction) {
+                ToolbarItemGroup(placement: .confirmationAction) {
                     Button("Create") {
                         Task {
                             await createTrip()
@@ -116,7 +117,6 @@ public struct CreateTripView: View {
                     .fontWeight(.semibold)
                 }
             }
-            .disabled(isCreating)
         }
     }
 
