@@ -35,10 +35,10 @@ public struct CreateTripView: View {
             Form {
                 Section {
                     TextField("Trip Name", text: $name)
-                        .font(.body)
+                        .font(.bodyRegular)
 
                     TextField("Destination", text: $destination)
-                        .font(.body)
+                        .font(.bodyRegular)
                 } header: {
                     Text("Basic Information")
                         .font(.captionMedium)
@@ -47,10 +47,10 @@ public struct CreateTripView: View {
 
                 Section {
                     DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
-                        .font(.body)
+                        .font(.bodyRegular)
 
                     DatePicker("End Date", selection: $endDate, displayedComponents: .date)
-                        .font(.body)
+                        .font(.bodyRegular)
 
                     if startDate >= endDate {
                         Text("End date must be after start date")
@@ -66,7 +66,7 @@ public struct CreateTripView: View {
                 Section {
                     TextField("Budget (optional)", text: $budgetText)
                         .keyboardType(.decimalPad)
-                        .font(.body)
+                        .font(.bodyRegular)
 
                     if let budgetValue = budget {
                         Text("Budget: \(budgetValue, format: .currency(code: "USD"))")
@@ -82,7 +82,7 @@ public struct CreateTripView: View {
                 Section {
                     TextField("Description (optional)", text: $description, axis: .vertical)
                         .lineLimit(3...6)
-                        .font(.body)
+                        .font(.bodyRegular)
                 } header: {
                     Text("Description")
                         .font(.captionMedium)

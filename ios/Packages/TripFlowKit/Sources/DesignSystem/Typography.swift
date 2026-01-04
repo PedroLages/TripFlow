@@ -50,8 +50,8 @@ public extension Font {
     /// Body Large - 18px, regular
     static let bodyLarge = Font.system(size: 18, weight: .regular)
 
-    /// Body - 16px, regular (default body text)
-    static let body = Font.system(size: 16, weight: .regular)
+    /// Body Regular - 16px, regular (default body text)
+    static let bodyRegular = Font.system(size: 16, weight: .regular)
 
     /// Body Medium - 16px, medium
     static let bodyMedium = Font.system(size: 16, weight: .medium)
@@ -110,7 +110,7 @@ public extension View {
 
     /// Apply body typography (16px regular)
     func bodyText() -> some View {
-        self.font(.body)
+        self.font(.bodyRegular)
     }
 }
 
@@ -136,7 +136,7 @@ public extension TypographyStyle {
     static let title = TypographyStyle(font: .heading2, lineSpacing: 4)
 
     /// Body text with comfortable reading line height
-    static let bodyComfortable = TypographyStyle(font: .body, lineSpacing: 6)
+    static let bodyComfortable = TypographyStyle(font: .bodyRegular, lineSpacing: 6)
 }
 
 public extension View {

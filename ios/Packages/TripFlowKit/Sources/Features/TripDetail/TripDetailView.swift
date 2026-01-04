@@ -174,7 +174,7 @@ struct OverviewTab: View {
                             .foregroundColor(.slate900)
 
                         Text(description)
-                            .font(.body)
+                            .font(.bodyRegular)
                             .foregroundColor(.slate600)
                     }
                 }
@@ -228,7 +228,7 @@ struct InfoRow: View {
                     .foregroundColor(.slate500)
 
                 Text(value)
-                    .font(.body)
+                    .font(.bodyRegular)
                     .foregroundColor(.slate900)
             }
 
