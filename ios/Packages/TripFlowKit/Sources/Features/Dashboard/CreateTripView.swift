@@ -102,23 +102,18 @@ public struct CreateTripView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Cancel") {
-                    dismiss()
+        .navigationBarItems(
+            leading: Button("Cancel") {
+                dismiss()
+            },
+            trailing: Button("Create") {
+                Task {
+                    await createTrip()
                 }
             }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Create") {
-                    Task {
-                        await createTrip()
-                    }
-                }
-                .disabled(!isFormValid || isCreating)
-                .fontWeight(.semibold)
-            }
-        }
+            .disabled(!isFormValid || isCreating)
+            .fontWeight(.semibold)
+        )
     }
 
     @MainActor
