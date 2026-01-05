@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trip, Activity, ActivityType, TravelDocument } from '../../types';
 import {
   Plus, MapPin, Trash2, Wand2,
@@ -337,7 +338,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
         )}
       </div>
 
-      {editingActivity && (
+      {editingActivity && createPortal(
         <div className="fixed inset-0 z-[1002] bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden flex items-center justify-center p-4 sm:p-6">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col my-20 md:my-auto max-h-[calc(100vh-160px)] md:max-h-[calc(100vh-120px)] border border-slate-200 dark:border-[#1e2533]/30">
             <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
@@ -434,7 +435,8 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <ConfirmDialog

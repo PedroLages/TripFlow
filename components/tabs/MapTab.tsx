@@ -31,7 +31,7 @@ import {
   Filter, Map as MapIcon, MapPin, ChevronUp, ChevronDown, Search,
   Star, ShoppingBag, HelpCircle, DollarSign, Receipt,
   Download, CloudOff, Check, AlertCircle, Maximize2, Minimize2, LocateFixed, Crosshair,
-  CloudRain, Building2, Mountain, Sun, Moon, Palette, ToggleLeft, ToggleRight
+  CloudRain, Building2, Mountain, Sun, Moon, Palette, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { geminiService } from '../../src/services/GeminiService';
 import { geocodeDestination, geocode, SearchSuggestion } from '../../services/GeocodingService';
@@ -332,6 +332,25 @@ const MapTab: React.FC<MapTabProps> = ({ trip }) => {
   // Route visualization - now async with OpenRouteService
   const [routeSegments, setRouteSegments] = useState<any[]>([]);
   const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
+
+  // Phase Grid scroll ref for desktop navigation
+  const phaseGridRef = useRef<HTMLDivElement>(null);
+
+  // Scroll Phase Grid left/right (for desktop arrow navigation)
+  const scrollPhaseGrid = useCallback((direction: 'left' | 'right') => {
+    if (!phaseGridRef.current) return;
+
+    const container = phaseGridRef.current;
+    const scrollAmount = 150; // Scroll by ~1 button width
+    const newScrollLeft = direction === 'left'
+      ? container.scrollLeft - scrollAmount
+      : container.scrollLeft + scrollAmount;
+
+    container.scrollTo({
+      left: newScrollLeft,
+      behavior: 'smooth'
+    });
+  }, []);
 
   // Generate route segments (async - fetches from OpenRouteService)
   useEffect(() => {
@@ -1046,26 +1065,45 @@ Return JSON array: [{name, type}] with 4 authentic local spots.`,
           <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
             <Compass size={14} className="text-brand-primary" /> Phase Grid
           </p>
-          <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
+          <div className="relative group">
+            {/* Left arrow - Desktop only */}
             <button
-              onClick={() => setSelectedDay('all')}
-              className={`px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedDay === 'all' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200'}`}
+              onClick={() => scrollPhaseGrid('left')}
+              className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-full items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-50 dark:hover:bg-slate-700"
             >
-              All Phases
+              <ChevronLeft size={16} className="text-slate-600 dark:text-slate-300" />
             </button>
-            {trip.itinerary.map((day, i) => (
+
+            {/* Scrollable Phase Grid */}
+            <div ref={phaseGridRef} className="flex gap-2 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth">
               <button
-                key={day.id}
-                onClick={() => setSelectedDay(day.id)}
-                className={`px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${selectedDay === day.id ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200'}`}
+                onClick={() => setSelectedDay('all')}
+                className={`px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-shrink-0 snap-center ${selectedDay === 'all' ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200'}`}
               >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: DAY_COLORS[i % DAY_COLORS.length] }}
-                />
-                Day {i + 1}
+                All Phases
               </button>
-            ))}
+              {trip.itinerary.map((day, i) => (
+                <button
+                  key={day.id}
+                  onClick={() => setSelectedDay(day.id)}
+                  className={`px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 flex-shrink-0 snap-center ${selectedDay === day.id ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200'}`}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: DAY_COLORS[i % DAY_COLORS.length] }}
+                  />
+                  Day {i + 1}
+                </button>
+              ))}
+            </div>
+
+            {/* Right arrow - Desktop only */}
+            <button
+              onClick={() => scrollPhaseGrid('right')}
+              className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-full items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-50 dark:hover:bg-slate-700"
+            >
+              <ChevronRight size={16} className="text-slate-600 dark:text-slate-300" />
+            </button>
           </div>
         </div>
 
