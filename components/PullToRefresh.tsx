@@ -66,7 +66,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       {/* Content */}
       <div
         style={{
-          transform: `translateY(${pullDistance}px)`,
+          transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
           transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none'
         }}
       >
