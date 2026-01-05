@@ -20,6 +20,8 @@ import PackingTab from './tabs/PackingTab';
 import DocumentsTab from './tabs/DocumentsTab';
 import SettlementsTab from './tabs/SettlementsTab';
 import { useTerminology } from '../hooks/TerminologyContext';
+import { PullToRefresh } from './PullToRefresh';
+import MoreTabNav from './MoreTabNav';
 
 // Lazy load heavy components to reduce initial bundle size
 const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab'));
@@ -121,6 +123,12 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       action,
       timestamp: new Date().toISOString(),
     };
+  };
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    // Reload the page on mobile
+    window.location.reload();
   };
 
   const handleRemoveCollaborator = (email: string) => {
@@ -264,11 +272,13 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
   };
 
   return (
-    <div
-      ref={containerRef}
-      onScroll={handleScroll}
-      className="h-full overflow-y-auto overflow-x-hidden bg-[#F8FAFC] dark:bg-slate-950 no-scrollbar relative"
-    >
+    <>
+      <PullToRefresh onRefresh={handleRefresh} isEnabled={true}>
+        <div
+          ref={containerRef}
+          onScroll={handleScroll}
+          className="h-full overflow-y-auto overflow-x-hidden bg-[#F8FAFC] dark:bg-slate-950 no-scrollbar relative"
+        >
       {/* 1. Parallax Background Layer */}
       <div
         className="absolute top-0 left-0 w-full overflow-hidden pointer-events-none z-0"
@@ -388,7 +398,15 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         </div>
       </div>
 
-      {/* 4. Tab Content Container */}
+      {/* 4. Secondary Navigation for "More" Section */}
+      {(location.pathname.includes('/places') ||
+        location.pathname.includes('/docs') ||
+        location.pathname.includes('/analytics') ||
+        location.pathname.includes('/settlements')) && (
+        <MoreTabNav tripId={trip.id} />
+      )}
+
+      {/* 5. Tab Content Container */}
       <div className="relative z-10 min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32">
         <Routes>
           <Route path="itinerary" element={<ItineraryTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {
@@ -428,6 +446,8 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           <Route path="*" element={<div className="p-20 text-center text-slate-400 font-bold uppercase tracking-widest italic opacity-50">Mapping your coordinates...</div>} />
         </Routes>
       </div>
+    </div>
+  </PullToRefresh>
 
       {/* Global Overlays */}
       {showAlerts && (
@@ -804,7 +824,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
