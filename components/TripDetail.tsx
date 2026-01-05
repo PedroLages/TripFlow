@@ -55,6 +55,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
   const [liveWeather, setLiveWeather] = useState<{ temp: string, condition: string, time: string } | null>(null);
   const [isFetchingWeather, setIsFetchingWeather] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 1024);
 
   if (!trip) return null;
 
@@ -218,6 +219,16 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     fetchLiveInfo();
   }, [trip.id]);
 
+  // Track mobile viewport for conditional PullToRefresh
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollY(e.currentTarget.scrollTop);
   };
@@ -271,14 +282,13 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     );
   };
 
-  return (
-    <>
-      <PullToRefresh onRefresh={handleRefresh} isEnabled={true}>
-        <div
-          ref={containerRef}
-          onScroll={handleScroll}
-          className="h-full overflow-y-auto overflow-x-hidden bg-[#F8FAFC] dark:bg-slate-950 no-scrollbar relative"
-        >
+  // Conditionally wrap content with PullToRefresh only on mobile
+  const scrollableContent = (
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="h-full overflow-y-auto overflow-x-hidden bg-[#F8FAFC] dark:bg-slate-950 no-scrollbar relative"
+    >
       {/* 1. Parallax Background Layer */}
       <div
         className="absolute top-0 left-0 w-full overflow-hidden pointer-events-none z-0"
@@ -472,7 +482,17 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         </Routes>
       </div>
     </div>
-  </PullToRefresh>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh} isEnabled={true}>
+          {scrollableContent}
+        </PullToRefresh>
+      ) : (
+        scrollableContent
+      )}
 
       {/* Global Overlays */}
       {showAlerts && (
