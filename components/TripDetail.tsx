@@ -20,6 +20,8 @@ import PackingTab from './tabs/PackingTab';
 import DocumentsTab from './tabs/DocumentsTab';
 import SettlementsTab from './tabs/SettlementsTab';
 import { useTerminology } from '../hooks/TerminologyContext';
+import { PullToRefresh } from './PullToRefresh';
+import StackNav from './StackNav';
 
 // Lazy load heavy components to reduce initial bundle size
 const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab'));
@@ -53,6 +55,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
   const [liveWeather, setLiveWeather] = useState<{ temp: string, condition: string, time: string } | null>(null);
   const [isFetchingWeather, setIsFetchingWeather] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 1024);
 
   if (!trip) return null;
 
@@ -79,6 +82,28 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     return () => window.removeEventListener('keydown', handleEscape);
   }, [showShare, showAlerts]);
 
+  // Hide navigation bars when modal is open
+  useEffect(() => {
+    const header = document.querySelector('header');
+    const bottomNav = document.querySelector('nav[class*="bottom"]');
+
+    if (showShare) {
+      // Modal is open - hide navigation
+      if (header) header.style.display = 'none';
+      if (bottomNav) bottomNav.style.display = 'none';
+    } else {
+      // Modal is closed - show navigation
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    };
+  }, [showShare]);
+
   // Load pending invitations when share modal opens
   useEffect(() => {
     const loadInvitations = async () => {
@@ -99,6 +124,12 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       action,
       timestamp: new Date().toISOString(),
     };
+  };
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    // Reload the page on mobile
+    window.location.reload();
   };
 
   const handleRemoveCollaborator = (email: string) => {
@@ -188,6 +219,16 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     fetchLiveInfo();
   }, [trip.id]);
 
+  // Track mobile viewport for conditional PullToRefresh
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollY(e.currentTarget.scrollTop);
   };
@@ -241,7 +282,8 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
     );
   };
 
-  return (
+  // Conditionally wrap content with PullToRefresh only on mobile
+  const scrollableContent = (
     <div
       ref={containerRef}
       onScroll={handleScroll}
@@ -275,7 +317,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           }}
         />
 
-        <div className="relative z-10 px-4 md:px-8 h-20 flex items-center justify-between">
+        <div className={`relative z-10 px-4 md:px-8 flex items-center justify-between transition-all duration-300 ${scrollY > 100 ? 'h-16' : 'h-20'}`}>
           <button
             onClick={() => navigate('/')}
             className="md:hidden w-10 h-10 flex items-center justify-center text-white bg-white/10 backdrop-blur-md rounded-xl border border-white/20 mr-2"
@@ -364,9 +406,56 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
             </div>
           </div>
         </div>
+
+        {/* Fade Transition Gradient Overlay */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20 transition-opacity duration-150"
+          style={{ opacity: heroOpacity }}
+        >
+          {/* Light mode gradient - matches StackNav bg-white/95 */}
+          <div className="absolute inset-0 dark:hidden bg-gradient-to-b from-transparent to-white" />
+          {/* Dark mode gradient - matches StackNav bg-slate-900/95 */}
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-transparent to-slate-900" />
+        </div>
       </div>
 
-      {/* 4. Tab Content Container */}
+      {/* 4. Stack Navigation (conditional based on section) */}
+      {(location.pathname.includes('/itinerary') ||
+        location.pathname.includes('/map') ||
+        location.pathname.includes('/places')) && (
+        <StackNav
+          scrollY={scrollY}
+          tabs={[
+            { to: `/trip/${trip.id}/itinerary`, icon: <Calendar size={16} />, label: 'Itinerary' },
+            { to: `/trip/${trip.id}/map`, icon: <MapIcon size={16} />, label: 'Map' },
+            { to: `/trip/${trip.id}/places`, icon: <Heart size={16} />, label: 'Places' },
+          ]}
+        />
+      )}
+
+      {(location.pathname.includes('/packing') ||
+        location.pathname.includes('/docs')) && (
+        <StackNav
+          scrollY={scrollY}
+          tabs={[
+            { to: `/trip/${trip.id}/packing`, icon: <Package size={16} />, label: 'Packing' },
+            { to: `/trip/${trip.id}/docs`, icon: <FileText size={16} />, label: 'Docs' },
+          ]}
+        />
+      )}
+
+      {(location.pathname.includes('/budget') ||
+        location.pathname.includes('/settlements')) && (
+        <StackNav
+          scrollY={scrollY}
+          tabs={[
+            { to: `/trip/${trip.id}/budget`, icon: <DollarSign size={16} />, label: 'Budget' },
+            { to: `/trip/${trip.id}/settlements`, icon: <Users size={16} />, label: 'Split' },
+          ]}
+        />
+      )}
+
+      {/* 5. Tab Content Container */}
       <div className="relative z-10 min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32">
         <Routes>
           <Route path="itinerary" element={<ItineraryTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {
@@ -406,6 +495,18 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           <Route path="*" element={<div className="p-20 text-center text-slate-400 font-bold uppercase tracking-widest italic opacity-50">Mapping your coordinates...</div>} />
         </Routes>
       </div>
+    </div>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh} isEnabled={true}>
+          {scrollableContent}
+        </PullToRefresh>
+      ) : (
+        scrollableContent
+      )}
 
       {/* Global Overlays */}
       {showAlerts && (
@@ -427,7 +528,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
 
       {/* Crew Hub Modal - Clean */}
       {showShare && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[1002] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}
@@ -782,7 +883,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

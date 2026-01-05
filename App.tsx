@@ -8,6 +8,8 @@ import Dashboard from './components/Dashboard';
 import TripForm from './components/TripForm';
 import TripDetail from './components/TripDetail';
 import Settings from './components/Settings';
+import Trips from './components/Trips';
+import Profile from './components/Profile';
 import MobileNav from './components/MobileNav';
 import TripMobileNav from './components/TripMobileNav';
 import AuthModal from './components/AuthModal';
@@ -78,9 +80,11 @@ const AppContent: React.FC<{
         userAvatar={settings.avatar}
         userName={settings.name}
       />
-      <main className="flex-1 flex flex-col relative h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col relative h-screen overflow-y-auto overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Dashboard trips={trips} settings={settings} deleteTrip={deleteTrip} />} />
+          <Route path="/trips" element={<Trips trips={trips} />} />
+          <Route path="/profile" element={<Profile settings={settings} setSettings={setSettings} onLogout={handleConfirmedLogout} />} />
           <Route path="/create" element={<TripForm onSubmit={addTrip} />} />
           <Route path="/edit/:id" element={<TripForm trips={trips} onSubmit={updateTrip} />} />
           <Route path="/trip/:id/*" element={<TripDetail trips={trips} updateTrip={setTripStateOnly} currentUser={user!} />} />

@@ -56,6 +56,28 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [inviteModalOpen]);
 
+  // Hide navigation bars when modal is open
+  useEffect(() => {
+    const header = document.querySelector('header');
+    const bottomNav = document.querySelector('nav[class*="bottom"]');
+
+    if (inviteModalOpen) {
+      // Modal is open - hide navigation
+      if (header) header.style.display = 'none';
+      if (bottomNav) bottomNav.style.display = 'none';
+    } else {
+      // Modal is closed - show navigation
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (header) header.style.display = '';
+      if (bottomNav) bottomNav.style.display = '';
+    };
+  }, [inviteModalOpen]);
+
   // Fetch pending invitations
   useEffect(() => {
     fetchInvitations();
@@ -426,7 +448,7 @@ export function TeamManagement({ trip, onUpdate }: TeamManagementProps) {
 
       {/* Invite Modal */}
       {inviteModalOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[1002] flex items-center justify-center pt-20 pb-20 md:pb-0 px-4 sm:px-6 bg-[#0a0e1a]/98 backdrop-blur-2xl animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 border border-slate-200 dark:border-[#1e2533]/30 flex flex-col max-h-[90vh]">
 
             {/* Modal Header */}

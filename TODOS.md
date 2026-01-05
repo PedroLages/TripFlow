@@ -129,6 +129,142 @@
 
 ---
 
+## 📅 Itinerary/Activities Tab Improvements
+
+### Quick Wins (Already Implemented ✅)
+
+- [x] **P1** | `feature/itinerary-activity-types` | Activity type system with badges
+  - 7 activity types: Attraction, Restaurant, Transportation, Accommodation, Tour, Free time, Custom
+  - Color-coded badges for visual organization
+  - Type-specific default icons
+  - **Completed**: 2026-01-05
+  - **Files**: `components/tabs/ItineraryTab.tsx`, `supabase/migrations/20260105100000_add_activity_fields.sql`
+
+- [x] **P1** | `feature/itinerary-cost-tracking` | Per-activity cost tracking
+  - Cost field on activities
+  - Visual cost badges
+  - Links to budget tab totals
+  - **Completed**: 2026-01-05
+  - **Files**: `components/tabs/ItineraryTab.tsx`, `hooks/useItineraryMutations.ts`
+
+- [x] **P1** | `feature/itinerary-time-ranges` | Start/end time with duration display
+  - Time range picker (start + end time)
+  - Automatic duration calculation
+  - Duration display (2h 30m format)
+  - Sorted activities by start time
+  - **Completed**: 2026-01-05
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+- [x] **P1** | `feature/itinerary-templates` | Quick-add activity templates
+  - Pre-configured templates (Breakfast, Lunch, Dinner, Check-in, Check-out, Free Time)
+  - One-click template insertion with smart defaults
+  - Collapsible template section
+  - **Completed**: 2026-01-05
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+- [x] **P1** | `feature/itinerary-icons` | Custom activity icons
+  - Icon picker with 30+ travel-related icons
+  - Auto-selection based on activity type
+  - Collapsible advanced options
+  - **Completed**: 2026-01-05
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+### Medium Effort Features
+
+- [ ] **P2** | `feature/itinerary-drag-drop` | Drag & drop activity reordering
+  - Drag activities to reorder within a day
+  - Drag activities between days
+  - Auto-update start times based on new position
+  - Visual feedback during drag
+  - React DnD or @dnd-kit library
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P2** | `feature/itinerary-duplicate` | Duplicate activities and days
+  - "Duplicate Activity" button
+  - "Copy Day Plan" to duplicate entire day
+  - Smart time adjustment when duplicating
+  - Template creation from existing activities
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P2** | `feature/itinerary-conflict-detection` | Time conflict warnings
+  - Detect overlapping activities on same day
+  - Visual warning indicators
+  - Suggested resolution (adjust times)
+  - Travel time consideration
+  - **Files**: `components/tabs/ItineraryTab.tsx`, `utils/conflictDetector.ts`
+
+- [ ] **P2** | `feature/itinerary-notes-rich` | Rich text notes per activity
+  - Markdown support for activity notes
+  - Checklists within notes
+  - Link support (websites, maps)
+  - Image attachments
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P2** | `feature/itinerary-export` | Export itinerary
+  - PDF export with day-by-day breakdown
+  - iCal export for calendar apps
+  - Shareable link with read-only view
+  - Print-friendly format
+  - **Files**: `utils/itineraryExport.ts`, `components/tabs/ItineraryTab.tsx`
+
+### Advanced Features
+
+- [ ] **P2** | `feature/itinerary-ai-suggestions` | AI-powered activity suggestions
+  - Gemini API integration for smart suggestions
+  - "Fill this day" auto-planning based on interests
+  - Suggest activities near current plans
+  - Time optimization recommendations
+  - Weather-based activity swapping
+  - **Files**: `services/GeminiService.ts`, `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P2** | `feature/itinerary-import` | Import from external sources
+  - Import from Google Maps "Saved Places"
+  - Parse itinerary from email/text
+  - Import from TripAdvisor trip plan
+  - CSV import support
+  - **Files**: `services/importService.ts`, `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P2** | `feature/itinerary-travel-time` | Automatic travel time insertion
+  - Calculate travel time between consecutive activities
+  - Auto-insert "Travel" activities with duration
+  - Multiple transport modes (walk, drive, transit)
+  - Update when activities reordered
+  - Integration with OpenRouteService API
+  - **Files**: `services/DirectionsService.ts`, `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P3** | `feature/itinerary-collaborative-planning` | Real-time collaborative editing
+  - Live cursors showing who's editing which activity
+  - Activity-level locking during edits
+  - Comment threads on activities
+  - Voting on activity options
+  - Activity assignment to group members
+  - **Backend**: Supabase Realtime
+  - **Files**: `services/realtimeSync.ts`, `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P3** | `feature/itinerary-attachments` | Activity photos and attachments
+  - Upload photos for each activity
+  - Store tickets, confirmations, QR codes
+  - Gallery view for day photos
+  - Quick access during trip
+  - **Files**: `components/tabs/ItineraryTab.tsx`, `services/storageService.ts`
+
+- [ ] **P3** | `feature/itinerary-alternatives` | Alternative activity suggestions
+  - "Backup plan" activities in case of weather/closure
+  - AI-suggested alternatives with similar attributes
+  - One-click swap with primary activity
+  - Track reason for changes
+  - **Files**: `components/tabs/ItineraryTab.tsx`
+
+- [ ] **P3** | `feature/itinerary-budget-integration` | Enhanced budget linking
+  - See total daily costs in day header
+  - Budget alerts when day exceeds limit
+  - Auto-categorize expenses from activities
+  - "Add to Budget" quick action from activities
+  - Sync activity costs with budget tab
+  - **Files**: `components/tabs/ItineraryTab.tsx`, `components/tabs/BudgetTab.tsx`
+
+---
+
 ## 📍 Wishlist/Places Tab Improvements
 
 ### Quick Wins (High Impact)
@@ -206,6 +342,47 @@
   - "15 min walk from Eiffel Tower"
   - Requires hotel/accommodation in itinerary
   - **Files**: `components/tabs/WishlistTab.tsx`, `services/RouteService.ts`
+
+### Advanced Features
+
+- [ ] **P2** | `feature/wishlist-map-integration` | Enhanced map integration
+  - Inline map preview in wishlist cards (expandable)
+  - Plot all wishlist items on map simultaneously
+  - Cluster wishlist markers by location
+  - Route optimization: "Visit these 3 places in one area"
+  - Show spatial distribution of wishlist
+  - **Files**: `components/tabs/WishlistTab.tsx`, `components/tabs/MapTab.tsx`
+
+- [ ] **P2** | `feature/wishlist-ai-context` | AI context awareness
+  - Use wishlist in AI itinerary generation (prioritize high-rated items)
+  - Auto-suggest adding nearby wishlist places when planning a day
+  - "You're near X from your wishlist" contextual prompts during trip
+  - Smart day planning based on wishlist proximity
+  - **Files**: `services/GeminiService.ts`, `components/tabs/WishlistTab.tsx`
+
+- [ ] **P2** | `feature/wishlist-batch-operations` | Smart batch operations
+  - Multi-select places with checkboxes
+  - Bulk add to same day
+  - Bulk categorize/tag
+  - Bulk delete with confirmation
+  - "Select all Must-See" quick actions
+  - **Files**: `components/tabs/WishlistTab.tsx`
+
+- [ ] **P3** | `feature/wishlist-collaborative` | Collaborative wishlist
+  - Show who added each place (avatar badge)
+  - Voting system for group trip decisions
+  - Comments/discussion per place
+  - "Suggested by Sarah" attribution
+  - Upvote/downvote for group consensus
+  - **Files**: `components/tabs/WishlistTab.tsx`, backend integration
+
+- [ ] **P3** | `feature/wishlist-external-integrations` | External API integrations
+  - Google Places API for reviews/ratings/photos
+  - TripAdvisor ratings and reviews
+  - Instagram location tags preview
+  - YouTube videos about the place
+  - Real-time data enrichment
+  - **Files**: `services/PlacesService.ts`, `components/tabs/WishlistTab.tsx`
 
 ---
 
