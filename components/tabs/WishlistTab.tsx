@@ -8,7 +8,7 @@ import {
   ShoppingBag, Eye, X, Check, Clock,
   Target, Info, Navigation, Share2, Layers,
   ChevronRight, Activity as ActivityIcon, Zap, CalendarPlus,
-  Calendar, Map
+  Calendar, Map, DollarSign, Image, Link, CheckCircle2
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { geminiService } from '../../src/services/GeminiService';
@@ -73,8 +73,16 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
     name: '',
     category: 'Must See',
     notes: '',
-    rating: 5
+    rating: 5,
+    imageUrl: '',
+    location: '',
+    priceRange: 2,
+    hours: '',
+    bestTimeToVisit: '',
+    visited: false
   });
+
+  const [importUrl, setImportUrl] = useState('');
 
   // ESC key handler for modal
   React.useEffect(() => {
@@ -88,18 +96,77 @@ const WishlistTab: React.FC<WishlistTabProps> = ({ trip, updateTrip }) => {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [showAdd]);
 
+  // URL import - Extract place name from Google Maps or TripAdvisor URLs
+  const handleImportUrl = () => {
+    if (!importUrl.trim()) return;
+
+    try {
+      const url = new URL(importUrl);
+      let placeName = '';
+
+      // Google Maps: extract from query param or path
+      if (url.hostname.includes('google.com/maps')) {
+        const query = url.searchParams.get('query') || url.searchParams.get('q');
+        if (query) {
+          placeName = decodeURIComponent(query);
+        } else {
+          // Try to extract from path like /place/Name
+          const match = url.pathname.match(/\/place\/([^/]+)/);
+          if (match) placeName = decodeURIComponent(match[1].replace(/\+/g, ' '));
+        }
+      }
+      // TripAdvisor: extract from path
+      else if (url.hostname.includes('tripadvisor')) {
+        const match = url.pathname.match(/Attraction_Review.*-([^-]+)\.html/);
+        if (match) placeName = decodeURIComponent(match[1].replace(/_/g, ' '));
+      }
+
+      if (placeName) {
+        setNewPlace(prev => ({ ...prev, name: placeName }));
+        setImportUrl('');
+      }
+    } catch (e) {
+      // Invalid URL, ignore
+      console.error('Invalid URL for import:', e);
+    }
+  };
+
+  // Duplicate detection - check for similar names
+  const checkDuplicate = (name: string): WishlistPlace | null => {
+    if (!name.trim()) return null;
+
+    const normalized = name.toLowerCase().trim();
+    return trip.wishlist.find(place =>
+      place.name.toLowerCase().trim() === normalized
+    ) || null;
+  };
+
   const handleAddPlace = (place: Partial<WishlistPlace>) => {
+    // Check for duplicates
+    const duplicate = checkDuplicate(place.name || '');
+    if (duplicate) {
+      alert(`"${duplicate.name}" is already in your wishlist!`);
+      return;
+    }
+
     const item: WishlistPlace = {
       id: uuidv4(),
       name: place.name || 'New Place',
       category: place.category as any || 'Must See',
       notes: place.notes || '',
-      rating: place.rating || 5
+      rating: place.rating || 5,
+      imageUrl: place.imageUrl,
+      location: place.location,
+      priceRange: place.priceRange,
+      hours: place.hours,
+      bestTimeToVisit: place.bestTimeToVisit,
+      visited: place.visited || false,
+      createdAt: new Date().toISOString()
     };
 
     const updatedWishlist = [item, ...trip.wishlist];
     updateTrip({ ...trip, wishlist: updatedWishlist });
-    
+
     setAiSuggestions(prev => prev.filter(p => p.name !== place.name));
   };
 
@@ -166,7 +233,18 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
     e.preventDefault();
     if (!newPlace.name) return;
     handleAddPlace(newPlace);
-    setNewPlace({ name: '', category: 'Must See', notes: '', rating: 5 });
+    setNewPlace({
+      name: '',
+      category: 'Must See',
+      notes: '',
+      rating: 5,
+      imageUrl: '',
+      location: '',
+      priceRange: 2,
+      hours: '',
+      bestTimeToVisit: '',
+      visited: false
+    });
     setShowAdd(false);
   };
 
@@ -187,6 +265,13 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setPlaceToDelete(null);
+  };
+
+  const toggleVisited = (placeId: string) => {
+    const updatedWishlist = trip.wishlist.map(place =>
+      place.id === placeId ? { ...place, visited: !place.visited } : place
+    );
+    updateTrip({ ...trip, wishlist: updatedWishlist });
   };
 
   const addToItinerary = (place: WishlistPlace, dayId: string) => {
@@ -258,8 +343,12 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
         sorted.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'dateAdded':
-        // Newest first (assuming order in array represents date added)
-        // In a real app, we'd have a createdAt timestamp
+        // Newest first (using createdAt timestamp)
+        sorted.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
         break;
       default:
         break;
@@ -433,29 +522,62 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
             const priorityPercent = (place.rating / 5) * 100;
 
             return (
-              <div key={place.id} className="group relative bg-white dark:bg-slate-900 rounded-[3.5rem] border border-slate-200/60 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col hover:-translate-y-2">
-                {/* Visual Signature Header */}
-                <div className={`h-32 w-full relative overflow-hidden bg-gradient-to-br ${theme.gradient}`}>
-                   <div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              <div key={place.id} className={`group relative bg-white dark:bg-slate-900 rounded-[3.5rem] border border-slate-200/60 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col hover:-translate-y-2 ${place.visited ? 'opacity-60' : ''}`}>
+                {/* Visual Signature Header - with optional image */}
+                <div className={`h-48 w-full relative overflow-hidden ${place.imageUrl ? '' : `bg-gradient-to-br ${theme.gradient}`}`}>
+                   {place.imageUrl ? (
+                     <img
+                       src={place.imageUrl}
+                       alt={place.name}
+                       className="w-full h-full object-cover"
+                       onError={(e) => {
+                         // Fallback to gradient if image fails to load
+                         e.currentTarget.style.display = 'none';
+                       }}
+                     />
+                   ) : (
+                     <div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                   )}
                    <div className="absolute inset-0 flex items-center justify-center">
                       <div className="p-5 bg-white/20 backdrop-blur-2xl rounded-full border border-white/20 shadow-2xl transition-transform duration-700 group-hover:scale-110">
                         <Icon size={32} className="text-white" />
                       </div>
                    </div>
-                   {/* Priority Overlay */}
+                   {/* Priority & Visited Overlay */}
                    <div className="absolute top-6 left-6 flex items-center gap-2">
                       <div className="px-3 py-1 bg-black/30 backdrop-blur-md rounded-lg border border-white/10 flex items-center gap-2">
                         <ActivityIcon size={10} className="text-brand-primary" />
                         <span className="text-[8px] font-black uppercase tracking-widest text-white">{theme.intel}</span>
                       </div>
                    </div>
+                   {place.visited && (
+                     <div className="absolute top-6 right-6">
+                       <div className="px-3 py-1 bg-emerald-500 rounded-lg flex items-center gap-2 shadow-lg">
+                         <CheckCircle2 size={10} className="text-white" />
+                         <span className="text-[8px] font-black uppercase tracking-widest text-white">Visited</span>
+                       </div>
+                     </div>
+                   )}
                 </div>
 
                 <div className="p-10 flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="space-y-1">
-                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${theme.color}`}>{place.category}</span>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${theme.color}`}>{place.category}</span>
+                        {place.priceRange && (
+                          <span className="text-[10px] font-black text-slate-400">
+                            {'$'.repeat(place.priceRange)}
+                          </span>
+                        )}
+                      </div>
                       <h4 className="text-2xl font-display font-bold text-slate-900 dark:text-white leading-tight">{place.name}</h4>
+                      {place.location && (
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                          <MapPin size={12} />
+                          <span className="text-xs font-medium">{place.location}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -473,16 +595,22 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                   </div>
 
                   {/* Intelligence Tags */}
-                  <div className="flex flex-wrap gap-2 mb-8">
-                    <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-2">
-                       <Clock size={10} className="text-slate-400" />
-                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Peak: 11:00</span>
+                  {(place.hours || place.bestTimeToVisit) && (
+                    <div className="flex flex-wrap gap-2 mb-8">
+                      {place.hours && (
+                        <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-2">
+                          <Clock size={10} className="text-slate-400" />
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{place.hours}</span>
+                        </div>
+                      )}
+                      {place.bestTimeToVisit && (
+                        <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-2">
+                          <Zap size={10} className="text-emerald-500" />
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{place.bestTimeToVisit}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-2">
-                       <Zap size={10} className="text-emerald-500" />
-                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Hidden Gem</span>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Observation Log */}
                   <div className="relative p-6 bg-slate-50 dark:bg-slate-950 rounded-3xl border border-slate-100 dark:border-white/5 mb-8 group/log overflow-hidden">
@@ -499,6 +627,15 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                   {/* HUD Action Suite */}
                   <div className="mt-auto flex items-center justify-between pt-8 border-t border-slate-100 dark:border-white/5">
                     <div className="flex gap-3">
+                      <button
+                        onClick={() => toggleVisited(place.id)}
+                        className={`p-3 rounded-2xl transition-all border flex items-center gap-2 ${place.visited ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-slate-50 dark:bg-slate-950 hover:bg-emerald-500 hover:text-white text-slate-400 border-slate-100 dark:border-white/5'}`}
+                        title={place.visited ? "Mark as not visited" : "Mark as visited"}
+                      >
+                        <CheckCircle2 size={16} />
+                        <span className="hidden group-hover:inline text-[9px] font-black uppercase tracking-widest">{place.visited ? 'Visited' : 'Visit'}</span>
+                      </button>
+
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + trip.destinations[0])}`}
                         target="_blank" rel="noopener noreferrer"
@@ -597,9 +734,32 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
               </div>
               <button onClick={() => setShowAdd(false)} className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center text-slate-400 transition-all flex-shrink-0"><X size={20} /></button>
             </div>
-            <form onSubmit={handleManualSubmit} className="p-6 sm:p-8 space-y-8 overflow-y-auto flex-1">
+            <form onSubmit={handleManualSubmit} className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1">
+              {/* URL Import Section */}
+              <div className="space-y-2 pb-6 border-b border-slate-200 dark:border-slate-700">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <Link size={12} /> Quick Import from URL
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-sm outline-none dark:text-white transition-all"
+                    placeholder="Paste Google Maps or TripAdvisor URL"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleImportUrl}
+                    className="px-4 py-3 bg-brand-primary text-white rounded-2xl font-medium text-sm hover:bg-brand-secondary transition-all"
+                  >
+                    Import
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 ml-1">Or fill in manually below</p>
+              </div>
+
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Name</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Place Name *</label>
                 <input
                   required
                   value={newPlace.name}
@@ -608,9 +768,33 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                   placeholder="e.g., Shibuya Sky Observatory"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4 md:gap-6">
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <Image size={12} /> Photo URL
+                </label>
+                <input
+                  value={newPlace.imageUrl}
+                  onChange={(e) => setNewPlace({ ...newPlace, imageUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-sm outline-none dark:text-white transition-all"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                  <MapPin size={12} /> Location/Address
+                </label>
+                <input
+                  value={newPlace.location}
+                  onChange={(e) => setNewPlace({ ...newPlace, location: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-sm outline-none dark:text-white transition-all"
+                  placeholder="e.g., 123 Main St, Tokyo"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Sector</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Category</label>
                   <select
                     value={newPlace.category}
                     onChange={(e) => setNewPlace({ ...newPlace, category: e.target.value as any })}
@@ -620,12 +804,52 @@ Return JSON array with: {name, category (Must See/Restaurant/Shopping), notes (2
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Priority (1-5)</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Priority</label>
                   <input
                     type="number" min="1" max="5"
                     value={newPlace.rating}
                     onChange={(e) => setNewPlace({ ...newPlace, rating: Number(e.target.value) })}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium outline-none dark:text-white text-center text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-1">
+                    <DollarSign size={12} /> Price
+                  </label>
+                  <select
+                    value={newPlace.priceRange || 2}
+                    onChange={(e) => setNewPlace({ ...newPlace, priceRange: Number(e.target.value) as 1 | 2 | 3 | 4 })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium outline-none dark:text-white text-sm"
+                  >
+                    <option value={1}>$ Cheap</option>
+                    <option value={2}>$$ Moderate</option>
+                    <option value={3}>$$$ Pricey</option>
+                    <option value={4}>$$$$ Luxury</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                    <Clock size={12} /> Hours
+                  </label>
+                  <input
+                    value={newPlace.hours}
+                    onChange={(e) => setNewPlace({ ...newPlace, hours: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-sm outline-none dark:text-white transition-all"
+                    placeholder="9 AM - 6 PM"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                    <Zap size={12} /> Best Time
+                  </label>
+                  <input
+                    value={newPlace.bestTimeToVisit}
+                    onChange={(e) => setNewPlace({ ...newPlace, bestTimeToVisit: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-brand-primary rounded-2xl font-medium text-sm outline-none dark:text-white transition-all"
+                    placeholder="Morning"
                   />
                 </div>
               </div>

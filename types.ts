@@ -55,10 +55,23 @@ export interface WishlistPlace {
   name: string;
   category: 'Must See' | 'Maybe' | 'Restaurant' | 'Shopping';
   notes: string;
-  rating: number;
-  // Optional location for map display
-  location?: string;           // Address or place name
+  rating: number; // Priority: 1-5
+
+  // Location data
+  location?: string;              // Address or place name
   coordinates?: [number, number]; // [lat, lng]
+
+  // Visual & pricing
+  imageUrl?: string;              // Photo URL
+  priceRange?: 1 | 2 | 3 | 4;    // $ to $$$$
+
+  // Operating information
+  hours?: string;                 // e.g., "9:00 AM - 6:00 PM"
+  bestTimeToVisit?: string;       // e.g., "Morning to avoid crowds"
+
+  // Status tracking
+  visited?: boolean;              // Marked as completed
+  createdAt?: string;             // ISO timestamp when added
 }
 
 export interface PaymentHistoryEntry {

@@ -207,6 +207,47 @@
   - Requires hotel/accommodation in itinerary
   - **Files**: `components/tabs/WishlistTab.tsx`, `services/RouteService.ts`
 
+### Advanced Features
+
+- [ ] **P2** | `feature/wishlist-map-integration` | Enhanced map integration
+  - Inline map preview in wishlist cards (expandable)
+  - Plot all wishlist items on map simultaneously
+  - Cluster wishlist markers by location
+  - Route optimization: "Visit these 3 places in one area"
+  - Show spatial distribution of wishlist
+  - **Files**: `components/tabs/WishlistTab.tsx`, `components/tabs/MapTab.tsx`
+
+- [ ] **P2** | `feature/wishlist-ai-context` | AI context awareness
+  - Use wishlist in AI itinerary generation (prioritize high-rated items)
+  - Auto-suggest adding nearby wishlist places when planning a day
+  - "You're near X from your wishlist" contextual prompts during trip
+  - Smart day planning based on wishlist proximity
+  - **Files**: `services/GeminiService.ts`, `components/tabs/WishlistTab.tsx`
+
+- [ ] **P2** | `feature/wishlist-batch-operations` | Smart batch operations
+  - Multi-select places with checkboxes
+  - Bulk add to same day
+  - Bulk categorize/tag
+  - Bulk delete with confirmation
+  - "Select all Must-See" quick actions
+  - **Files**: `components/tabs/WishlistTab.tsx`
+
+- [ ] **P3** | `feature/wishlist-collaborative` | Collaborative wishlist
+  - Show who added each place (avatar badge)
+  - Voting system for group trip decisions
+  - Comments/discussion per place
+  - "Suggested by Sarah" attribution
+  - Upvote/downvote for group consensus
+  - **Files**: `components/tabs/WishlistTab.tsx`, backend integration
+
+- [ ] **P3** | `feature/wishlist-external-integrations` | External API integrations
+  - Google Places API for reviews/ratings/photos
+  - TripAdvisor ratings and reviews
+  - Instagram location tags preview
+  - YouTube videos about the place
+  - Real-time data enrichment
+  - **Files**: `services/PlacesService.ts`, `components/tabs/WishlistTab.tsx`
+
 ---
 
 ## 🎯 Tier 2: Major Features (2-4 weeks each)
