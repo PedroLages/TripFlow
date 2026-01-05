@@ -18,7 +18,6 @@ const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   const tripTabs = [
-    { to: `/#/`, icon: <LayoutDashboard size={20} />, label: 'Home', isNavLink: true },
     { to: `/trip/${tripId}/itinerary`, icon: <Calendar size={20} />, label: 'Plan', isNavLink: true },
     { to: `/trip/${tripId}/map`, icon: <MapIcon size={20} />, label: 'Map', isNavLink: true },
     { to: `/trip/${tripId}/budget`, icon: <DollarSign size={20} />, label: 'Budget', isNavLink: true },
@@ -27,6 +26,7 @@ const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
   ];
 
   const moreMenuItems = [
+    { to: `/#/`, icon: LayoutDashboard, label: 'Home' },
     { to: `/trip/${tripId}/places`, icon: Heart, label: 'Places' },
     { to: `/trip/${tripId}/docs`, icon: FileText, label: 'Docs' },
     { to: `/trip/${tripId}/analytics`, icon: BarChart3, label: 'Stats' },
@@ -53,7 +53,11 @@ const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
     setIsMoreMenuOpen(false);
   }, [location.pathname]);
 
-  const isMoreActive = moreMenuItems.some(item => location.pathname.includes(item.to));
+  const isMoreActive = moreMenuItems.some(item =>
+    item.label === 'Home'
+      ? location.pathname === '/'
+      : location.pathname.includes(item.to)
+  );
 
   return (
     <>
@@ -68,13 +72,19 @@ const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
         >
           {moreMenuItems.map((item, index) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.to;
+            const isActive = item.label === 'Home'
+              ? location.pathname === '/'
+              : location.pathname === item.to;
 
             return (
               <button
                 key={item.label}
                 onClick={() => {
-                  navigate(item.to);
+                  if (item.label === 'Home') {
+                    window.location.href = item.to;
+                  } else {
+                    navigate(item.to);
+                  }
                   setIsMoreMenuOpen(false);
                 }}
                 className={`
@@ -105,31 +115,6 @@ const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
           className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] h-20 flex items-center justify-around px-2 overflow-hidden mx-4"
         >
           {tripTabs.map(tab => {
-            // HOME tab special handling for hash routing
-            if (tab.label === 'Home') {
-              const isActive = location.pathname === '/';
-
-              return (
-                <a
-                  key={tab.label}
-                  href={tab.to}
-                  className={`
-                    flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl
-                    ${isActive ? 'text-brand-primary' : 'text-slate-400'}
-                  `}
-                  style={{
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden'
-                  }}
-                >
-                  <div className={`p-2 rounded-2xl transition-all ${isActive ? 'bg-brand-primary/10' : ''}`}>
-                    {tab.icon}
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-wider">{tab.label}</span>
-                </a>
-              );
-            }
-
             // MORE button (not a NavLink)
             if (!tab.isNavLink) {
               return (
