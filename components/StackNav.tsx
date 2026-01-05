@@ -21,7 +21,7 @@ interface StackNavProps {
 
 const StackNav: React.FC<StackNavProps> = ({ tabs, className }) => {
   return (
-    <nav className={`${className} fixed top-20 left-0 right-0 z-[998] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-sm lg:hidden`}>
+    <nav className={`${className} sticky top-0 z-[999] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-sm`}>
       <div className="flex items-center justify-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
         {tabs.map(tab => (
           <NavLink
