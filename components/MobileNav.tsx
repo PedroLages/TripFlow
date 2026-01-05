@@ -1,13 +1,18 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Settings as SettingsIcon } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Briefcase, User } from 'lucide-react';
 
 interface MobileNavProps {
   className?: string;
 }
 
 const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
+  const location = useLocation();
+
+  // Check if we're on any trip page
+  const isOnTripPage = location.pathname.startsWith('/trip/');
+
   return (
     <nav
       className={`${className} fixed bottom-0 left-0 right-0 z-[100] lg:hidden`}
@@ -24,12 +29,12 @@ const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
           to="/"
           style={{
             backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden'
+            WebkokitBackfaceVisibility: 'hidden'
           }}
         >
           {({ isActive }) => (
-            <div className={`flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl ${isActive ? 'text-brand-primary' : 'text-slate-400'}`}>
-              <div className={`p-2 rounded-2xl transition-all ${isActive ? 'bg-brand-primary/10' : ''}`}>
+            <div className={`flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl ${isActive && !isOnTripPage ? 'text-brand-primary' : 'text-slate-400'}`}>
+              <div className={`p-2 rounded-2xl transition-all ${isActive && !isOnTripPage ? 'bg-brand-primary/10' : ''}`}>
                 <LayoutDashboard size={20} />
               </div>
               <span className="text-[8px] font-black uppercase tracking-wider">Dashboard</span>
@@ -38,24 +43,24 @@ const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
         </NavLink>
 
         <NavLink
-          to="/create"
+          to="/trips"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden'
           }}
         >
           {({ isActive }) => (
-            <div className={`flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl ${isActive ? 'text-brand-primary' : 'text-slate-400'}`}>
-              <div className={`p-2 rounded-2xl transition-all ${isActive ? 'bg-brand-primary/10' : ''}`}>
-                <PlusCircle size={20} />
+            <div className={`flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl ${isActive || isOnTripPage ? 'text-brand-primary' : 'text-slate-400'}`}>
+              <div className={`p-2 rounded-2xl transition-all ${isActive || isOnTripPage ? 'bg-brand-primary/10' : ''}`}>
+                <Briefcase size={20} />
               </div>
-              <span className="text-[8px] font-black uppercase tracking-wider">New Trip</span>
+              <span className="text-[8px] font-black uppercase tracking-wider">Trips</span>
             </div>
           )}
         </NavLink>
 
         <NavLink
-          to="/settings"
+          to="/profile"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden'
@@ -64,9 +69,9 @@ const MobileNav: React.FC<MobileNavProps> = ({ className }) => {
           {({ isActive }) => (
             <div className={`flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl ${isActive ? 'text-brand-primary' : 'text-slate-400'}`}>
               <div className={`p-2 rounded-2xl transition-all ${isActive ? 'bg-brand-primary/10' : ''}`}>
-                <SettingsIcon size={20} />
+                <User size={20} />
               </div>
-              <span className="text-[8px] font-black uppercase tracking-wider">Settings</span>
+              <span className="text-[8px] font-black uppercase tracking-wider">Profile</span>
             </div>
           )}
         </NavLink>

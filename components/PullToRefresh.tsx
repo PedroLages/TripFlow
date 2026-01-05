@@ -63,15 +63,14 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
         </div>
       </div>
 
-      {/* Content */}
-      <div
-        style={{
+      {/* Content - pass transform directly to children via cloneElement */}
+      {React.cloneElement(children as React.ReactElement, {
+        style: {
+          ...(children as React.ReactElement).props.style,
           transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
           transition: pullDistance === 0 ? 'transform 0.3s ease-out' : 'none'
-        }}
-      >
-        {children}
-      </div>
+        }
+      })}
     </>
   );
 };

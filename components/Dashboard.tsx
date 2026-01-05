@@ -12,6 +12,7 @@ import DeleteConfirmationModal from './modals/DeleteConfirmationModal';
 import { useTerminology } from '../hooks/TerminologyContext';
 import { geminiService } from '../src/services/GeminiService';
 import { useToast } from '../contexts/ToastContext';
+import { FloatingActionButton } from './FloatingActionButton';
 
 interface DashboardProps {
   trips: Trip[];
@@ -100,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ trips, settings, deleteTrip }) =>
         </div>
         <button
           onClick={() => navigate('/create')}
-          className="group relative bg-brand-secondary hover:bg-brand-primary text-white px-8 py-5 rounded-[2rem] font-bold transition-all duration-500 flex items-center gap-3 shadow-2xl shadow-indigo-900/10 overflow-hidden"
+          className="hidden md:flex group relative bg-brand-secondary hover:bg-brand-primary text-white px-8 py-5 rounded-[2rem] font-bold transition-all duration-500 items-center gap-3 shadow-2xl shadow-indigo-900/10 overflow-hidden"
         >
           <Plus size={22} className="group-hover:rotate-90 transition-transform duration-500" />
           <span>{t.newTrip}</span>
@@ -373,6 +374,9 @@ const TripCard: React.FC<{ trip: Trip; deleteTrip: (id: string) => Promise<void>
         </div>
       </div>
     </div>
+
+      {/* Floating Action Button for mobile */}
+      <FloatingActionButton onClick={() => navigate('/create')} />
 
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
