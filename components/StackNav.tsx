@@ -17,11 +17,15 @@ interface StackNavTab {
 interface StackNavProps {
   tabs: StackNavTab[];
   className?: string;
+  scrollY?: number;
 }
 
-const StackNav: React.FC<StackNavProps> = ({ tabs, className }) => {
+const StackNav: React.FC<StackNavProps> = ({ tabs, className, scrollY = 0 }) => {
+  // Adjust top position based on header height (shrinks from 80px to 64px after scrollY > 100)
+  const topPosition = scrollY > 100 ? 'top-16' : 'top-20';
+
   return (
-    <nav className={`${className} sticky top-20 z-[999] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-sm lg:hidden`}>
+    <nav className={`${className} sticky ${topPosition} z-[999] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-sm lg:hidden transition-all duration-300`}>
       <div className="flex items-center justify-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar">
         {tabs.map(tab => (
           <NavLink

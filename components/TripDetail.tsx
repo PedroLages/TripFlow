@@ -317,7 +317,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           }}
         />
 
-        <div className="relative z-10 px-4 md:px-8 h-20 flex items-center justify-between">
+        <div className={`relative z-10 px-4 md:px-8 flex items-center justify-between transition-all duration-300 ${scrollY > 100 ? 'h-16' : 'h-20'}`}>
           <button
             onClick={() => navigate('/')}
             className="md:hidden w-10 h-10 flex items-center justify-center text-white bg-white/10 backdrop-blur-md rounded-xl border border-white/20 mr-2"
@@ -412,10 +412,10 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
           className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20 transition-opacity duration-150"
           style={{ opacity: heroOpacity }}
         >
-          {/* Light mode gradient */}
-          <div className="absolute inset-0 dark:hidden bg-gradient-to-b from-transparent to-[#F8FAFC]" />
-          {/* Dark mode gradient */}
-          <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-transparent to-slate-950" />
+          {/* Light mode gradient - matches StackNav bg-white/95 */}
+          <div className="absolute inset-0 dark:hidden bg-gradient-to-b from-transparent to-white" />
+          {/* Dark mode gradient - matches StackNav bg-slate-900/95 */}
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-transparent to-slate-900" />
         </div>
       </div>
 
@@ -424,6 +424,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         location.pathname.includes('/map') ||
         location.pathname.includes('/places')) && (
         <StackNav
+          scrollY={scrollY}
           tabs={[
             { to: `/trip/${trip.id}/itinerary`, icon: <Calendar size={16} />, label: 'Itinerary' },
             { to: `/trip/${trip.id}/map`, icon: <MapIcon size={16} />, label: 'Map' },
@@ -435,6 +436,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       {(location.pathname.includes('/packing') ||
         location.pathname.includes('/docs')) && (
         <StackNav
+          scrollY={scrollY}
           tabs={[
             { to: `/trip/${trip.id}/packing`, icon: <Package size={16} />, label: 'Packing' },
             { to: `/trip/${trip.id}/docs`, icon: <FileText size={16} />, label: 'Docs' },
@@ -445,6 +447,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
       {(location.pathname.includes('/budget') ||
         location.pathname.includes('/settlements')) && (
         <StackNav
+          scrollY={scrollY}
           tabs={[
             { to: `/trip/${trip.id}/budget`, icon: <DollarSign size={16} />, label: 'Budget' },
             { to: `/trip/${trip.id}/settlements`, icon: <Users size={16} />, label: 'Split' },
