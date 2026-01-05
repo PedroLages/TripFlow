@@ -21,6 +21,7 @@ import DocumentsTab from './tabs/DocumentsTab';
 import SettlementsTab from './tabs/SettlementsTab';
 import { useTerminology } from '../hooks/TerminologyContext';
 import { PullToRefresh } from './PullToRefresh';
+import StackNav from './StackNav';
 
 // Lazy load heavy components to reduce initial bundle size
 const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab'));
@@ -397,7 +398,40 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         </div>
       </div>
 
-      {/* 4. Tab Content Container */}
+      {/* 4. Stack Navigation (conditional based on section) */}
+      {(location.pathname.includes('/itinerary') ||
+        location.pathname.includes('/map') ||
+        location.pathname.includes('/places')) && (
+        <StackNav
+          tabs={[
+            { to: `/trip/${trip.id}/itinerary`, icon: <Calendar size={16} />, label: 'Itinerary' },
+            { to: `/trip/${trip.id}/map`, icon: <MapIcon size={16} />, label: 'Map' },
+            { to: `/trip/${trip.id}/places`, icon: <Heart size={16} />, label: 'Places' },
+          ]}
+        />
+      )}
+
+      {(location.pathname.includes('/packing') ||
+        location.pathname.includes('/docs')) && (
+        <StackNav
+          tabs={[
+            { to: `/trip/${trip.id}/packing`, icon: <Package size={16} />, label: 'Packing' },
+            { to: `/trip/${trip.id}/docs`, icon: <FileText size={16} />, label: 'Docs' },
+          ]}
+        />
+      )}
+
+      {(location.pathname.includes('/budget') ||
+        location.pathname.includes('/settlements')) && (
+        <StackNav
+          tabs={[
+            { to: `/trip/${trip.id}/budget`, icon: <DollarSign size={16} />, label: 'Budget' },
+            { to: `/trip/${trip.id}/settlements`, icon: <Users size={16} />, label: 'Split' },
+          ]}
+        />
+      )}
+
+      {/* 5. Tab Content Container */}
       <div className="relative z-10 min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32">
         <Routes>
           <Route path="itinerary" element={<ItineraryTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {

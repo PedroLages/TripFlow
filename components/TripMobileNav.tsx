@@ -1,10 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
-  Calendar, Map as MapIcon, DollarSign,
-  Package, MoreHorizontal, LayoutDashboard,
-  Heart, FileText, BarChart3, Users
+  LayoutDashboard, Calendar, Briefcase, DollarSign
 } from 'lucide-react';
 
 interface TripMobileNavProps {
@@ -14,138 +12,62 @@ interface TripMobileNavProps {
 
 const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   const tripTabs = [
-    { to: `/trip/${tripId}/itinerary`, icon: <Calendar size={20} />, label: 'Plan', isNavLink: true },
-    { to: `/trip/${tripId}/map`, icon: <MapIcon size={20} />, label: 'Map', isNavLink: true },
-    { to: `/trip/${tripId}/budget`, icon: <DollarSign size={20} />, label: 'Budget', isNavLink: true },
-    { to: `/trip/${tripId}/packing`, icon: <Package size={20} />, label: 'Gear', isNavLink: true },
-    { to: null, icon: <MoreHorizontal size={20} />, label: 'More', isNavLink: false },
+    { to: `/#/`, icon: <LayoutDashboard size={20} />, label: 'Home' },
+    { to: `/trip/${tripId}/itinerary`, icon: <Calendar size={20} />, label: 'Plan' },
+    { to: `/trip/${tripId}/packing`, icon: <Briefcase size={20} />, label: 'Vault' },
+    { to: `/trip/${tripId}/budget`, icon: <DollarSign size={20} />, label: 'Finance' },
   ];
 
-  const moreMenuItems = [
-    { to: `/#/`, icon: LayoutDashboard, label: 'Home' },
-    { to: `/trip/${tripId}/places`, icon: Heart, label: 'Places' },
-    { to: `/trip/${tripId}/docs`, icon: FileText, label: 'Docs' },
-    { to: `/trip/${tripId}/analytics`, icon: BarChart3, label: 'Stats' },
-    { to: `/trip/${tripId}/settlements`, icon: Users, label: 'Split' },
-  ];
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('[data-more-menu]') && !target.closest('[data-more-button]')) {
-        setIsMoreMenuOpen(false);
-      }
-    };
-
-    if (isMoreMenuOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+  const isTabActive = (tabTo: string, tabLabel: string) => {
+    if (tabLabel === 'Home') {
+      return location.pathname === '/';
     }
-  }, [isMoreMenuOpen]);
 
-  // Close menu on route change
-  useEffect(() => {
-    setIsMoreMenuOpen(false);
-  }, [location.pathname]);
+    // Check if we're in the section for this tab
+    if (tabLabel === 'Plan') {
+      return location.pathname.includes('/itinerary') ||
+             location.pathname.includes('/map') ||
+             location.pathname.includes('/places');
+    }
 
-  const isMoreActive = moreMenuItems.some(item =>
-    item.label === 'Home'
-      ? location.pathname === '/'
-      : location.pathname.includes(item.to)
-  );
+    if (tabLabel === 'Vault') {
+      return location.pathname.includes('/packing') ||
+             location.pathname.includes('/docs');
+    }
+
+    if (tabLabel === 'Finance') {
+      return location.pathname.includes('/budget') ||
+             location.pathname.includes('/settlements');
+    }
+
+    return location.pathname === tabTo;
+  };
 
   return (
-    <>
-      {/* Dropdown Menu */}
-      {isMoreMenuOpen && (
-        <div
-          data-more-menu
-          className="fixed bottom-28 right-4 z-[101] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in duration-200"
-          style={{
-            minWidth: '200px',
-          }}
-        >
-          {moreMenuItems.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = item.label === 'Home'
-              ? location.pathname === '/'
-              : location.pathname === item.to;
-
-            return (
-              <button
-                key={item.label}
-                onClick={() => {
-                  if (item.label === 'Home') {
-                    window.location.href = item.to;
-                  } else {
-                    navigate(item.to);
-                  }
-                  setIsMoreMenuOpen(false);
-                }}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-3 transition-all
-                  ${isActive ? 'bg-brand-primary/10 text-brand-primary' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}
-                  ${index > 0 ? 'border-t border-slate-100 dark:border-slate-700' : ''}
-                `}
-              >
-                <Icon size={18} />
-                <span className="text-sm font-medium">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <nav
-        className={`${className} fixed bottom-0 left-0 right-0 z-[100] lg:hidden`}
-        style={{
-          transform: 'translate3d(0, 0, 0)',
-          WebkitTransform: 'translate3d(0, 0, 0)',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden'
-        }}
+    <nav
+      className={`${className} fixed bottom-0 left-0 right-0 z-[100] lg:hidden`}
+      style={{
+        transform: 'translate3d(0, 0, 0)',
+        WebkitTransform: 'translate3d(0, 0, 0)',
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden'
+      }}
+    >
+      <div
+        className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] h-20 flex items-center justify-around px-2 overflow-hidden mx-4"
       >
-        <div
-          className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] h-20 flex items-center justify-around px-2 overflow-hidden mx-4"
-        >
-          {tripTabs.map(tab => {
-            // MORE button (not a NavLink)
-            if (!tab.isNavLink) {
-              return (
-                <button
-                  key={tab.label}
-                  data-more-button
-                  onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                  className={`
-                    flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl
-                    ${isMoreActive || isMoreMenuOpen ? 'text-brand-primary' : 'text-slate-400'}
-                  `}
-                  style={{
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden'
-                  }}
-                >
-                  <div className={`p-2 rounded-2xl transition-all ${isMoreActive || isMoreMenuOpen ? 'bg-brand-primary/10' : ''}`}>
-                    {tab.icon}
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-wider">{tab.label}</span>
-                </button>
-              );
-            }
+        {tripTabs.map(tab => {
+          const isActive = isTabActive(tab.to, tab.label);
 
-            // Regular NavLinks
-            const isActive = location.pathname === tab.to;
-
+          // HOME tab uses hash navigation
+          if (tab.label === 'Home') {
             return (
-              <NavLink
+              <a
                 key={tab.label}
-                to={tab.to}
+                href={tab.to}
                 className={`
                   flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl
                   ${isActive ? 'text-brand-primary' : 'text-slate-400'}
@@ -159,12 +81,33 @@ const TripMobileNav: React.FC<TripMobileNavProps> = ({ tripId, className }) => {
                   {tab.icon}
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-wider">{tab.label}</span>
-              </NavLink>
+              </a>
             );
-          })}
-        </div>
-      </nav>
-    </>
+          }
+
+          // Other tabs use NavLink
+          return (
+            <NavLink
+              key={tab.label}
+              to={tab.to}
+              className={`
+                flex flex-col items-center gap-1 transition-all flex-1 rounded-2xl
+                ${isActive ? 'text-brand-primary' : 'text-slate-400'}
+              `}
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden'
+              }}
+            >
+              <div className={`p-2 rounded-2xl transition-all ${isActive ? 'bg-brand-primary/10' : ''}`}>
+                {tab.icon}
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-wider">{tab.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+    </nav>
   );
 };
 
