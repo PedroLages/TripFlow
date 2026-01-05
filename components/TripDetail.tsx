@@ -406,6 +406,17 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
             </div>
           </div>
         </div>
+
+        {/* Fade Transition Gradient Overlay */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20 transition-opacity duration-150"
+          style={{ opacity: heroOpacity }}
+        >
+          {/* Light mode gradient */}
+          <div className="absolute inset-0 dark:hidden bg-gradient-to-b from-transparent to-[#F8FAFC]" />
+          {/* Dark mode gradient */}
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-transparent to-slate-950" />
+        </div>
       </div>
 
       {/* 4. Stack Navigation (conditional based on section) */}
