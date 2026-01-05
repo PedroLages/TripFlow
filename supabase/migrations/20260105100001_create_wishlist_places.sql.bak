@@ -1,0 +1,131 @@
+-- =============================================
+-- Migration: Create Wishlist Places Table
+-- Description: Store wishlist places with all enhanced fields from V2
+-- =============================================
+
+-- Create wishlist_places table
+CREATE TABLE IF NOT EXISTS wishlist_places (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  trip_id UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('Must See', 'Maybe', 'Restaurant', 'Shopping')),
+  notes TEXT,
+  rating INTEGER NOT NULL DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+
+  -- Location data
+  location TEXT,
+  coordinates DECIMAL(10, 6)[] CHECK (array_length(coordinates, 1) = 2),  -- [lat, lng]
+
+  -- Visual & pricing
+  image_url TEXT,
+  price_range INTEGER CHECK (price_range >= 1 AND price_range <= 4),  -- 1-4 ($ to $$$$)
+
+  -- Operating information
+  hours TEXT,
+  best_time_to_visit TEXT,
+
+  -- Status tracking
+  visited BOOLEAN NOT NULL DEFAULT false,
+
+  -- Timestamps
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- Constraints
+  CONSTRAINT wishlist_places_name_not_empty CHECK (char_length(trim(name)) > 0)
+);
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS wishlist_places_trip_id_idx ON wishlist_places(trip_id);
+CREATE INDEX IF NOT EXISTS wishlist_places_category_idx ON wishlist_places(category);
+CREATE INDEX IF NOT EXISTS wishlist_places_visited_idx ON wishlist_places(visited);
+CREATE INDEX IF NOT EXISTS wishlist_places_rating_idx ON wishlist_places(rating);
+
+-- Enable Row Level Security
+ALTER TABLE wishlist_places ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for wishlist_places (same pattern as activities)
+
+-- Users can view wishlist places if they have access to the trip
+CREATE POLICY "wishlist_places_select_policy" ON wishlist_places
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM trips
+      WHERE trips.id = wishlist_places.trip_id
+        AND (
+          trips.owner_id = auth.uid()
+          OR is_trip_member_helper(trips.id, auth.uid())
+        )
+    )
+  );
+
+-- Users can insert wishlist places if they have Editor or Owner access to the trip
+CREATE POLICY "wishlist_places_insert_policy" ON wishlist_places
+  FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM trips
+      WHERE trips.id = wishlist_places.trip_id
+        AND (
+          trips.owner_id = auth.uid()
+          OR is_trip_editor_helper(trips.id, auth.uid())
+        )
+    )
+  );
+
+-- Users can update wishlist places if they have Editor or Owner access to the trip
+CREATE POLICY "wishlist_places_update_policy" ON wishlist_places
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM trips
+      WHERE trips.id = wishlist_places.trip_id
+        AND (
+          trips.owner_id = auth.uid()
+          OR is_trip_editor_helper(trips.id, auth.uid())
+        )
+    )
+  );
+
+-- Users can delete wishlist places if they have Editor or Owner access to the trip
+CREATE POLICY "wishlist_places_delete_policy" ON wishlist_places
+  FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM trips
+      WHERE trips.id = wishlist_places.trip_id
+        AND (
+          trips.owner_id = auth.uid()
+          OR is_trip_editor_helper(trips.id, auth.uid())
+        )
+    )
+  );
+
+-- Trigger to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_wishlist_places_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER wishlist_places_updated_at_trigger
+  BEFORE UPDATE ON wishlist_places
+  FOR EACH ROW
+  EXECUTE FUNCTION update_wishlist_places_updated_at();
+
+-- Comments
+COMMENT ON TABLE wishlist_places IS 'Trip wishlist places with enhanced metadata (V2)';
+COMMENT ON COLUMN wishlist_places.trip_id IS 'Foreign key to trips table';
+COMMENT ON COLUMN wishlist_places.name IS 'Place name (e.g., "Senso-ji Temple")';
+COMMENT ON COLUMN wishlist_places.category IS 'Place category (Must See, Maybe, Restaurant, Shopping)';
+COMMENT ON COLUMN wishlist_places.rating IS 'Priority rating from 1 (lowest) to 5 (highest)';
+COMMENT ON COLUMN wishlist_places.location IS 'Address or location description';
+COMMENT ON COLUMN wishlist_places.coordinates IS 'Geographic coordinates as [latitude, longitude]';
+COMMENT ON COLUMN wishlist_places.image_url IS 'URL to place photo/image';
+COMMENT ON COLUMN wishlist_places.price_range IS 'Price range 1-4 ($ to $$$$)';
+COMMENT ON COLUMN wishlist_places.hours IS 'Operating hours (e.g., "9:00 AM - 6:00 PM")';
+COMMENT ON COLUMN wishlist_places.best_time_to_visit IS 'Recommended visiting time (e.g., "Morning to avoid crowds")';
+COMMENT ON COLUMN wishlist_places.visited IS 'Whether the place has been visited';

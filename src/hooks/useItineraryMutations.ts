@@ -151,15 +151,20 @@ interface AddActivityVariables {
 
 export function useAddActivityMutation() {
   return useMutation({
-    mutationFn: async ({ dayId, activity }: AddActivityVariables) => {
+    mutationFn: async ({ trip, dayId, activity }: AddActivityVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
+
+      // Get the date from the day plan
+      const dayPlan = trip.itinerary.find(d => d.id === dayId);
+      if (!dayPlan) throw new Error('Day plan not found');
 
       const { error } = await supabase
         .from('activities')
         .upsert(
           {
             id: activity.id,
-            day_plan_id: dayId,
+            trip_id: trip.id,
+            activity_date: dayPlan.date,
             activity_type: activity.type,
             name: activity.name,
             start_time: activity.startTime,
@@ -283,12 +288,17 @@ interface UpdateActivityVariables {
 
 export function useUpdateActivityMutation() {
   return useMutation({
-    mutationFn: async ({ dayId, activity }: UpdateActivityVariables) => {
+    mutationFn: async ({ trip, dayId, activity }: UpdateActivityVariables) => {
       if (!supabase) throw new Error('Supabase not configured');
+
+      // Get the date from the day plan
+      const dayPlan = trip.itinerary.find(d => d.id === dayId);
+      if (!dayPlan) throw new Error('Day plan not found');
 
       const { error } = await supabase
         .from('activities')
         .update({
+          activity_date: dayPlan.date,
           activity_type: activity.type,
           name: activity.name,
           start_time: activity.startTime,

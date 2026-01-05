@@ -78,7 +78,7 @@ const AppContent: React.FC<{
         userAvatar={settings.avatar}
         userName={settings.name}
       />
-      <main className="flex-1 flex flex-col relative h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col relative h-screen overflow-y-auto overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Dashboard trips={trips} settings={settings} deleteTrip={deleteTrip} />} />
           <Route path="/create" element={<TripForm onSubmit={addTrip} />} />

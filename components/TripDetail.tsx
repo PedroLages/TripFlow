@@ -21,7 +21,6 @@ import DocumentsTab from './tabs/DocumentsTab';
 import SettlementsTab from './tabs/SettlementsTab';
 import { useTerminology } from '../hooks/TerminologyContext';
 import { PullToRefresh } from './PullToRefresh';
-import MoreTabNav from './MoreTabNav';
 
 // Lazy load heavy components to reduce initial bundle size
 const AnalyticsTab = lazy(() => import('./tabs/AnalyticsTab'));
@@ -398,15 +397,7 @@ const TripDetail: React.FC<TripDetailProps> = ({ trips, updateTrip, currentUser 
         </div>
       </div>
 
-      {/* 4. Secondary Navigation for "More" Section */}
-      {(location.pathname.includes('/places') ||
-        location.pathname.includes('/docs') ||
-        location.pathname.includes('/analytics') ||
-        location.pathname.includes('/settlements')) && (
-        <MoreTabNav tripId={trip.id} />
-      )}
-
-      {/* 5. Tab Content Container */}
+      {/* 4. Tab Content Container */}
       <div className="relative z-10 min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32">
         <Routes>
           <Route path="itinerary" element={<ItineraryTab trip={{...trip, currentUserRole: currentRole}} updateTrip={(t) => {

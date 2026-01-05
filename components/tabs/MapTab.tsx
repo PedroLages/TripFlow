@@ -1990,7 +1990,7 @@ Return JSON array: [{name, type}] with 4 authentic local spots.`,
 
         /* Fullscreen specific styles */
         :fullscreen .maplibregl-canvas-container {
-          height: 100vh !important;
+          height: 100dvh !important;
         }
 
         /* Custom scrollbar for sidebar */

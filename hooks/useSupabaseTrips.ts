@@ -210,13 +210,13 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         .in('trip_id', tripIds)
         .order('date', { ascending: true });
 
-      // Fetch activities for the day plans
-      const dayPlanIds = dayPlansData?.map(dp => dp.id) || [];
-      const { data: activitiesData } = dayPlanIds.length > 0
+      // Fetch activities for the trips (V2 schema uses trip_id + activity_date)
+      const { data: activitiesData } = tripIds.length > 0
         ? await supabase
             .from('activities')
             .select('*')
-            .in('day_plan_id', dayPlanIds)
+            .in('trip_id', tripIds)
+            .order('activity_date', { ascending: true })
             .order('start_time', { ascending: true })
         : { data: [] };
 
@@ -320,14 +320,14 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
             isOwner: false,
           }));
 
-        // Map day plans and activities to itinerary
+        // Map day plans and activities to itinerary (V2 schema uses activity_date)
         const tripItinerary: DayPlan[] = (dayPlansData || [])
           .filter(dp => dp.trip_id === dbTrip.id)
           .map(dp => ({
             id: dp.id,
             date: dp.date,
             activities: (activitiesData || [])
-              .filter(a => a.day_plan_id === dp.id)
+              .filter(a => a.trip_id === dbTrip.id && a.activity_date === dp.date)
               .map(a => ({
                 id: a.id,
                 type: a.activity_type as Activity['type'],
@@ -548,14 +548,15 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
             continue; // Skip this day but continue with others
           }
 
-          // Insert activities for this day
+          // Insert activities for this day (V2 schema uses trip_id + activity_date)
           if (day.activities && day.activities.length > 0) {
             const { error: activitiesError } = await supabase
               .from('activities')
               .insert(
                 day.activities.map(a => ({
                   id: a.id,
-                  day_plan_id: day.id,
+                  trip_id: data.id,
+                  activity_date: day.date,
                   activity_type: a.type,
                   name: a.name,
                   start_time: a.startTime,
@@ -759,12 +760,13 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
         // Handle activities for each day
         for (const day of updates.itinerary) {
 
-          // Handle activities for this day
+          // Handle activities for this day (V2 schema uses trip_id + activity_date)
           // Get existing activities for this day
           const { data: existingActivities } = await supabase
             .from('activities')
             .select('id')
-            .eq('day_plan_id', day.id);
+            .eq('trip_id', id)
+            .eq('activity_date', day.date);
 
           const existingActivityIds = new Set(existingActivities?.map(a => a.id) || []);
           const newActivityIds = new Set((day.activities || []).map(a => a.id));
@@ -783,14 +785,15 @@ export function useSupabaseTrips(): UseSupabaseTripsReturn {
             }
           }
 
-          // Upsert activities for this day
+          // Upsert activities for this day (V2 schema uses trip_id + activity_date)
           if (day.activities && day.activities.length > 0) {
             const { error: activitiesError } = await supabase
               .from('activities')
               .upsert(
                 day.activities.map(a => ({
                   id: a.id,
-                  day_plan_id: day.id,
+                  trip_id: id,
+                  activity_date: day.date,
                   activity_type: a.type,
                   name: a.name,
                   start_time: a.startTime,

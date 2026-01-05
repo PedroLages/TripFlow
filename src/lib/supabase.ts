@@ -136,7 +136,46 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Database['public']['Tables']['expenses']['Insert']>;
       };
-      // Add more table definitions as needed
+      activities: {
+        Row: {
+          id: string;
+          trip_id: string;
+          name: string;
+          activity_type: 'Attraction' | 'Restaurant' | 'Transportation' | 'Accommodation' | 'Tour' | 'Free time' | 'Custom';
+          activity_date: string;  // DATE
+          start_time: string | null;  // TIME
+          end_time: string | null;    // TIME
+          location: string | null;
+          notes: string | null;
+          cost: number;
+          icon_name: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['activities']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['activities']['Insert']>;
+      };
+      wishlist_places: {
+        Row: {
+          id: string;
+          trip_id: string;
+          name: string;
+          category: 'Must See' | 'Maybe' | 'Restaurant' | 'Shopping';
+          notes: string | null;
+          rating: number;  // 1-5 priority
+          location: string | null;
+          coordinates: number[] | null;  // [lat, lng] as PostGIS point or array
+          image_url: string | null;
+          price_range: number | null;  // 1-4 ($ to $$$$)
+          hours: string | null;
+          best_time_to_visit: string | null;
+          visited: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['wishlist_places']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['wishlist_places']['Insert']>;
+      };
     };
   };
 }

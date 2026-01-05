@@ -63,28 +63,86 @@ const ACTIVITY_META: Record<ActivityType, { color: string, lightColor: string, d
   'Custom': { color: 'bg-pink-500', lightColor: 'bg-pink-50 dark:bg-pink-900/20', defaultIcon: 'Target' }
 };
 
+// Quick activity templates for common activities
+const ACTIVITY_TEMPLATES: Array<{ name: string; type: ActivityType; icon: string; defaultTime: string; duration: number }> = [
+  { name: 'Breakfast', type: 'Restaurant', icon: 'Coffee', defaultTime: '08:00', duration: 60 },
+  { name: 'Lunch', type: 'Restaurant', icon: 'Utensils', defaultTime: '12:00', duration: 90 },
+  { name: 'Dinner', type: 'Restaurant', icon: 'Utensils', defaultTime: '19:00', duration: 120 },
+  { name: 'Hotel Check-in', type: 'Accommodation', icon: 'Bed', defaultTime: '15:00', duration: 30 },
+  { name: 'Hotel Check-out', type: 'Accommodation', icon: 'Bed', defaultTime: '11:00', duration: 30 },
+  { name: 'Free Time', type: 'Free time', icon: 'Coffee', defaultTime: '14:00', duration: 120 },
+];
+
 const ActivityIcon = ({ name, className }: { name?: string, className?: string }) => {
   const IconComponent = ICON_MAP[name || 'MapPin'] || MapPin;
   return <IconComponent className={className} />;
+};
+
+// Helper: Calculate end time from start time and duration (in minutes)
+const calculateEndTime = (startTime: string, durationMinutes: number): string => {
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const totalMinutes = hours * 60 + minutes + durationMinutes;
+  const endHours = Math.floor(totalMinutes / 60) % 24;
+  const endMinutes = totalMinutes % 60;
+  return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+};
+
+// Helper: Calculate duration in minutes between two times
+const calculateDuration = (startTime: string, endTime: string): number => {
+  const [startHours, startMinutes] = startTime.split(':').map(Number);
+  const [endHours, endMinutes] = endTime.split(':').map(Number);
+  const startTotalMinutes = startHours * 60 + startMinutes;
+  const endTotalMinutes = endHours * 60 + endMinutes;
+  return endTotalMinutes - startTotalMinutes;
+};
+
+// Helper: Format duration for display (e.g., "2h 30m")
+const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours === 0) return `${mins}m`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
 };
 
 const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
   const t = useTerminology();
   const [editingActivity, setEditingActivity] = useState<{ dayId: string; activity: Activity | null } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ dayId: string; activityId: string } | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const isEditor = trip.currentUserRole === 'Editor';
 
-  // ESC key handler for modal
+  // ESC key handler for modal and dropdown
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && editingActivity) {
-        setEditingActivity(null);
+      if (e.key === 'Escape') {
+        if (showTypeDropdown) {
+          setShowTypeDropdown(false);
+        } else if (editingActivity) {
+          setEditingActivity(null);
+        }
       }
     };
 
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [editingActivity]);
+  }, [editingActivity, showTypeDropdown]);
+
+  // Click-outside handler for type dropdown
+  React.useEffect(() => {
+    if (!showTypeDropdown) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-dropdown="type"]')) {
+        setShowTypeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTypeDropdown]);
 
   // Hide navigation bars when modal is open
   React.useEffect(() => {
@@ -169,6 +227,22 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
 
   const cancelDeleteActivity = () => {
     setDeleteConfirm(null);
+  };
+
+  const applyTemplate = (template: typeof ACTIVITY_TEMPLATES[0]) => {
+    if (!editingActivity) return;
+    const endTime = calculateEndTime(template.defaultTime, template.duration);
+    setEditingActivity({
+      ...editingActivity,
+      activity: {
+        ...editingActivity.activity!,
+        name: template.name,
+        type: template.type,
+        startTime: template.defaultTime,
+        endTime,
+        iconName: template.icon,
+      },
+    });
   };
 
   const addDay = () => {
@@ -276,6 +350,7 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 const isEven = idx % 2 === 0;
                 const meta = ACTIVITY_META[act.type];
                 const matchingDoc = findMatchingDoc(act.name, trip.documents);
+                const duration = act.startTime && act.endTime ? calculateDuration(act.startTime, act.endTime) : 0;
 
                 return (
                   <div key={act.id} className={`flex flex-col md:flex-row gap-4 md:gap-8 items-center ${isEven ? 'md:flex-row-reverse' : ''} group`}>
@@ -289,23 +364,45 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                               <ActivityIcon name={act.iconName || meta.defaultIcon} className="w-4 h-4 md:w-6 md:h-6" />
                             </div>
                             <p className="text-xs md:text-base font-black tracking-tight">{act.startTime}</p>
+                            {act.endTime && (
+                              <>
+                                <p className="text-[8px] md:text-xs font-medium opacity-70">-{act.endTime}</p>
+                                {duration > 0 && (
+                                  <p className="text-[7px] md:text-[8px] font-medium opacity-60 mt-0.5">({formatDuration(duration)})</p>
+                                )}
+                              </>
+                            )}
                           </div>
 
                           <div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
                             <div className="space-y-0.5 md:space-y-1">
-                              <div className="flex justify-between items-start">
-                                <h4 className="font-display font-bold text-sm md:text-lg text-slate-900 dark:text-white leading-tight">{act.name}</h4>
-                                {matchingDoc && <span className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg"><CheckCircle2 size={10} /></span>}
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-display font-bold text-sm md:text-lg text-slate-900 dark:text-white leading-tight truncate">{act.name}</h4>
+                                    {matchingDoc && <span className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg flex-shrink-0"><CheckCircle2 size={10} /></span>}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-[8px] md:text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-wider ${meta.lightColor} text-slate-700 dark:text-slate-300`}>
+                                      {act.type}
+                                    </span>
+                                    {act.cost > 0 && (
+                                      <span className="text-[8px] md:text-[9px] px-2 py-0.5 rounded-lg font-black bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                                        ${act.cost}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1.5 md:gap-2 text-slate-400">
-                                <MapPin size={10} className="text-brand-primary" />
+                              <div className="flex items-center gap-1.5 md:gap-2 text-slate-400 mt-1">
+                                <MapPin size={10} className="text-brand-primary flex-shrink-0" />
                                 <p className="text-[9px] md:text-[10px] font-bold truncate">{act.location || 'Sector TBD'}</p>
                               </div>
                             </div>
                             <div className="flex items-center justify-between mt-2 pt-2 md:mt-4 md:pt-4 border-t border-slate-100 dark:border-white/5">
-                              <p className="text-[9px] md:text-[10px] text-slate-400 font-medium italic line-clamp-1">{act.notes || 'No briefing notes.'}</p>
+                              <p className="text-[9px] md:text-[10px] text-slate-400 font-medium italic line-clamp-1 flex-1">{act.notes || 'No briefing notes.'}</p>
                               {isEditor && (
-                                <div className="flex gap-1">
+                                <div className="flex gap-1 flex-shrink-0 ml-2">
                                   <button onClick={() => setEditingActivity({ dayId: day.id, activity: act })} className="p-1.5 text-slate-300 hover:text-brand-primary transition-colors"><Edit3 size={14} /></button>
                                   <button onClick={() => requestDeleteActivity(day.id, act.id)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                                 </div>
@@ -339,13 +436,12 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
       </div>
 
       {editingActivity && createPortal(
-        <div className="fixed inset-0 z-[1002] bg-[#0a0e1a]/98 backdrop-blur-2xl overflow-hidden flex items-center justify-center p-4 sm:p-6">
-          <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-[2.5rem] sm:rounded-[3.5rem] shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col my-20 md:my-auto max-h-[calc(100vh-160px)] md:max-h-[calc(100vh-120px)] border border-slate-200 dark:border-[#1e2533]/30">
-            <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 flex-shrink-0">
-              <div className="space-y-1">
-                <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
-                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-brand-primary">Refining Objective Parameters</p>
-              </div>
+        <div className="fixed inset-0 z-[1002] bg-[#0a0e1a]/90 backdrop-blur-2xl overflow-hidden flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white dark:bg-[#161b28] w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-3xl overflow-hidden animate-in zoom-in duration-300 flex flex-col my-20 md:my-auto max-h-[calc(100dvh-160px)] md:max-h-[calc(100dvh-120px)] border border-slate-200 dark:border-[#1e2533]/30 relative">
+            {/* Colored top border based on activity type */}
+            <div className={`absolute top-0 left-0 right-0 h-1 ${editingActivity.activity ? ACTIVITY_META[editingActivity.activity.type].color : 'bg-brand-primary'}`} />
+            <div className="p-4 border-b border-slate-100/50 dark:border-slate-700/50 flex justify-between items-center bg-white dark:bg-[#161b28] flex-shrink-0">
+              <h3 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white">Activity Config</h3>
               <button
                 onClick={() => setEditingActivity(null)}
                 className="w-10 h-10 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center transition-all text-slate-400 flex-shrink-0"
@@ -353,85 +449,172 @@ const ItineraryTab: React.FC<ItineraryTabProps> = ({ trip, updateTrip }) => {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 sm:p-8 space-y-8 overflow-y-auto no-scrollbar flex-1">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Objective Signature (Icon)</label>
-                <div className="grid grid-cols-7 gap-2 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5">
-                  {TACTICAL_ICONS.map(item => {
-                    const Icon = item.icon;
-                    const isSelected = editingActivity.activity?.iconName === item.name;
-                    return (
-                      <button
-                        key={item.name}
-                        onClick={() => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, iconName: item.name } }) : null)}
-                        className={`aspect-square rounded-xl flex items-center justify-center transition-all active:scale-90 ${isSelected ? 'bg-brand-primary text-white shadow-md scale-105 z-10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'}`}
-                      >
-                        <Icon size={16} />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+            <div className="p-5 sm:p-6 space-y-6 overflow-y-auto no-scrollbar flex-1">
+              {/* Quick Templates - Collapsible */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Asset Designation</label>
+                <button
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="flex items-center justify-between w-full text-left"
+                >
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Quick Templates</label>
+                  <span className={`text-slate-400 transition-transform text-xl ${showTemplates ? 'rotate-45' : ''}`}>+</span>
+                </button>
+                {showTemplates && (
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    {ACTIVITY_TEMPLATES.map((template) => {
+                      const Icon = ICON_MAP[template.icon] || MapPin;
+                      return (
+                        <button
+                          key={template.name}
+                          onClick={() => applyTemplate(template)}
+                          className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-900 hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 rounded-xl transition-all text-left group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-brand-primary/10 group-hover:bg-brand-primary group-hover:text-white text-brand-primary flex items-center justify-center transition-colors flex-shrink-0">
+                            <Icon size={12} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{template.name}</p>
+                            <p className="text-[8px] text-slate-400">{template.defaultTime}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Activity Name */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Activity Name</label>
                 <input
                   value={editingActivity.activity?.name}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, name: e.target.value } }) : null)}
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
-                  placeholder="e.g., Shibuya Sky"
+                  placeholder="e.g., Visit Shibuya Sky"
                 />
               </div>
+
+              {/* Activity Type - Custom Dropdown */}
+              <div className="space-y-2 relative" data-dropdown="type">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Type</label>
+                <button
+                  type="button"
+                  onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${ACTIVITY_META[editingActivity.activity?.type || 'Custom'].color}`} />
+                    <span>{editingActivity.activity?.type}</span>
+                  </div>
+                  <span className={`text-slate-400 transition-transform text-xs ${showTypeDropdown ? 'rotate-180' : ''}`}>▼</span>
+                </button>
+                {showTypeDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    {(['Attraction', 'Restaurant', 'Transportation', 'Accommodation', 'Tour', 'Free time', 'Custom'] as ActivityType[]).map((type) => {
+                      const meta = ACTIVITY_META[type];
+                      const Icon = ICON_MAP[meta.defaultIcon] || MapPin;
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => {
+                            const defaultIcon = meta.defaultIcon;
+                            setEditingActivity(p => p ? ({
+                              ...p,
+                              activity: {
+                                ...p.activity!,
+                                type,
+                                iconName: defaultIcon
+                              }
+                            }) : null);
+                            setShowTypeDropdown(false);
+                          }}
+                          className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors text-left"
+                        >
+                          <div className={`w-8 h-8 rounded-lg ${meta.color} flex items-center justify-center text-white`}>
+                            <Icon size={14} />
+                          </div>
+                          <span className="text-sm font-medium dark:text-white">{type}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Time Range */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Departure</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Start Time</label>
                   <input
                     type="time"
                     value={editingActivity.activity?.startTime}
                     onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, startTime: e.target.value } }) : null)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-medium dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-medium dark:text-white text-sm border-2 border-transparent focus:border-brand-primary/20"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 text-xs">Arrival</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">End Time</label>
                   <input
                     type="time"
                     value={editingActivity.activity?.endTime}
                     onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, endTime: e.target.value } }) : null)}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-medium dark:text-white text-sm"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl outline-none font-medium dark:text-white text-sm border-2 border-transparent focus:border-brand-primary/20"
                   />
                 </div>
               </div>
+
+              {/* Location */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Geographic Sector</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location</label>
                 <input
                   value={editingActivity.activity?.location}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, location: e.target.value } }) : null)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white text-sm shadow-sm"
-                  placeholder="City or Coordinates"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white text-sm shadow-sm border-2 border-transparent focus:border-brand-primary/20"
+                  placeholder="Optional"
                 />
               </div>
+
+              {/* Notes */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Briefing Notes</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Notes</label>
                 <textarea
                   value={editingActivity.activity?.notes}
                   onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, notes: e.target.value } }) : null)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-24 text-sm resize-none shadow-sm"
-                  placeholder="Key sub-objectives or arrival details..."
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none dark:text-white h-20 text-sm resize-none shadow-sm border-2 border-transparent focus:border-brand-primary/20"
+                  placeholder="Reservation details, tips, reminders..."
                 />
               </div>
+
+              {/* Cost */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Cost (Optional)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editingActivity.activity?.cost || 0}
+                    onChange={(e) => setEditingActivity(p => p ? ({ ...p, activity: { ...p.activity!, cost: parseFloat(e.target.value) || 0 } }) : null)}
+                    className="w-full pl-8 pr-4 py-3 bg-slate-50 dark:bg-slate-950 rounded-2xl font-medium outline-none border-2 border-transparent focus:border-brand-primary/20 dark:text-white text-sm shadow-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="p-6 sm:p-8 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex flex-row items-center justify-between gap-4 flex-shrink-0">
+            <div className="p-4 bg-white dark:bg-[#161b28] border-t border-slate-100/50 dark:border-slate-700/50 flex flex-row items-center justify-between gap-4 flex-shrink-0">
               <button
                 onClick={() => setEditingActivity(null)}
                 className="flex-1 px-4 py-3 font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors text-sm uppercase tracking-widest"
               >
-                Abort
+                {t.activityAbort}
               </button>
               <button
                 onClick={() => saveActivity(editingActivity.dayId, editingActivity.activity!)}
                 className="flex-[2] px-6 py-3 font-medium bg-brand-primary text-white rounded-2xl shadow-xl hover:shadow-indigo-500/30 active:scale-95 transition-all text-sm uppercase tracking-widest"
               >
-                Lock Objective
+                {t.activityLock}
               </button>
             </div>
           </div>
